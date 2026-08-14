@@ -216,3 +216,76 @@ V3.7
 - Recentrage automatique ISO / Gain / Ouverture conservé.
 - Clic direct sur les bulles conservé.
 - Version visible : v3.7
+
+
+V3.8
+- Correction complète du recentrage ISO / Gain / Ouverture.
+- Le centrage utilise maintenant la position réelle de la bulle dans la ligne.
+- Ajout d'espace invisible aux extrémités pour permettre aux premières et dernières valeurs d'être réellement centrées.
+- Recentrage après clic, +/- 1/3 stop, changement caméra/gamma et compensation AUTO.
+- Les bulles restent pleinement cliquables.
+- Shutter 400 / 800 conservés.
+- Version visible : v3.8
+
+
+V3.9
+- Dans le gros résultat COMPENSATION, suppression de "(f/ ou T)".
+- L'ouverture compensée s'affiche désormais simplement sous la forme f/4, f/5.6, etc.
+- Aucun autre changement.
+- Version visible : v3.9
+
+
+V3.10
+- Réglage fin du Gain modifié de ±2 dB à ±1 dB.
+- Les repères principaux restent espacés de 6 dB = 1 stop.
+- Les TIPS indiquent désormais qu'un pas de 1 dB correspond à environ 1/6 de stop.
+- Version visible : v3.10
+
+
+V3.11
+- Retour au réglage fin Gain par pas de ±2 dB.
+- 6 dB = 1 stop, donc 2 dB ≈ 1/3 de stop.
+- Cohérence avec les ajustements fins ±1/3 stop du diaph et des ISO.
+- Version visible : v3.11
+
+
+V3.12
+- Réglage fin du Gain repassé à ±1 dB pour plus de flexibilité en tournage.
+- Les repères principaux restent espacés de 6 dB = 1 stop.
+- 1 dB ≈ 1/6 stop ; 2 dB ≈ 1/3 stop.
+- TIPS mis à jour avec cette logique.
+- Version visible : v3.12
+
+
+V3.13
+- Les choix de MÉTHODE sont sauvegardés localement sur l'appareil.
+- Mémorisation : caméra, gamma, ISO/Gain, shutter Vitesse/Angle, réseau 50/60 Hz et cadence fps.
+- Les préférences sont restaurées automatiquement après fermeture/réouverture de l'application.
+- Le bouton RESET rétablit les valeurs par défaut et les enregistre comme nouvelles préférences.
+- Les données restent locales dans le navigateur/PWA ; aucun compte ni connexion internet nécessaire.
+- Version visible : v3.13
+
+
+V3.14
+- "MÉTHODE" devient "RÉGLAGES CAMÉRA".
+- La section Réglages caméra est maintenant repliée par défaut au lancement.
+- Un clic sur l'en-tête déplie / replie la section.
+- Les choix internes restent mémorisés comme en V3.13.
+- Version visible : v3.14
+
+
+V3.15
+- Suppression des longues rangées permanentes de valeurs dans l'écran principal.
+- Ouverture / ISO-Gain / Shutter / ND sont désormais affichés sous forme d'une seule valeur cliquable.
+- Un clic ouvre un panneau de sélection avec toutes les valeurs disponibles.
+- ISO natifs / Lo-Hi restent repérés par un contour bleu dans le panneau.
+- Gain : choix complet par pas de 1 dB.
+- ISO : choix jusqu'à 51 200.
+- Ouverture : tous les tiers de stop disponibles.
+- ND : 0 à 8 stops.
+- Shutter : vitesses 1/25 à 1/800 ou angles selon le mode.
+- Suppression complète du choix 50/60 Hz d'EXPOSURE.
+- La cadence fps n'est affichée que si le shutter est en Angle.
+- Les réglages caméra restent mémorisés après fermeture de l'app.
+- Réglages caméra reste replié par défaut.
+- Version visible : v3.15

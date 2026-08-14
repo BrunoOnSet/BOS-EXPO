@@ -10,7 +10,7 @@
   <title>BRUNO SET TOOLS / EXPOSURE</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.7" />
+  <link rel="stylesheet" href="style.css?v=3.15" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -34,73 +34,65 @@
       <button class="utility-link" id="tipsBtn" type="button">TIPS</button>
     </div>
 
-    <section class="panel method-panel">
-      <div class="panel-head compact-head">
-        <div class="panel-kicker">MÉTHODE</div>
+    <section class="panel method-panel collapsed" id="cameraSettingsPanel">
+      <div class="panel-head compact-head collapsible-head">
+        <button type="button" class="collapse-toggle" id="cameraSettingsToggle" aria-expanded="false" aria-controls="cameraSettingsContent">
+          <span class="panel-kicker">RÉGLAGES CAMÉRA</span>
+          <span class="collapse-chevron" aria-hidden="true">⌄</span>
+        </button>
         <button class="info" id="infoBtn" aria-label="Informations">i</button>
       </div>
 
-      <div class="camera-row">
-        <span class="method-label">Caméra</span>
-        <div class="chips mode-chips camera-chips" id="cameraMode">
-          <button class="active" data-value="FX30">FX30</button>
-          <button data-value="FX3">FX3</button>
-          <button data-value="FX5">FX5</button>
-          <button data-value="FX6">FX6</button>
-        </div>
-      </div>
-
-      <div class="method-compact-grid method-profile-grid">
-        <div class="method-compact-item">
-          <span class="method-label">Gamma</span>
-          <div class="chips mode-chips" id="gammaMode">
-            <button data-value="scinetone">S-Cinetone</button>
-            <button class="active" data-value="slog3">S-Log3</button>
+      <div class="method-content" id="cameraSettingsContent" hidden>
+        <div class="camera-row">
+          <span class="method-label">Caméra</span>
+          <div class="chips mode-chips camera-chips" id="cameraMode">
+            <button class="active" data-value="FX30">FX30</button>
+            <button data-value="FX3">FX3</button>
+            <button data-value="FX5">FX5</button>
+            <button data-value="FX6">FX6</button>
           </div>
         </div>
 
-        <div class="method-compact-item">
-          <span class="method-label">Sensibilité</span>
-          <div class="chips mode-chips" id="sensitivityMode">
-            <button class="active" data-value="iso">ISO</button>
-            <button data-value="gain">Gain</button>
+        <div class="method-compact-grid method-profile-grid">
+          <div class="method-compact-item">
+            <span class="method-label">Gamma</span>
+            <div class="chips mode-chips" id="gammaMode">
+              <button data-value="scinetone">S-Cinetone</button>
+              <button class="active" data-value="slog3">S-Log3</button>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="base-iso-note" id="baseIsoNote">
-        <span class="base-dot"></span>
-        <span>ISO natifs / Lo-Hi : 800 / 2 500</span>
-      </div>
-
-      <div class="method-compact-grid method-exposure-grid">
-        <div class="method-compact-item">
-          <span class="method-label">Shutter</span>
-          <div class="chips mode-chips" id="shutterMode">
-            <button class="active" data-value="speed">Vitesse</button>
-            <button data-value="angle">Angle</button>
+          <div class="method-compact-item">
+            <span class="method-label">Sensibilité</span>
+            <div class="chips mode-chips" id="sensitivityMode">
+              <button class="active" data-value="iso">ISO</button>
+              <button data-value="gain">Gain</button>
+            </div>
           </div>
         </div>
 
-        <div class="method-compact-item">
-          <span class="method-label">Réseau</span>
-          <div class="chips mode-chips" id="frequencyMode">
-            <button class="active" data-value="50">50 Hz</button>
-            <button data-value="60">60 Hz</button>
+        <div class="base-iso-note" id="baseIsoNote">
+          <span class="base-dot"></span>
+          <span>ISO natifs / Lo-Hi : 800 / 2 500</span>
+        </div>
+
+        <div class="method-compact-grid method-exposure-grid single-method-row">
+          <div class="method-compact-item">
+            <span class="method-label">Shutter</span>
+            <div class="chips mode-chips" id="shutterMode">
+              <button class="active" data-value="speed">Vitesse</button>
+              <button data-value="angle">Angle</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="fps-row">
-        <div class="label-row compact-label-row">
-          <span class="method-label">Cadence</span>
-          <span class="unit">fps</span>
-        </div>
-        <div class="chips fps-chips" id="fpsChoices">
-          <button class="active" data-value="25">25</button>
-          <button data-value="50">50</button>
-          <button data-value="100">100</button>
-          <button data-value="200">200</button>
+        <div class="fps-row hidden" id="fpsRow">
+          <div class="label-row compact-label-row">
+            <span class="method-label">Cadence</span>
+            <span class="unit">fps · nécessaire avec un shutter en angle</span>
+          </div>
+          <button type="button" class="value-select compact-select" data-picker-target="fps" id="fpsSelect">25 fps <span>⌄</span></button>
         </div>
       </div>
     </section>
@@ -116,49 +108,25 @@
 
       <div class="reference-grid">
         <div class="ref-field">
-          <div class="label-row"><label for="refAperture">Ouverture</label><span class="unit">f/ ou T</span></div>
-          <input id="refAperture" inputmode="decimal" type="text" value="2.8" />
-          <div class="third-step-row">
-            <button type="button" class="third-step-btn" data-step-target="refAperture" data-direction="-1">−⅓</button>
-            <span class="third-step-hint">ajustement fin</span>
-            <button type="button" class="third-step-btn" data-step-target="refAperture" data-direction="1">+⅓</button>
-          </div>
-          <div class="chips modifier-chips main-stop-chips" data-target="refAperture">
-            <button>1.4</button><button>2</button><button class="active">2.8</button><button>4</button>
-            <button>5.6</button><button>8</button><button>11</button><button>16</button>
-          </div>
+          <div class="label-row"><label>Ouverture</label><span class="unit">f/</span></div>
+          <input id="refAperture" type="hidden" value="2.8" />
+          <button type="button" class="value-select" data-picker-target="refAperture" id="refApertureSelect">f/2,8 <span>⌄</span></button>
         </div>
         <div class="ref-field">
-          <div class="label-row"><label for="refIso" id="refSensitivityLabel">ISO</label><span class="unit" id="refSensitivityUnit">sensibilité</span></div>
-          <input id="refIso" inputmode="numeric" type="text" value="800" />
-          <div class="third-step-row">
-            <button type="button" class="third-step-btn sensitivity-step-btn" data-step-target="refIso" data-direction="-1">−⅓</button>
-            <span class="third-step-hint" id="refSensitivityHint">ajustement fin</span>
-            <button type="button" class="third-step-btn sensitivity-step-btn" data-step-target="refIso" data-direction="1">+⅓</button>
-          </div>
-          <div class="chips modifier-chips main-stop-chips" id="refSensitivityChips" data-target="refIso">
-            <button>100</button><button>200</button><button>400</button><button class="active">800</button>
-            <button>1600</button><button>3200</button><button>6400</button><button>12800</button><button>25600</button><button>51200</button>
-          </div>
+          <div class="label-row"><label id="refSensitivityLabel">ISO</label><span class="unit" id="refSensitivityUnit">sensibilité</span></div>
+          <input id="refIso" type="hidden" value="800" />
+          <button type="button" class="value-select" data-picker-target="refIso" id="refSensitivitySelect">ISO 800 <span>⌄</span></button>
         </div>
         <div class="ref-field">
-          <div class="label-row"><label for="refShutter">Shutter</label><span class="unit" id="refShutterUnit">1/x s</span></div>
-          <input id="refShutter" inputmode="decimal" type="text" value="50" />
+          <div class="label-row"><label>Shutter</label><span class="unit" id="refShutterUnit">1/x s</span></div>
+          <input id="refShutter" type="hidden" value="50" />
+          <button type="button" class="value-select" data-picker-target="refShutter" id="refShutterSelect">1/50 s <span>⌄</span></button>
           <div class="shutter-equiv" id="refShutterEquiv">180° à 25 fps</div>
-          <div class="chips modifier-chips shutter-speed-chips" data-target="refShutter">
-            <button>25</button><button>40</button><button class="active">50</button><button>100</button><button>200</button><button>400</button><button>800</button>
-          </div>
-          <div class="chips modifier-chips shutter-angle-chips hidden" data-target="refShutter">
-            <button>90</button><button>144</button><button class="active">180</button><button>270</button><button>360</button>
-          </div>
         </div>
         <div class="ref-field">
-          <div class="label-row"><label for="refNd">ND</label><span class="unit">stops</span></div>
-          <input id="refNd" inputmode="numeric" type="text" value="0" />
-          <div class="chips modifier-chips" data-target="refNd">
-            <button class="active">0</button><button>1</button><button>2</button><button>3</button><button>4</button>
-            <button>5</button><button>6</button><button>7</button><button>8</button>
-          </div>
+          <div class="label-row"><label>ND</label><span class="unit">stops</span></div>
+          <input id="refNd" type="hidden" value="0" />
+          <button type="button" class="value-select" data-picker-target="refNd" id="refNdSelect">0 stop <span>⌄</span></button>
         </div>
       </div>
     </section>
@@ -181,16 +149,8 @@
             </div>
             <span class="mode-badge manual" id="apertureBadge">MANUEL</span>
           </div>
-          <input id="newAperture" class="hero-input" inputmode="decimal" type="text" value="4" />
-          <div class="third-step-row linked-third-step">
-            <button type="button" class="third-step-btn" data-step-target="newAperture" data-direction="-1">−⅓</button>
-            <span class="third-step-hint">ajustement fin</span>
-            <button type="button" class="third-step-btn" data-step-target="newAperture" data-direction="1">+⅓</button>
-          </div>
-          <div class="chips linked-chips main-stop-chips" data-target="newAperture">
-            <button>1.4</button><button>2</button><button>2.8</button><button class="active">4</button>
-            <button>5.6</button><button>8</button><button>11</button><button>16</button>
-          </div>
+          <input id="newAperture" type="hidden" value="4" />
+          <button type="button" class="value-select hero-select" data-picker-target="newAperture" id="newApertureSelect">f/4 <span>⌄</span></button>
         </div>
 
         <div class="link-symbol">⇄</div>
@@ -203,16 +163,8 @@
             </div>
             <span class="mode-badge auto" id="sensitivityBadge">AUTO</span>
           </div>
-          <input id="newIso" class="hero-input" inputmode="numeric" type="text" value="1600" />
-          <div class="third-step-row linked-third-step">
-            <button type="button" class="third-step-btn sensitivity-step-btn" data-step-target="newIso" data-direction="-1">−⅓</button>
-            <span class="third-step-hint" id="newSensitivityHint">ajustement fin</span>
-            <button type="button" class="third-step-btn sensitivity-step-btn" data-step-target="newIso" data-direction="1">+⅓</button>
-          </div>
-          <div class="chips linked-chips main-stop-chips" id="newSensitivityChips" data-target="newIso">
-            <button>100</button><button>200</button><button>400</button><button>800</button>
-            <button class="active">1600</button><button>3200</button><button>6400</button><button>12800</button><button>25600</button><button>51200</button>
-          </div>
+          <input id="newIso" type="hidden" value="1600" />
+          <button type="button" class="value-select hero-select" data-picker-target="newIso" id="newSensitivitySelect">ISO 1600 <span>⌄</span></button>
         </div>
       </div>
 
@@ -229,24 +181,16 @@
 
       <div class="modifier-grid">
         <div class="modifier-field">
-          <div class="label-row"><label for="newShutter">Shutter</label><span class="unit" id="newShutterUnit">1/x s</span></div>
-          <input id="newShutter" inputmode="decimal" type="text" value="50" />
+          <div class="label-row"><label>Shutter</label><span class="unit" id="newShutterUnit">1/x s</span></div>
+          <input id="newShutter" type="hidden" value="50" />
+          <button type="button" class="value-select" data-picker-target="newShutter" id="newShutterSelect">1/50 s <span>⌄</span></button>
           <div class="shutter-equiv" id="newShutterEquiv">180° à 25 fps</div>
-          <div class="chips modifier-chips shutter-speed-chips" data-target="newShutter">
-            <button>25</button><button>40</button><button class="active">50</button><button>100</button><button>200</button><button>400</button><button>800</button>
-          </div>
-          <div class="chips modifier-chips shutter-angle-chips hidden" data-target="newShutter">
-            <button>90</button><button>144</button><button class="active">180</button><button>270</button><button>360</button>
-          </div>
         </div>
 
         <div class="modifier-field">
-          <div class="label-row"><label for="newNd">ND</label><span class="unit">stops</span></div>
-          <input id="newNd" inputmode="numeric" type="text" value="0" />
-          <div class="chips modifier-chips" data-target="newNd">
-            <button class="active">0</button><button>1</button><button>2</button><button>3</button><button>4</button>
-            <button>5</button><button>6</button><button>7</button><button>8</button>
-          </div>
+          <div class="label-row"><label>ND</label><span class="unit">stops</span></div>
+          <input id="newNd" type="hidden" value="0" />
+          <button type="button" class="value-select" data-picker-target="newNd" id="newNdSelect">0 stop <span>⌄</span></button>
         </div>
       </div>
     </section>
@@ -295,7 +239,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v3.7</span>
+        <span class="app-version">v3.15</span>
       </div>
     </footer>
   </main>
@@ -335,7 +279,7 @@
       <div>
         <h3>ISO, EI et Gain</h3>
         <p>En mode ISO, doubler la valeur correspond à <strong>+1 stop</strong> dans une équivalence d’exposition.</p>
-        <p>En mode Gain, l’app utilise le repère <strong>+6 dB = +1 stop</strong>. Les boutons fins déplacent le gain de 2 dB, soit environ 1/3 de stop.</p>
+        <p>En mode Gain, l’app utilise le repère <strong>+6 dB = +1 stop</strong>. Les boutons fins déplacent le gain de 1 dB, soit environ 1/6 de stop. Deux pas de 1 dB correspondent donc à environ 1/3 de stop.</p>
         <div class="tip-note">La correspondance absolue entre ISO et gain dépend de la caméra. L’app ne force donc pas une conversion arbitraire du type « 0 dB = ISO X ».</div>
       </div>
     </article>
@@ -345,7 +289,7 @@
       <div>
         <h3>Shutter : vitesse et angle</h3>
         <p>Passer de 1/50 s à 1/100 s retire <strong>1 stop</strong>. Doubler le temps d’exposition ajoute 1 stop.</p>
-        <p>Avec un shutter en angle, le temps d’exposition dépend aussi de la cadence. À 25 fps, 180° correspond à 1/50 s.</p>
+        <p>Avec un shutter en angle, le temps d’exposition dépend de la cadence. À 25 fps, 180° correspond à 1/50 s. La cadence n’est donc demandée par l’app que dans ce mode.</p>
       </div>
     </article>
 
@@ -384,6 +328,20 @@
     </footer>
   </section>
 
+
+  <dialog id="valuePickerDialog" class="picker-dialog">
+    <div class="picker-inner">
+      <div class="picker-head">
+        <div>
+          <div class="dialog-kicker">RÉGLAGE</div>
+          <h2 id="pickerTitle">Choisir une valeur</h2>
+        </div>
+        <button id="pickerClose" class="close" aria-label="Fermer">×</button>
+      </div>
+      <div class="picker-grid" id="pickerGrid"></div>
+    </div>
+  </dialog>
+
   <dialog id="infoDialog">
     <div class="dialog-inner">
       <button id="closeDialog" class="close" aria-label="Fermer">×</button>
@@ -395,6 +353,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.7"></script>
+  <script src="app.js?v=3.15"></script>
 </body>
 </html>
