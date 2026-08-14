@@ -199,3 +199,20 @@ V3.5
 - Le recentrage automatique sur la valeur sélectionnée reste actif.
 - Aucun changement sur mobile.
 - Version visible : v3.5
+
+
+V3.6
+- Rétablissement du recentrage automatique des valeurs ISO / Gain / Ouverture.
+- Les bulles restent entièrement cliquables à la souris.
+- Aucun drag souris n'est réintroduit.
+- Après un clic ou un ajustement +/- 1/3, la valeur choisie se replace au centre.
+- Recentrage également après changement caméra / gamma / mode ISO-Gain.
+- Version visible : v3.6
+
+
+V3.7
+- Ajout des vitesses shutter 1/400 s et 1/800 s dans les choix rapides.
+- Ajout dans RÉFÉRENCE et NOUVEAU RÉGLAGE.
+- Recentrage automatique ISO / Gain / Ouverture conservé.
+- Clic direct sur les bulles conservé.
+- Version visible : v3.7

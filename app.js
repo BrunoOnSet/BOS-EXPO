@@ -324,6 +324,10 @@ function updateUI(){
   updateActiveChips();
   updateBaseIsoNote();
 
+  requestAnimationFrame(()=>{
+    centerExposureRows(false);
+  });
+
   const d=calcDeltas();
   if(!d){
     ["resultValue","resultState","resultDetail","equivMessage","quickAperture","quickIso","quickShutter","quickNd"]
@@ -374,7 +378,9 @@ document.addEventListener("click",e=>{
   if(id==="newAperture")manualParam="aperture";
   if(id==="newIso")manualParam="sensitivity";
   updateUI();
-  requestAnimationFrame(()=>centerChipRowForTarget(id,true));
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>centerChipRowForTarget(id,true));
+  });
 });
 
 document.querySelectorAll(".third-step-btn").forEach(btn=>{
@@ -394,7 +400,9 @@ document.querySelectorAll(".third-step-btn").forEach(btn=>{
       if(id==="newAperture")manualParam="aperture";
     }
     updateUI();
-    requestAnimationFrame(()=>centerChipRowForTarget(id,true));
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>centerChipRowForTarget(id,true));
+    });
   });
 });
 
@@ -428,6 +436,7 @@ $("cameraMode").addEventListener("click",e=>{
   cameraMode=btn.dataset.value;
   $("cameraMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
   updateUI();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>centerExposureRows(true)));
 });
 
 $("gammaMode").addEventListener("click",e=>{
@@ -436,6 +445,7 @@ $("gammaMode").addEventListener("click",e=>{
   gammaMode=btn.dataset.value;
   $("gammaMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
   updateUI();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>centerExposureRows(true)));
 });
 
 $("sensitivityMode").addEventListener("click",e=>{
@@ -454,6 +464,7 @@ $("sensitivityMode").addEventListener("click",e=>{
 
   updateSensitivityLabels();
   updateUI();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>centerExposureRows(true)));
 });
 
 $("frequencyMode").addEventListener("click",e=>{
