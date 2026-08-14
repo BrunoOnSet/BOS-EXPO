@@ -190,3 +190,12 @@ V3.4
 - Lorsqu'un ISO natif est sélectionné, la bulle reste pleine en bleu.
 - Le point bleu existant est conservé comme repère secondaire.
 - Version visible : v3.4
+
+
+V3.5
+- Correction desktop : les bulles ISO / diaph sont de nouveau pleinement cliquables.
+- Suppression du drag souris qui interceptait les clics.
+- La molette horizontale reste active.
+- Le recentrage automatique sur la valeur sélectionnée reste actif.
+- Aucun changement sur mobile.
+- Version visible : v3.5

@@ -414,3 +414,16 @@ body.dark .chips button.native-iso.active{
 body.dark .chips button.native-iso:not(.active){
   color:var(--text);
 }
+
+
+/* V3.5 — restore direct chip clicks on desktop */
+@media (hover:hover) and (pointer:fine){
+  .chips{
+    cursor:default;
+    user-select:auto;
+  }
+  .chips button{
+    cursor:pointer;
+    pointer-events:auto;
+  }
+}

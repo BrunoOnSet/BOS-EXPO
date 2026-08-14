@@ -523,6 +523,8 @@ $("resetBtn").addEventListener("click",()=>{
 });
 
 // Desktop horizontal navigation
+// Keep mouse-wheel horizontal scrolling, but do not capture pointer clicks.
+// Auto-centering now handles most navigation, so buttons remain fully clickable.
 function bindScrollableRows(){
   document.querySelectorAll(".chips").forEach(row=>{
     if(row.dataset.desktopBound==="1")return;
@@ -534,30 +536,6 @@ function bindScrollableRows(){
       e.preventDefault();
       row.scrollLeft+=e.deltaY;
     },{passive:false});
-
-    let isDragging=false,startX=0,startScrollLeft=0,moved=false;
-
-    row.addEventListener("pointerdown",e=>{
-      if(e.pointerType==="touch"||row.scrollWidth<=row.clientWidth)return;
-      isDragging=true;moved=false;startX=e.clientX;startScrollLeft=row.scrollLeft;
-      row.setPointerCapture?.(e.pointerId);row.classList.add("is-dragging");
-    });
-    row.addEventListener("pointermove",e=>{
-      if(!isDragging)return;
-      const dx=e.clientX-startX;
-      if(Math.abs(dx)>3)moved=true;
-      row.scrollLeft=startScrollLeft-dx;
-    });
-    const end=e=>{
-      if(!isDragging)return;
-      isDragging=false;row.classList.remove("is-dragging");
-      try{row.releasePointerCapture?.(e.pointerId);}catch(_){}
-    };
-    row.addEventListener("pointerup",end);
-    row.addEventListener("pointercancel",end);
-    row.addEventListener("click",e=>{
-      if(moved){e.preventDefault();e.stopPropagation();moved=false;}
-    },true);
   });
 }
 bindScrollableRows();
