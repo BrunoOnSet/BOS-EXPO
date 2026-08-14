@@ -1,113 +1,101 @@
 const $ = id => document.getElementById(id);
 
-const ids = ["aAperture","bAperture","aIso","bIso","aShutter","bShutter","aNd","bNd"];
-const inputs = Object.fromEntries(ids.map(id => [id,$(id)]));
+const inputs = {
+  refAperture:$("refAperture"), refIso:$("refIso"), refShutter:$("refShutter"), refNd:$("refNd"),
+  newAperture:$("newAperture"), newIso:$("newIso"), newShutter:$("newShutter"), newNd:$("newNd")
+};
 
-let apertureMode = "f";
 let shutterMode = "speed";
 let frequencyMode = "50";
 let currentFps = 25;
+let manualParam = "aperture"; // aperture or iso
+let internalUpdate = false;
+
+const FPS_BY_FREQUENCY = {
+  "50":[25,50,100,200],
+  "60":[23.98,24,29.97,30,60,120,240]
+};
 
 function num(v){ return Number(String(v).replace(",", ".").trim()); }
-function log2(v){ return Math.log(v) / Math.log(2); }
-function fmtNum(v, digits=1){
+function log2(v){ return Math.log(v)/Math.log(2); }
+function fmt(v,d=1){
   if(!Number.isFinite(v)) return "—";
-  const rounded = Number(v.toFixed(digits));
-  return String(rounded).replace(".", ",");
+  const n=Number(v.toFixed(d));
+  return String(n).replace(".",",");
 }
-function fmtStops(v){
+function fmtStop(v){
   if(!Number.isFinite(v)) return "—";
-  if(Math.abs(v) < 0.05) return "0,0";
-  const sign = v > 0 ? "+" : "−";
-  return `${sign}${Math.abs(v).toFixed(1).replace(".", ",")}`;
+  if(Math.abs(v)<0.005) return "0,0 stop";
+  return `${v>0?"+":"−"}${Math.abs(v).toFixed(1).replace(".",",")} stop`;
 }
-function fmtMainStops(v){
-  if(!Number.isFinite(v)) return "—";
-  if(Math.abs(v) < 0.05) return "0 STOP";
-  const sign = v > 0 ? "+" : "−";
-  const a = Math.abs(v);
-  const txt = Math.abs(a - Math.round(a)) < 0.05 ? String(Math.round(a)) : a.toFixed(1).replace(".", ",");
-  return `${sign}${txt} ${a < 1.05 ? "STOP" : "STOPS"}`;
+function fmtAperture(v){ return Number.isFinite(v) ? fmt(v,2) : "—"; }
+function fmtIso(v){ return Number.isFinite(v) ? String(Math.max(1,Math.round(v))) : "—"; }
+
+function timeFromShutter(v){
+  if(!(v>0 && currentFps>0)) return NaN;
+  return shutterMode==="speed" ? 1/v : v/(360*currentFps);
 }
-function shutterTime(value){
-  const fps = currentFps;
-  if(!(fps > 0 && value > 0)) return NaN;
-  return shutterMode === "speed" ? 1/value : value/(360*fps);
-}
-function equivalentText(value){
-  const fps = currentFps;
-  if(!(fps > 0 && value > 0)) return "—";
-  if(shutterMode === "speed"){
-    const angle = 360 * fps / value;
-    return `${fmtNum(angle,1)}° à ${fmtNum(fps,2)} fps`;
-  }
-  const denom = 360 * fps / value;
-  return `1/${fmtNum(denom,1)} s à ${fmtNum(fps,2)} fps`;
-}
-function compute(){
-  const aN=num(inputs.aAperture.value), bN=num(inputs.bAperture.value);
-  const aIso=num(inputs.aIso.value), bIso=num(inputs.bIso.value);
-  const aSh=num(inputs.aShutter.value), bSh=num(inputs.bShutter.value);
-  const aNd=num(inputs.aNd.value), bNd=num(inputs.bNd.value);
-
-  $("aShutterEquiv").textContent = equivalentText(aSh);
-  $("bShutterEquiv").textContent = equivalentText(bSh);
-
-  if(!(aN>0 && bN>0 && aIso>0 && bIso>0 && aSh>0 && bSh>0 && aNd>=0 && bNd>=0)){
-    ["totalStops","resultState","compensationText","deltaAperture","deltaIso","deltaShutter","deltaNd","compAperture","compIso","compShutter","compNd"]
-      .forEach(id => $(id).textContent="—");
-    return;
-  }
-
-  const dAperture = 2*log2(aN/bN);
-  const dIso = log2(bIso/aIso);
-  const tA = shutterTime(aSh), tB = shutterTime(bSh);
-  const dShutter = log2(tB/tA);
-  const dNd = -(bNd-aNd)/0.3;
-  const total = dAperture+dIso+dShutter+dNd;
-  const needed = -total;
-
-  $("deltaAperture").textContent = `${fmtStops(dAperture)} stop`;
-  $("deltaIso").textContent = `${fmtStops(dIso)} stop`;
-  $("deltaShutter").textContent = `${fmtStops(dShutter)} stop`;
-  $("deltaNd").textContent = `${fmtStops(dNd)} stop`;
-  $("totalStops").textContent = fmtMainStops(total);
-
-  if(Math.abs(total)<0.05){
-    $("resultState").textContent="EXPOSITION ÉQUIVALENTE";
-    $("compensationText").textContent="Aucune compensation nécessaire.";
-  }else if(total>0){
-    $("resultState").textContent="PLUS CLAIR";
-    $("compensationText").textContent=`Pour revenir au départ : ${fmtStops(needed)} stop.`;
-  }else{
-    $("resultState").textContent="PLUS SOMBRE";
-    $("compensationText").textContent=`Pour revenir au départ : ${fmtStops(needed)} stop.`;
-  }
-
-  // One-parameter compensation targets, starting from the NEW setting.
-  const targetN = bN / Math.pow(2, needed/2);
-  $("compAperture").textContent = `${apertureMode==="t"?"T":"f/"}${fmtNum(targetN,2)}`;
-
-  const targetIso = bIso * Math.pow(2, needed);
-  $("compIso").textContent = `ISO ${Math.round(targetIso)}`;
-
+function shutterEquiv(v){
+  if(!(v>0 && currentFps>0)) return "—";
   if(shutterMode==="speed"){
-    const targetDenom = bSh / Math.pow(2, needed);
-    $("compShutter").textContent = `1/${fmtNum(targetDenom,1)} s`;
+    return `${fmt(360*currentFps/v,1)}° à ${fmt(currentFps,2)} fps`;
+  }
+  return `1/${fmt(360*currentFps/v,1)} s à ${fmt(currentFps,2)} fps`;
+}
+
+function calcDeltas(){
+  const rN=num(inputs.refAperture.value), nN=num(inputs.newAperture.value);
+  const rIso=num(inputs.refIso.value), nIso=num(inputs.newIso.value);
+  const rSh=num(inputs.refShutter.value), nSh=num(inputs.newShutter.value);
+  const rNd=num(inputs.refNd.value), nNd=num(inputs.newNd.value);
+  if(!(rN>0&&nN>0&&rIso>0&&nIso>0&&rSh>0&&nSh>0&&rNd>=0&&nNd>=0)) return null;
+
+  const dA=2*log2(rN/nN);
+  const dI=log2(nIso/rIso);
+  const dS=log2(timeFromShutter(nSh)/timeFromShutter(rSh));
+  const dN=-(nNd-rNd)/0.3;
+  return {dA,dI,dS,dN,total:dA+dI+dS+dN};
+}
+
+function solveAuto(){
+  const rN=num(inputs.refAperture.value), rIso=num(inputs.refIso.value);
+  const rSh=num(inputs.refShutter.value), nSh=num(inputs.newShutter.value);
+  const rNd=num(inputs.refNd.value), nNd=num(inputs.newNd.value);
+  if(!(rN>0&&rIso>0&&rSh>0&&nSh>0&&rNd>=0&&nNd>=0)) return;
+
+  const tR=timeFromShutter(rSh), tN=timeFromShutter(nSh);
+  if(!(tR>0&&tN>0)) return;
+
+  internalUpdate=true;
+
+  if(manualParam==="aperture"){
+    const nN=num(inputs.newAperture.value);
+    if(nN>0){
+      const ndStops=(nNd-rNd)/0.3;
+      const iso = rIso * (tR/tN) * Math.pow(nN/rN,2) * Math.pow(2,ndStops);
+      inputs.newIso.value=fmtIso(iso);
+    }
   }else{
-    const targetAngle = bSh * Math.pow(2, needed);
-    $("compShutter").textContent = targetAngle<=360 ? `${fmtNum(targetAngle,1)}°` : `>${360}°`;
+    const nIso=num(inputs.newIso.value);
+    if(nIso>0){
+      const ndStops=(nNd-rNd)/0.3;
+      const factor=(nIso/rIso)*(tN/tR)*Math.pow(2,-ndStops);
+      const aperture=rN*Math.sqrt(factor);
+      inputs.newAperture.value=fmtAperture(aperture);
+    }
   }
 
-  const targetNd = bNd - needed*0.3;
-  if(targetNd < -0.01){
-    const missing = Math.abs(targetNd)/0.3;
-    $("compNd").textContent = `ND 0 + ${fmtNum(missing,1)} stop`;
-  }else{
-    $("compNd").textContent = `ND ${Math.max(0,targetNd).toFixed(2).replace(".",",")}`;
-  }
+  internalUpdate=false;
+}
 
-  updateActiveChips();
+function updateModes(){
+  const apAuto=manualParam==="iso";
+  $("apertureBadge").textContent=apAuto?"AUTO":"MANUEL";
+  $("apertureBadge").className=`mode-badge ${apAuto?"auto":"manual"}`;
+  $("isoBadge").textContent=apAuto?"MANUEL":"AUTO";
+  $("isoBadge").className=`mode-badge ${apAuto?"manual":"auto"}`;
+  $("apertureCard").classList.toggle("auto-card",apAuto);
+  $("isoCard").classList.toggle("auto-card",!apAuto);
 }
 
 function updateActiveChips(){
@@ -117,110 +105,123 @@ function updateActiveChips(){
     if(!inp) return;
     const value=num(inp.value);
     group.querySelectorAll("button").forEach(btn=>{
-      btn.classList.toggle("active", Math.abs(num(btn.textContent)-value)<0.001);
+      btn.classList.toggle("active",Math.abs(num(btn.textContent)-value)<0.001);
     });
   });
+}
+
+function updateUI(){
+  $("refShutterEquiv").textContent=shutterEquiv(num(inputs.refShutter.value));
+  $("newShutterEquiv").textContent=shutterEquiv(num(inputs.newShutter.value));
+
+  solveAuto();
+  updateModes();
+  updateActiveChips();
+
+  const d=calcDeltas();
+  if(!d){
+    ["resultValue","resultState","resultDetail","equivMessage","quickAperture","quickIso","quickShutter","quickNd"]
+      .forEach(id=>$(id).textContent="—");
+    return;
+  }
+
+  const rN=num(inputs.refAperture.value), nN=num(inputs.newAperture.value);
+  const rIso=num(inputs.refIso.value), nIso=num(inputs.newIso.value);
+
+  if(manualParam==="aperture"){
+    $("resultValue").textContent=`ISO ${fmtIso(nIso)}`;
+    $("equivMessage").textContent=`${fmtAperture(nN)} → ISO ${fmtIso(nIso)} pour conserver l’exposition.`;
+  }else{
+    $("resultValue").textContent=`${fmtAperture(nN)} (f/ ou T)`;
+    $("equivMessage").textContent=`ISO ${fmtIso(nIso)} → ${fmtAperture(nN)} pour conserver l’exposition.`;
+  }
+
+  $("resultState").textContent=Math.abs(d.total)<0.08?"EXPOSITION ÉQUIVALENTE":`${fmtStop(d.total)} D’ÉCART`;
+  $("resultDetail").textContent=
+    `${fmtAperture(rN)} → ${fmtAperture(nN)} : ${fmtStop(d.dA)} · ISO ${fmtIso(rIso)} → ${fmtIso(nIso)} : ${fmtStop(d.dI)}`;
+
+  $("quickAperture").textContent=fmtStop(d.dA);
+  $("quickIso").textContent=fmtStop(d.dI);
+  $("quickShutter").textContent=fmtStop(d.dS);
+  $("quickNd").textContent=fmtStop(d.dN);
 }
 
 document.querySelectorAll(".chips[data-target] button").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    const target=btn.closest(".chips").dataset.target;
-    inputs[target].value=btn.textContent;
-    compute();
+    const id=btn.closest(".chips").dataset.target;
+    inputs[id].value=btn.textContent;
+    if(id==="newAperture") manualParam="aperture";
+    if(id==="newIso") manualParam="iso";
+    updateUI();
   });
 });
 
-Object.values(inputs).forEach(inp=>{
-  inp.addEventListener("input",compute);
+Object.entries(inputs).forEach(([id,inp])=>{
+  inp.addEventListener("input",()=>{
+    if(internalUpdate) return;
+    if(id==="newAperture") manualParam="aperture";
+    if(id==="newIso") manualParam="iso";
+    updateUI();
+  });
   inp.addEventListener("focus",()=>inp.select());
 });
 
-$("apertureMode").querySelectorAll("button").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    apertureMode=btn.dataset.value;
-    $("apertureMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
-    $("apertureUnitLabel").textContent=apertureMode==="t"?"T":"f/";
-    compute();
-  });
-});
-
-$("shutterMode").querySelectorAll("button").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const next=btn.dataset.value;
-    if(next===shutterMode) return;
-
-    // Convert current values so changing input mode doesn't change exposure.
-    const fps=currentFps;
-    ["aShutter","bShutter"].forEach(id=>{
-      const v=num(inputs[id].value);
-      if(!(v>0 && fps>0)) return;
-      inputs[id].value = shutterMode==="speed"
-        ? fmtNum(360*fps/v,1)     // speed denominator -> angle
-        : fmtNum(360*fps/v,1);    // angle -> speed denominator (same algebra)
-    });
-
-    shutterMode=next;
-    $("shutterMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
-    $("shutterUnitLabel").textContent=shutterMode==="speed"?"1/x s":"degrés";
-    document.querySelectorAll(".shutter-speed-chips").forEach(el=>el.classList.toggle("hidden",shutterMode!=="speed"));
-    document.querySelectorAll(".shutter-angle-chips").forEach(el=>el.classList.toggle("hidden",shutterMode!=="angle"));
-    compute();
-  });
-});
-
-
-const FPS_BY_FREQUENCY = {
-  "50": [25, 50, 100, 200],
-  "60": [23.98, 24, 29.97, 30, 60, 120, 240]
-};
-
-function renderFpsChoices() {
-  const wrap = $("fpsChoices");
-  const values = FPS_BY_FREQUENCY[frequencyMode];
-  if (!values.includes(currentFps)) {
-    currentFps = values[0];
-  }
-  wrap.innerHTML = values.map(v => {
-    const active = Math.abs(v - currentFps) < 0.001 ? "active" : "";
-    const label = String(v).replace(".", ",");
-    return `<button class="${active}" data-value="${v}">${label}</button>`;
-  }).join("");
-
-  wrap.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      currentFps = Number(btn.dataset.value);
-      renderFpsChoices();
-      compute();
-    });
-  });
+function renderFps(){
+  const wrap=$("fpsChoices"), vals=FPS_BY_FREQUENCY[frequencyMode];
+  if(!vals.includes(currentFps)) currentFps=vals[0];
+  wrap.innerHTML=vals.map(v=>`<button class="${Math.abs(v-currentFps)<.001?"active":""}" data-value="${v}">${String(v).replace(".",",")}</button>`).join("");
+  wrap.querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
+    currentFps=Number(btn.dataset.value); renderFps(); updateUI();
+  }));
 }
 
-$("frequencyMode").querySelectorAll("button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    frequencyMode = btn.dataset.value;
-    $("frequencyMode").querySelectorAll("button")
-      .forEach(b => b.classList.toggle("active", b === btn));
-    currentFps = FPS_BY_FREQUENCY[frequencyMode][0];
-    renderFpsChoices();
-    compute();
+$("frequencyMode").querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
+  frequencyMode=btn.dataset.value;
+  $("frequencyMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
+  currentFps=FPS_BY_FREQUENCY[frequencyMode][0];
+  renderFps(); updateUI();
+}));
+
+$("shutterMode").querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
+  const next=btn.dataset.value;
+  if(next===shutterMode) return;
+  ["refShutter","newShutter"].forEach(id=>{
+    const v=num(inputs[id].value);
+    if(v>0) inputs[id].value=fmt(360*currentFps/v,1);
   });
+  shutterMode=next;
+  $("shutterMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
+  $("refShutterUnit").textContent=next==="speed"?"1/x s":"degrés";
+  $("newShutterUnit").textContent=next==="speed"?"1/x s":"degrés";
+  document.querySelectorAll(".shutter-speed-chips").forEach(el=>el.classList.toggle("hidden",next!=="speed"));
+  document.querySelectorAll(".shutter-angle-chips").forEach(el=>el.classList.toggle("hidden",next!=="angle"));
+  updateUI();
+}));
+
+$("copyRefBtn").addEventListener("click",()=>{
+  inputs.newAperture.value=inputs.refAperture.value;
+  inputs.newIso.value=inputs.refIso.value;
+  inputs.newShutter.value=inputs.refShutter.value;
+  inputs.newNd.value=inputs.refNd.value;
+  manualParam="aperture";
+  updateUI();
 });
-
-renderFpsChoices();
-
-$("copyBtn").addEventListener("click",()=>{
-  inputs.bAperture.value=inputs.aAperture.value;
-  inputs.bIso.value=inputs.aIso.value;
-  inputs.bShutter.value=inputs.aShutter.value;
-  inputs.bNd.value=inputs.aNd.value;
-  compute();
+$("resetBtn").addEventListener("click",()=>{
+  inputs.refAperture.value="2.8"; inputs.refIso.value="800"; inputs.refShutter.value="50"; inputs.refNd.value="0";
+  inputs.newAperture.value="4"; inputs.newIso.value="1600"; inputs.newShutter.value="50"; inputs.newNd.value="0";
+  frequencyMode="50"; currentFps=25; shutterMode="speed"; manualParam="aperture";
+  $("frequencyMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.value==="50"));
+  $("shutterMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.value==="speed"));
+  $("refShutterUnit").textContent="1/x s"; $("newShutterUnit").textContent="1/x s";
+  document.querySelectorAll(".shutter-speed-chips").forEach(el=>el.classList.remove("hidden"));
+  document.querySelectorAll(".shutter-angle-chips").forEach(el=>el.classList.add("hidden"));
+  renderFps(); updateUI();
 });
 
 // Theme
 const themeToggle=$("themeToggle"), themeColor=$("themeColor");
 function applyTheme(theme){
-  const dark=theme==="dark";
-  document.body.classList.toggle("dark",dark);
+  const dark=theme==="dark"; document.body.classList.toggle("dark",dark);
   themeToggle.textContent=dark?"LIGHT":"DARK";
   themeColor.setAttribute("content",dark?"#0B0C0E":"#F3F1EC");
 }
@@ -241,8 +242,9 @@ $("infoBtn").addEventListener("click",()=>dialog.showModal());
 $("closeDialog").addEventListener("click",()=>dialog.close());
 dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close();});
 
+renderFps();
+updateUI();
+
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
-
-compute();

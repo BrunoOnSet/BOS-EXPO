@@ -39,3 +39,23 @@ V1.2
 - 60 Hz : 23,98 / 24 / 29,97 / 30 / 60 / 120 / 240 fps.
 - Tableau ND : "Transmittance" remplacé par "Transmission lumineuse".
 - Version visible : v1.2
+
+
+V1.3
+- Suppression du sélecteur f/ / T dans MÉTHODE.
+- Ouverture affichée simplement comme "f/ ou T".
+- Bloc MÉTHODE encore plus compact.
+- Aucun changement dans le calcul d’exposition.
+- Version visible : v1.3
+
+
+V2.0 — Compensation liée
+- Refonte du calculateur : suppression du comparateur DÉPART / NOUVEAU en colonnes.
+- Une exposition RÉFÉRENCE est définie : ouverture, ISO, shutter, ND.
+- Si l’ouverture du nouveau réglage est modifiée, l’ISO passe en AUTO et compense immédiatement.
+- Si l’ISO est modifié, l’ouverture passe en AUTO et compense immédiatement.
+- Le dernier des deux paramètres touché devient MANUEL.
+- Les modifications de shutter ou de ND sont intégrées automatiquement à la compensation.
+- Méthode 50 Hz / 60 Hz et shutter vitesse / angle conservée.
+- Page TIPS et tableau ND conservés.
+- Version visible : v2.0
