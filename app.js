@@ -174,6 +174,40 @@ function updateActiveChips(){
   });
 }
 
+
+function centerChipRowForTarget(id, smooth=false){
+  const group=document.querySelector(`.chips[data-target="${id}"]`);
+  const inp=inputs[id];
+  if(!group || !inp || group.scrollWidth<=group.clientWidth) return;
+
+  const value=num(inp.value);
+  if(!Number.isFinite(value)) return;
+
+  const buttons=[...group.querySelectorAll("button")];
+  if(!buttons.length) return;
+
+  let target=buttons[0];
+  let best=Infinity;
+  buttons.forEach(btn=>{
+    const v=num(btn.textContent);
+    if(!Number.isFinite(v)) return;
+    const d=Math.abs(Math.log(v/value));
+    if(d<best){best=d;target=btn;}
+  });
+
+  const left=target.offsetLeft - (group.clientWidth-target.offsetWidth)/2;
+  group.scrollTo({
+    left:Math.max(0,left),
+    behavior:smooth ? "smooth" : "auto"
+  });
+}
+
+function centerExposureRows(smooth=false){
+  ["refAperture","refIso","newAperture","newIso"].forEach(id=>{
+    centerChipRowForTarget(id,smooth);
+  });
+}
+
 function updateUI(){
   $("refShutterEquiv").textContent=shutterEquiv(num(inputs.refShutter.value));
   $("newShutterEquiv").textContent=shutterEquiv(num(inputs.newShutter.value));
@@ -181,6 +215,7 @@ function updateUI(){
   solveAuto();
   updateModes();
   updateActiveChips();
+  centerExposureRows(false);
 
   const d=calcDeltas();
   if(!d){
@@ -219,6 +254,9 @@ document.querySelectorAll(".chips[data-target] button").forEach(btn=>{
     if(id==="newAperture") manualParam="aperture";
     if(id==="newIso") manualParam="iso";
     updateUI();
+    if(["refAperture","refIso","newAperture","newIso"].includes(id)){
+      requestAnimationFrame(()=>centerChipRowForTarget(id,true));
+    }
   });
 });
 
@@ -236,6 +274,7 @@ document.querySelectorAll(".third-step-btn").forEach(btn=>{
     if(id==="newAperture") manualParam="aperture";
     if(id==="newIso") manualParam="iso";
     updateUI();
+    requestAnimationFrame(()=>centerChipRowForTarget(id,true));
   });
 });
 
@@ -302,7 +341,9 @@ $("resetBtn").addEventListener("click",()=>{
 });
 
 
-// Desktop: vertical mouse wheel scrolls horizontal quick-value rows.
+// Desktop navigation for horizontally overflowing quick-value rows.
+// - vertical mouse wheel -> horizontal scroll
+// - click + drag -> horizontal scroll
 // Mobile/touch behavior remains native.
 document.querySelectorAll(".chips").forEach(row=>{
   row.addEventListener("wheel", e=>{
@@ -311,6 +352,51 @@ document.querySelectorAll(".chips").forEach(row=>{
     e.preventDefault();
     row.scrollLeft += e.deltaY;
   }, {passive:false});
+
+  let isDragging=false;
+  let startX=0;
+  let startScrollLeft=0;
+  let moved=false;
+
+  row.addEventListener("pointerdown", e=>{
+    if(e.pointerType==="touch") return;
+    if(row.scrollWidth <= row.clientWidth) return;
+    isDragging=true;
+    moved=false;
+    startX=e.clientX;
+    startScrollLeft=row.scrollLeft;
+    row.setPointerCapture?.(e.pointerId);
+    row.classList.add("is-dragging");
+  });
+
+  row.addEventListener("pointermove", e=>{
+    if(!isDragging) return;
+    const dx=e.clientX-startX;
+    if(Math.abs(dx)>3) moved=true;
+    row.scrollLeft=startScrollLeft-dx;
+  });
+
+  const endDrag=e=>{
+    if(!isDragging) return;
+    isDragging=false;
+    row.classList.remove("is-dragging");
+    try{ row.releasePointerCapture?.(e.pointerId); }catch(_){}
+  };
+
+  row.addEventListener("pointerup", endDrag);
+  row.addEventListener("pointercancel", endDrag);
+  row.addEventListener("pointerleave", e=>{
+    if(isDragging && e.buttons===0) endDrag(e);
+  });
+
+  // Prevent an accidental chip click when the gesture was actually a drag.
+  row.addEventListener("click", e=>{
+    if(moved){
+      e.preventDefault();
+      e.stopPropagation();
+      moved=false;
+    }
+  }, true);
 });
 
 // Theme
@@ -339,6 +425,7 @@ dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close();});
 
 renderFps();
 updateUI();
+requestAnimationFrame(()=>centerExposureRows(false));
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));

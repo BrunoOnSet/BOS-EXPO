@@ -113,3 +113,19 @@ V2.6
 - Correctif desktop : la molette de souris permet désormais de faire défiler horizontalement les lignes de valeurs.
 - Le comportement tactile sur téléphone reste inchangé.
 - Version visible : v2.6
+
+
+V2.7
+- Correctif desktop : vrai glisser horizontal à la souris sur les lignes de valeurs.
+- Cliquer + maintenir + déplacer permet maintenant de parcourir les ISO, diaphragmes, etc.
+- La molette reste également active pour le défilement horizontal.
+- Le comportement tactile mobile reste inchangé.
+- Version visible : v2.7
+
+
+V2.8
+- Les lignes de valeurs ISO et Ouverture se recentrent automatiquement sur la valeur sélectionnée.
+- Fonctionne dans RÉFÉRENCE et NOUVEAU RÉGLAGE.
+- Pour une valeur intermédiaire au 1/3 stop, la ligne se centre sur la valeur principale la plus proche.
+- Le drag souris / tactile reste disponible.
+- Version visible : v2.8

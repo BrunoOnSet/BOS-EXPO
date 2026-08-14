@@ -283,3 +283,23 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
     cursor:grabbing;
   }
 }
+
+
+/* V2.7 — real mouse drag for horizontal chip rows */
+@media (hover:hover) and (pointer:fine){
+  .chips{
+    user-select:none;
+  }
+  .chips.is-dragging{
+    cursor:grabbing;
+  }
+  .chips.is-dragging button{
+    pointer-events:none;
+  }
+}
+
+
+/* V2.8 — centered selected exposure values */
+.main-stop-chips{
+  scroll-behavior:smooth;
+}
