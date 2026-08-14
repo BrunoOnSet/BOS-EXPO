@@ -53,7 +53,7 @@ function calcDeltas(){
   const dA=2*log2(rN/nN);
   const dI=log2(nIso/rIso);
   const dS=log2(timeFromShutter(nSh)/timeFromShutter(rSh));
-  const dN=-(nNd-rNd)/0.3;
+  const dN=-(nNd-rNd);
   return {dA,dI,dS,dN,total:dA+dI+dS+dN};
 }
 
@@ -71,14 +71,14 @@ function solveAuto(){
   if(manualParam==="aperture"){
     const nN=num(inputs.newAperture.value);
     if(nN>0){
-      const ndStops=(nNd-rNd)/0.3;
+      const ndStops=(nNd-rNd);
       const iso = rIso * (tR/tN) * Math.pow(nN/rN,2) * Math.pow(2,ndStops);
       inputs.newIso.value=fmtIso(iso);
     }
   }else{
     const nIso=num(inputs.newIso.value);
     if(nIso>0){
-      const ndStops=(nNd-rNd)/0.3;
+      const ndStops=(nNd-rNd);
       const factor=(nIso/rIso)*(tN/tR)*Math.pow(2,-ndStops);
       const aperture=rN*Math.sqrt(factor);
       inputs.newAperture.value=fmtAperture(aperture);

@@ -10,7 +10,7 @@
   <title>BRUNO SET TOOLS / EXPOSURE</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=2.0" />
+  <link rel="stylesheet" href="style.css?v=2.1" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -96,8 +96,12 @@
           <div class="shutter-equiv" id="refShutterEquiv">180° à 25 fps</div>
         </div>
         <div class="ref-field">
-          <div class="label-row"><label for="refNd">ND</label><span class="unit">densité</span></div>
-          <input id="refNd" inputmode="decimal" type="text" value="0" />
+          <div class="label-row"><label for="refNd">ND</label><span class="unit">stops</span></div>
+          <input id="refNd" inputmode="numeric" type="text" value="0" />
+          <div class="chips modifier-chips" data-target="refNd">
+            <button class="active">0</button><button>1</button><button>2</button><button>3</button><button>4</button>
+            <button>5</button><button>6</button><button>7</button><button>8</button>
+          </div>
         </div>
       </div>
     </section>
@@ -172,10 +176,11 @@
         </div>
 
         <div class="modifier-field">
-          <div class="label-row"><label for="newNd">ND</label><span class="unit">densité</span></div>
-          <input id="newNd" inputmode="decimal" type="text" value="0" />
+          <div class="label-row"><label for="newNd">ND</label><span class="unit">stops</span></div>
+          <input id="newNd" inputmode="numeric" type="text" value="0" />
           <div class="chips modifier-chips" data-target="newNd">
-            <button class="active">0</button><button>0.3</button><button>0.6</button><button>0.9</button><button>1.2</button><button>1.5</button><button>1.8</button><button>2.1</button>
+            <button class="active">0</button><button>1</button><button>2</button><button>3</button><button>4</button>
+            <button>5</button><button>6</button><button>7</button><button>8</button>
           </div>
         </div>
       </div>
@@ -202,14 +207,14 @@
       <div class="nd-panel">
         <div class="section-kicker">ND QUICK</div>
         <div class="nd-grid">
-          <div><strong>0.3</strong><span>1 stop</span></div>
-          <div><strong>0.6</strong><span>2 stops</span></div>
-          <div><strong>0.9</strong><span>3 stops</span></div>
-          <div><strong>1.2</strong><span>4 stops</span></div>
-          <div><strong>1.5</strong><span>5 stops</span></div>
-          <div><strong>1.8</strong><span>6 stops</span></div>
-          <div><strong>2.1</strong><span>7 stops</span></div>
-          <div><strong>2.4</strong><span>8 stops</span></div>
+          <div><strong>0.3</strong><b>ND2</b><span>1 stop</span></div>
+          <div><strong>0.6</strong><b>ND4</b><span>2 stops</span></div>
+          <div><strong>0.9</strong><b>ND8</b><span>3 stops</span></div>
+          <div><strong>1.2</strong><b>ND16</b><span>4 stops</span></div>
+          <div><strong>1.5</strong><b>ND32</b><span>5 stops</span></div>
+          <div><strong>1.8</strong><b>ND64</b><span>6 stops</span></div>
+          <div><strong>2.1</strong><b>ND128</b><span>7 stops</span></div>
+          <div><strong>2.4</strong><b>ND256</b><span>8 stops</span></div>
         </div>
       </div>
     </section>
@@ -221,7 +226,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v2.0</span>
+        <span class="app-version">v2.1</span>
       </div>
     </footer>
   </main>
@@ -279,40 +284,9 @@
       <div class="tip-number">05</div>
       <div>
         <h3>Filtre ND</h3>
-        <p>La densité ND est logarithmique. En pratique plateau, on utilise le repère : <strong>ND 0.3 = 1 stop</strong>, 0.6 = 2 stops, 0.9 = 3 stops, etc.</p>
+        <p>Dans l’app, le ND se règle directement en <strong>stops</strong>. Repère utile : ND 0.3 = 1 stop, 0.6 = 2 stops, 0.9 = 3 stops, etc.</p>
         <p>Ajouter du ND réduit l’exposition ; retirer du ND l’augmente.</p>
-
-        <div class="nd-table-wrap">
-          <table class="nd-table">
-            <thead>
-              <tr>
-                <th>Densité optique</th>
-                <th>Indice filtre</th>
-                <th>Transmission lumineuse</th>
-                <th>Réduction</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>ND 0.0</td><td>Clear</td><td>100&nbsp;%</td><td>0 stop</td></tr>
-              <tr><td>ND 0.3</td><td>ND2</td><td>50&nbsp;% (1/2)</td><td>1 stop</td></tr>
-              <tr><td>ND 0.6</td><td>ND4</td><td>25&nbsp;% (1/4)</td><td>2 stops</td></tr>
-              <tr><td>ND 0.9</td><td>ND8</td><td>12,5&nbsp;% (1/8)</td><td>3 stops</td></tr>
-              <tr><td>ND 1.2</td><td>ND16</td><td>6,25&nbsp;% (1/16)</td><td>4 stops</td></tr>
-              <tr><td>ND 1.5</td><td>ND32</td><td>3,125&nbsp;% (1/32)</td><td>5 stops</td></tr>
-              <tr><td>ND 1.8</td><td>ND64</td><td>1,563&nbsp;% (1/64)</td><td>6 stops</td></tr>
-              <tr><td>ND 2.0</td><td>ND100</td><td>1&nbsp;% (1/100)</td><td>6&nbsp;2/3 stops</td></tr>
-              <tr><td>ND 2.1</td><td>ND128</td><td>0,781&nbsp;% (1/128)</td><td>7 stops</td></tr>
-              <tr><td>ND 2.4</td><td>ND256</td><td>0,391&nbsp;% (1/256)</td><td>8 stops</td></tr>
-              <tr><td>ND 2.6</td><td>ND400</td><td>0,25&nbsp;% (1/400)</td><td>8&nbsp;2/3 stops</td></tr>
-              <tr><td>ND 2.7</td><td>ND512</td><td>0,195&nbsp;% (1/512)</td><td>9 stops</td></tr>
-              <tr><td>ND 3.0</td><td>ND1024 (ou ND1000)</td><td>0,098&nbsp;% (1/1024)</td><td>10 stops</td></tr>
-              <tr><td>ND 3.3</td><td>ND2048</td><td>0,049&nbsp;% (1/2048)</td><td>11 stops</td></tr>
-              <tr><td>ND 3.6</td><td>ND4096</td><td>0,024&nbsp;% (1/4096)</td><td>12 stops</td></tr>
-              <tr><td>ND 3.9</td><td>ND8192</td><td>0,012&nbsp;% (1/8192)</td><td>13 stops</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+</div>
     </article>
 
     <article class="tip-card">
@@ -343,6 +317,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=2.0"></script>
+  <script src="app.js?v=2.1"></script>
 </body>
 </html>

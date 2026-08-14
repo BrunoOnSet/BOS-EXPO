@@ -59,3 +59,13 @@ V2.0 — Compensation liée
 - Méthode 50 Hz / 60 Hz et shutter vitesse / angle conservée.
 - Page TIPS et tableau ND conservés.
 - Version visible : v2.0
+
+
+V2.1
+- ND de référence exprimé directement en stops.
+- ND du nouveau réglage exprimé directement en stops pour garder une logique cohérente.
+- Choix rapides ND : 0 à 8 stops.
+- Suppression du grand tableau ND dans TIPS, peu adapté à l'écran téléphone.
+- ND QUICK enrichi avec les appellations ND2 / ND4 / ND8 / ND16 / ND32 / ND64 / ND128 / ND256.
+- Calcul ND adapté : la valeur saisie est désormais directement le nombre de stops.
+- Version visible : v2.1

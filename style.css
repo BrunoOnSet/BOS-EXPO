@@ -228,3 +228,13 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
   .linked-grid{grid-template-columns:1fr}
   .link-symbol{height:20px;transform:rotate(90deg)}
 }
+
+
+/* V2.1 — ND QUICK names */
+.nd-grid b{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+  color:var(--text);
+  font-weight:800;
+}
