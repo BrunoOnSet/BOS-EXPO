@@ -69,3 +69,41 @@ V2.1
 - ND QUICK enrichi avec les appellations ND2 / ND4 / ND8 / ND16 / ND32 / ND64 / ND128 / ND256.
 - Calcul ND adapté : la valeur saisie est désormais directement le nombre de stops.
 - Version visible : v2.1
+
+
+V2.2
+- Ajout de choix rapides cliquables sous Ouverture dans RÉFÉRENCE.
+- Ajout des ISO intermédiaires en choix rapides sous ISO dans RÉFÉRENCE.
+- Ajout de choix rapides sous Shutter dans RÉFÉRENCE.
+- Les choix Shutter suivent automatiquement le mode Vitesse / Angle.
+- Aucun changement dans les calculs.
+- Version visible : v2.2
+
+
+V2.3
+- ND QUICK étendu sur 3 lignes / 12 valeurs.
+- Ajout : 2.7 / ND512 / 9 stops.
+- Ajout : 3.0 / ND1024 / 10 stops.
+- Ajout : 3.3 / ND2048 / 11 stops.
+- Ajout : 3.6 / ND4096 / 12 stops.
+- Version visible : v2.3
+
+
+V2.4
+- Ouverture : raccourcis limités aux valeurs principales (stops entiers).
+- ISO : raccourcis limités aux valeurs principales (stops entiers).
+- Ajout de boutons −⅓ / +⅓ sous Ouverture et ISO, dans RÉFÉRENCE et NOUVEAU RÉGLAGE.
+- L'AUTO arrondit désormais vers une vraie valeur standard de 1/3 de stop.
+- ISO AUTO utilise la séquence courante : 100 / 125 / 160 / 200 / ...
+- Ouverture AUTO utilise la séquence courante : 2.8 / 3.2 / 3.5 / 4 / ...
+- Si l'arrondi au tiers génère un petit écart résiduel, l'app l'indique.
+- Version visible : v2.4
+
+
+V2.5
+- Correction du calcul des ouvertures normalisées.
+- Les valeurs photographiques arrondies sont désormais traitées comme de vrais crans de 1/3 stop.
+- Exemple : f/5.6 -> f/4 est considéré comme exactement +1 stop.
+- Référence f/5.6 + ISO 800, puis ISO 400 => ouverture AUTO f/4 (et non f/3.96).
+- Le calcul brut reste disponible en repli pour une valeur manuelle hors série standard.
+- Version visible : v2.5

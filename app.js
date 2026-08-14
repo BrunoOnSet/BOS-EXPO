@@ -16,6 +16,62 @@ const FPS_BY_FREQUENCY = {
   "60":[23.98,24,29.97,30,60,120,240]
 };
 
+const APERTURE_THIRDS = [
+  1.0,1.1,1.2,1.4,1.6,1.8,2.0,2.2,2.5,2.8,3.2,3.5,4.0,4.5,5.0,5.6,
+  6.3,7.1,8.0,9.0,10.0,11.0,13.0,14.0,16.0,18.0,20.0,22.0
+];
+const ISO_THIRDS = [
+  50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,
+  2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600
+];
+
+function nearestIndex(list, value){
+  let best=0, dist=Infinity;
+  list.forEach((v,i)=>{
+    const d=Math.abs(Math.log(v/value));
+    if(d<dist){dist=d;best=i;}
+  });
+  return best;
+}
+function snapThird(type, value){
+  if(!(value>0)) return NaN;
+  const list=type==="aperture" ? APERTURE_THIRDS : ISO_THIRDS;
+  return list[nearestIndex(list,value)];
+}
+
+function apertureIndexIfStandard(value){
+  if(!(value>0)) return -1;
+  const i=nearestIndex(APERTURE_THIRDS,value);
+  // Accept normal photographic rounding, e.g. 5.6 represents the exact full-stop position.
+  const ratio=Math.max(APERTURE_THIRDS[i],value)/Math.min(APERTURE_THIRDS[i],value);
+  return ratio < 1.025 ? i : -1;
+}
+
+function apertureDeltaStops(refValue,newValue){
+  const ri=apertureIndexIfStandard(refValue);
+  const ni=apertureIndexIfStandard(newValue);
+  if(ri>=0 && ni>=0) return (ri-ni)/3;
+  return 2*log2(refValue/newValue);
+}
+
+function targetApertureFromStops(refValue, requiredApertureStops){
+  const ri=apertureIndexIfStandard(refValue);
+  if(ri>=0){
+    const targetIndex=Math.round(ri - requiredApertureStops*3);
+    const clamped=Math.max(0,Math.min(APERTURE_THIRDS.length-1,targetIndex));
+    return APERTURE_THIRDS[clamped];
+  }
+  return snapThird("aperture", refValue / Math.pow(2, requiredApertureStops/2));
+}
+
+function stepThird(type, value, direction){
+  const list=type==="aperture" ? APERTURE_THIRDS : ISO_THIRDS;
+  let i=nearestIndex(list,value);
+  i=Math.max(0,Math.min(list.length-1,i+direction));
+  return list[i];
+}
+
+
 function num(v){ return Number(String(v).replace(",", ".").trim()); }
 function log2(v){ return Math.log(v)/Math.log(2); }
 function fmt(v,d=1){
@@ -50,7 +106,7 @@ function calcDeltas(){
   const rNd=num(inputs.refNd.value), nNd=num(inputs.newNd.value);
   if(!(rN>0&&nN>0&&rIso>0&&nIso>0&&rSh>0&&nSh>0&&rNd>=0&&nNd>=0)) return null;
 
-  const dA=2*log2(rN/nN);
+  const dA=apertureDeltaStops(rN,nN);
   const dI=log2(nIso/rIso);
   const dS=log2(timeFromShutter(nSh)/timeFromShutter(rSh));
   const dN=-(nNd-rNd);
@@ -72,15 +128,23 @@ function solveAuto(){
     const nN=num(inputs.newAperture.value);
     if(nN>0){
       const ndStops=(nNd-rNd);
-      const iso = rIso * (tR/tN) * Math.pow(nN/rN,2) * Math.pow(2,ndStops);
-      inputs.newIso.value=fmtIso(iso);
+      const dA=apertureDeltaStops(rN,nN);
+      const dS=log2(tN/tR);
+      // dISO must cancel aperture + shutter + ND.
+      const requiredIsoStops=-(dA+dS-ndStops);
+      const iso=rIso*Math.pow(2,requiredIsoStops);
+      inputs.newIso.value=fmtIso(snapThird("iso",iso));
     }
   }else{
     const nIso=num(inputs.newIso.value);
     if(nIso>0){
       const ndStops=(nNd-rNd);
-      const factor=(nIso/rIso)*(tN/tR)*Math.pow(2,-ndStops);
-      const aperture=rN*Math.sqrt(factor);
+      const dI=log2(nIso/rIso);
+      const dS=log2(tN/tR);
+      const dN=-ndStops;
+      // Aperture must cancel ISO + shutter + ND.
+      const requiredApertureStops=-(dI+dS+dN);
+      const aperture=targetApertureFromStops(rN,requiredApertureStops);
       inputs.newAperture.value=fmtAperture(aperture);
     }
   }
@@ -136,7 +200,9 @@ function updateUI(){
     $("equivMessage").textContent=`ISO ${fmtIso(nIso)} → ${fmtAperture(nN)} pour conserver l’exposition.`;
   }
 
-  $("resultState").textContent=Math.abs(d.total)<0.08?"EXPOSITION ÉQUIVALENTE":`${fmtStop(d.total)} D’ÉCART`;
+  $("resultState").textContent=Math.abs(d.total)<0.08
+    ? "EXPOSITION ÉQUIVALENTE"
+    : `${fmtStop(d.total)} D’ÉCART APRÈS ARRONDI ⅓`;
   $("resultDetail").textContent=
     `${fmtAperture(rN)} → ${fmtAperture(nN)} : ${fmtStop(d.dA)} · ISO ${fmtIso(rIso)} → ${fmtIso(nIso)} : ${fmtStop(d.dI)}`;
 
@@ -150,6 +216,23 @@ document.querySelectorAll(".chips[data-target] button").forEach(btn=>{
   btn.addEventListener("click",()=>{
     const id=btn.closest(".chips").dataset.target;
     inputs[id].value=btn.textContent;
+    if(id==="newAperture") manualParam="aperture";
+    if(id==="newIso") manualParam="iso";
+    updateUI();
+  });
+});
+
+
+document.querySelectorAll(".third-step-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const id=btn.dataset.stepTarget;
+    const direction=Number(btn.dataset.direction);
+    const type=id.toLowerCase().includes("iso") ? "iso" : "aperture";
+    const current=num(inputs[id].value);
+    if(!(current>0)) return;
+    const next=stepThird(type,current,direction);
+    inputs[id].value=type==="iso" ? fmtIso(next) : fmtAperture(next);
+
     if(id==="newAperture") manualParam="aperture";
     if(id==="newIso") manualParam="iso";
     updateUI();
