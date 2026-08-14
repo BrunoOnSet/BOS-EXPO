@@ -296,3 +296,19 @@ V3.16
 - ND QUICK déplacé tel quel dans la page TIPS.
 - Les 12 valeurs ND et leurs appellations restent inchangées.
 - Version visible : v3.16
+
+
+V3.17
+- Icône de l'app Exposure alignée sur la DA de l'app DOF.
+- Titre d'icône passé à EXPO pour matcher DOF.
+- Typo, tailles et structure visuelle harmonisées entre les deux apps.
+- Cache versionné en v3.17 pour forcer la mise à jour de l'icône.
+
+V3.18 — FAMILY ICON SYSTEM
+- Nom utilisateur harmonisé : EXPO (et non EXPOSURE) dans toute l'identité de l'app.
+- short_name : EXPO · BRUNO, sur le même modèle que DOF · BRUNO.
+- Nouvelle icône basée directement sur le master DOF :
+  même fond, même position verticale, même cadre central,
+  même taille de titre, et bloc BRUNO / SET TOOLS strictement identique.
+- Icônes 512 px et 192 px générées depuis le même master.
+- Cache PWA : v3.18

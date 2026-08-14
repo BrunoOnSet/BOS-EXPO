@@ -1,6 +1,6 @@
 {
-  "name": "BRUNO SET TOOLS / EXPOSURE",
-  "short_name": "EXPOSURE · BRUNO",
+  "name": "BRUNO SET TOOLS / EXPO",
+  "short_name": "EXPO · BRUNO",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#F3F1EC",
