@@ -155,3 +155,31 @@ V3.0
 - FX3 et FX30 en S-Cinetone : aucune seconde Base ISO n'est inventée ; l'app indique que Sony ne la définit pas explicitement comme Base ISO.
 - ISO jusqu'à 51200 conservé.
 - Version visible : v3.0
+
+
+V3.1
+- Ordre caméras : FX30 / FX3 / FX5 / FX6.
+- Caméra par défaut : FX30.
+- S-Cinetone FX30 : repères Lo/Hi 125 / 400.
+- S-Cinetone FX3 : repères Lo/Hi 100 / 2000.
+- S-Cinetone FX6 : repères Lo/Hi 320 / 5000.
+- S-Log3 FX30 : 800 / 2500.
+- S-Log3 FX3 : 800 / 12800.
+- S-Log3 FX5 : 800 / 4000 / 12800.
+- S-Log3 FX6 : 800 / 12800.
+- FX5 S-Cinetone : laissé non renseigné tant qu'un repère Lo/Hi fiable n'est pas retenu.
+- L'indication "Base ISO Sony" devient "ISO natifs / Lo-Hi".
+- Les valeurs correspondantes restent mises en bleu dans l'interface.
+- Version visible : v3.1
+
+
+V3.2
+- TIPS n°2 : suppression de la phrase jugée trop peu claire sur la comparaison f/ / T.
+- Aucun autre changement.
+- Version visible : v3.2
+
+
+V3.3
+- TIPS n°6 : suppression de la phrase supplémentaire sur les modes sans Base ISO explicitement définie.
+- Aucun autre changement.
+- Version visible : v3.3

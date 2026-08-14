@@ -6,7 +6,7 @@ const inputs = {
 };
 
 let sensitivityMode="iso";
-let cameraMode="FX3";
+let cameraMode="FX30";
 let gammaMode="slog3";
 let shutterMode="speed";
 let frequencyMode="50";
@@ -43,21 +43,21 @@ for(let g=-12;g<=54;g+=2) GAIN_FINE.push(g);
 // Sony-documented Base ISO / Base Sensitivity.
 // Empty array = Sony does not explicitly define Base ISO for that camera in this gamma.
 const CAMERA_BASE_ISO={
-  FX3:{
-    slog3:[800,12800],
-    scinetone:[]
-  },
   FX30:{
     slog3:[800,2500],
+    scinetone:[125,400]
+  },
+  FX3:{
+    slog3:[800,12800],
+    scinetone:[100,2000]
+  },
+  FX5:{
+    slog3:[800,4000,12800],
     scinetone:[]
   },
   FX6:{
     slog3:[800,12800],
     scinetone:[320,5000]
-  },
-  FX5:{
-    slog3:[800,4000,12800],
-    scinetone:[800,4000,12800]
   }
 };
 
@@ -173,10 +173,10 @@ function updateBaseIsoNote(){
   if(!note)return;
   if(bases.length){
     note.classList.remove("no-base");
-    note.innerHTML=`<span class="base-dot"></span><span>Base ISO Sony · ${cameraMode} · ${gammaMode==="slog3"?"S-Log3":"S-Cinetone"} : ${bases.map(formatThousands).join(" / ")}</span>`;
+    note.innerHTML=`<span class="base-dot"></span><span>ISO natifs / Lo-Hi · ${cameraMode} · ${gammaMode==="slog3"?"S-Log3":"S-Cinetone"} : ${bases.map(formatThousands).join(" / ")}</span>`;
   }else{
     note.classList.add("no-base");
-    note.innerHTML=`<span class="base-dot"></span><span>${cameraMode} · S-Cinetone : pas de Base ISO explicitement définie par Sony</span>`;
+    note.innerHTML=`<span class="base-dot"></span><span>${cameraMode} · S-Cinetone : repères Lo/Hi non renseignés</span>`;
   }
 }
 
@@ -496,7 +496,7 @@ $("copyRefBtn").addEventListener("click",()=>{
 });
 
 $("resetBtn").addEventListener("click",()=>{
-  sensitivityMode="iso"; cameraMode="FX3"; gammaMode="slog3";
+  sensitivityMode="iso"; cameraMode="FX30"; gammaMode="slog3";
   shutterMode="speed"; frequencyMode="50"; currentFps=25; manualParam="aperture";
   sensitivityState.iso={ref:800,new:1600};
   sensitivityState.gain={ref:0,new:6};
@@ -510,7 +510,7 @@ $("resetBtn").addEventListener("click",()=>{
   inputs.newShutter.value="50";
   inputs.newNd.value="0";
 
-  [["cameraMode","FX3"],["gammaMode","slog3"],["sensitivityMode","iso"],["frequencyMode","50"],["shutterMode","speed"]]
+  [["cameraMode","FX30"],["gammaMode","slog3"],["sensitivityMode","iso"],["frequencyMode","50"],["shutterMode","speed"]]
     .forEach(([id,val])=>$(id).querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.value===val)));
 
   $("refShutterUnit").textContent="1/x s";
