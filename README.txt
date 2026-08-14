@@ -129,3 +129,29 @@ V2.8
 - Pour une valeur intermédiaire au 1/3 stop, la ligne se centre sur la valeur principale la plus proche.
 - Le drag souris / tactile reste disponible.
 - Version visible : v2.8
+
+
+V2.9
+- Plage ISO étendue jusqu’à 51 200.
+- Ajout des valeurs principales : 12 800 / 25 600 / 51 200.
+- Ajout des valeurs intermédiaires 1/3 stop : 8 000 / 10 000 / 12 800 / 16 000 / 20 000 / 25 600 / 32 000 / 40 000 / 51 200.
+- L'AUTO peut maintenant proposer des ISO jusqu’à 51 200.
+- Recentrage automatique conservé.
+- Version visible : v2.9
+
+
+V3.0
+- MÉTHODE : ajout du choix Sensibilité ISO / Gain.
+- Gain : +6 dB = +1 stop ; réglage fin par pas de 2 dB.
+- MÉTHODE : ajout du choix caméra FX3 / FX5 / FX30 / FX6.
+- MÉTHODE : ajout du choix gamma S-Cinetone / S-Log3.
+- En mode ISO, les Base ISO documentées par Sony sont affichées dans la couleur bleue de la DA.
+- Les Base ISO spécifiques sont injectées dans les raccourcis même si elles ne correspondent pas à un stop entier (ex. 2500, 4000, 5000).
+- FX3 S-Log3 : 800 / 12800.
+- FX30 S-Log3 : 800 / 2500.
+- FX6 S-Log3 : 800 / 12800.
+- FX6 S-Cinetone : 320 / 5000.
+- FX5 : 800 / 4000 / 12800.
+- FX3 et FX30 en S-Cinetone : aucune seconde Base ISO n'est inventée ; l'app indique que Sony ne la définit pas explicitement comme Base ISO.
+- ISO jusqu'à 51200 conservé.
+- Version visible : v3.0
