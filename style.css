@@ -393,3 +393,24 @@ body.dark .chips button.native-iso.active{
     min-width:52px;
   }
 }
+
+
+/* V3.4 — stronger visual marker for native / Lo-Hi ISO */
+.chips button.native-iso{
+  border:2px solid var(--accent) !important;
+  box-shadow:0 0 0 1px var(--accent-soft);
+  font-weight:900;
+}
+.chips button.native-iso:not(.active){
+  background:var(--chip-bg);
+  color:var(--text);
+}
+.chips button.native-iso.active{
+  background:var(--accent) !important;
+  color:#fff !important;
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 1px var(--accent-soft);
+}
+body.dark .chips button.native-iso:not(.active){
+  color:var(--text);
+}

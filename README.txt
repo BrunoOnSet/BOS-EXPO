@@ -183,3 +183,10 @@ V3.3
 - TIPS n°6 : suppression de la phrase supplémentaire sur les modes sans Base ISO explicitement définie.
 - Aucun autre changement.
 - Version visible : v3.3
+
+
+V3.4
+- Les ISO natifs / Lo-Hi ont maintenant un contour bleu renforcé autour de toute la bulle.
+- Lorsqu'un ISO natif est sélectionné, la bulle reste pleine en bleu.
+- Le point bleu existant est conservé comme repère secondaire.
+- Version visible : v3.4
