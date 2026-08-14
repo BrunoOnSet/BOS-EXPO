@@ -312,3 +312,8 @@ V3.18 — FAMILY ICON SYSTEM
   même taille de titre, et bloc BRUNO / SET TOOLS strictement identique.
 - Icônes 512 px et 192 px générées depuis le même master.
 - Cache PWA : v3.18
+
+V3.19
+- short_name PWA raccourci en "EXPO - BST" pour un affichage plus lisible sous l’icône.
+- Nom harmonisé avec DOF.
+- Cache PWA mis à jour en v3.19.
