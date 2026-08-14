@@ -29,3 +29,13 @@ V1.1
 - ISO : ajout des valeurs intermédiaires courantes sur les boîtiers/appareils actuels.
 - TIPS : ajout d’un tableau ND avec densité optique, indice filtre, transmittance et équivalence en stops.
 - Version visible : v1.1
+
+
+V1.2
+- Panneau MÉTHODE compacté.
+- Suppression de la saisie manuelle de cadence.
+- Sélecteur 50 Hz / 60 Hz.
+- 50 Hz : 25 / 50 / 100 / 200 fps.
+- 60 Hz : 23,98 / 24 / 29,97 / 30 / 60 / 120 / 240 fps.
+- Tableau ND : "Transmittance" remplacé par "Transmission lumineuse".
+- Version visible : v1.2

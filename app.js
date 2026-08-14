@@ -1,10 +1,12 @@
 const $ = id => document.getElementById(id);
 
-const ids = ["aAperture","bAperture","aIso","bIso","aShutter","bShutter","aNd","bNd","fps"];
+const ids = ["aAperture","bAperture","aIso","bIso","aShutter","bShutter","aNd","bNd"];
 const inputs = Object.fromEntries(ids.map(id => [id,$(id)]));
 
 let apertureMode = "f";
 let shutterMode = "speed";
+let frequencyMode = "50";
+let currentFps = 25;
 
 function num(v){ return Number(String(v).replace(",", ".").trim()); }
 function log2(v){ return Math.log(v) / Math.log(2); }
@@ -28,12 +30,12 @@ function fmtMainStops(v){
   return `${sign}${txt} ${a < 1.05 ? "STOP" : "STOPS"}`;
 }
 function shutterTime(value){
-  const fps = num(inputs.fps.value);
+  const fps = currentFps;
   if(!(fps > 0 && value > 0)) return NaN;
   return shutterMode === "speed" ? 1/value : value/(360*fps);
 }
 function equivalentText(value){
-  const fps = num(inputs.fps.value);
+  const fps = currentFps;
   if(!(fps > 0 && value > 0)) return "—";
   if(shutterMode === "speed"){
     const angle = 360 * fps / value;
@@ -148,7 +150,7 @@ $("shutterMode").querySelectorAll("button").forEach(btn=>{
     if(next===shutterMode) return;
 
     // Convert current values so changing input mode doesn't change exposure.
-    const fps=num(inputs.fps.value);
+    const fps=currentFps;
     ["aShutter","bShutter"].forEach(id=>{
       const v=num(inputs[id].value);
       if(!(v>0 && fps>0)) return;
@@ -165,6 +167,46 @@ $("shutterMode").querySelectorAll("button").forEach(btn=>{
     compute();
   });
 });
+
+
+const FPS_BY_FREQUENCY = {
+  "50": [25, 50, 100, 200],
+  "60": [23.98, 24, 29.97, 30, 60, 120, 240]
+};
+
+function renderFpsChoices() {
+  const wrap = $("fpsChoices");
+  const values = FPS_BY_FREQUENCY[frequencyMode];
+  if (!values.includes(currentFps)) {
+    currentFps = values[0];
+  }
+  wrap.innerHTML = values.map(v => {
+    const active = Math.abs(v - currentFps) < 0.001 ? "active" : "";
+    const label = String(v).replace(".", ",");
+    return `<button class="${active}" data-value="${v}">${label}</button>`;
+  }).join("");
+
+  wrap.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentFps = Number(btn.dataset.value);
+      renderFpsChoices();
+      compute();
+    });
+  });
+}
+
+$("frequencyMode").querySelectorAll("button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    frequencyMode = btn.dataset.value;
+    $("frequencyMode").querySelectorAll("button")
+      .forEach(b => b.classList.toggle("active", b === btn));
+    currentFps = FPS_BY_FREQUENCY[frequencyMode][0];
+    renderFpsChoices();
+    compute();
+  });
+});
+
+renderFpsChoices();
 
 $("copyBtn").addEventListener("click",()=>{
   inputs.bAperture.value=inputs.aAperture.value;

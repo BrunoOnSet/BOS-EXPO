@@ -112,3 +112,57 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
 .nd-table tbody td:nth-child(2){
   font-weight:700;
 }
+
+
+/* V1.2 — compact method panel */
+.compact-head{
+  margin-bottom:10px;
+}
+.method-compact-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:10px;
+}
+.method-compact-item{
+  min-width:0;
+}
+.method-compact-item .method-label{
+  display:block;
+  margin-bottom:6px;
+  font-size:11px;
+  color:var(--muted);
+  font-weight:800;
+}
+.method-compact-item .mode-chips{
+  padding-top:0;
+  gap:5px;
+}
+.method-compact-item .mode-chips button{
+  padding:7px 9px;
+  font-size:10px;
+}
+.fps-row{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--card-border);
+}
+.compact-label-row{
+  margin-bottom:4px;
+}
+.fps-chips{
+  padding-top:4px;
+  gap:6px;
+}
+.fps-chips button{
+  padding:7px 10px;
+  font-size:11px;
+}
+
+@media(max-width:430px){
+  .method-compact-grid{
+    grid-template-columns:1fr 1fr;
+  }
+  .method-compact-item:last-child{
+    grid-column:1 / -1;
+  }
+}
