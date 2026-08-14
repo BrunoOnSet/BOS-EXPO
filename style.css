@@ -68,3 +68,47 @@ body:not(.dark) .footer-logo{filter:invert(1)}
 dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:460px;width:calc(100% - 32px);padding:0;box-shadow:0 20px 80px rgba(0,0,0,.62)}dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}.dialog-inner{padding:24px;position:relative}.dialog-inner h2{margin:7px 38px 14px 0;font-size:22px}.dialog-inner p{color:#C6C8CC;line-height:1.5;font-size:14px}.close{position:absolute;right:18px;top:18px}
 @media(max-width:500px){.setting-row{grid-template-columns:70px minmax(0,1fr) minmax(0,1fr);gap:7px;padding:13px 9px}.mini-chips button{padding:6px 8px}.nd-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:380px){.app,.tips-page{padding-left:12px;padding-right:12px}.stops{font-size:54px}h1{font-size:24px}.setting-row{grid-template-columns:62px minmax(0,1fr) minmax(0,1fr)}.setting-name strong{font-size:11px}.compact-input{font-size:19px}.mini-chips button{font-size:9px;padding:5px 7px}}
+
+
+/* V1.1 — ND table in tips */
+.nd-table-wrap{
+  margin-top:12px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  background:var(--field-bg);
+}
+.nd-table{
+  width:100%;
+  min-width:620px;
+  border-collapse:collapse;
+  font-size:11px;
+  color:var(--text);
+}
+.nd-table th,
+.nd-table td{
+  padding:8px 10px;
+  border-bottom:1px solid var(--card-border);
+  border-right:1px solid var(--card-border);
+  text-align:left;
+  vertical-align:top;
+}
+.nd-table th:last-child,
+.nd-table td:last-child{
+  border-right:0;
+}
+.nd-table thead th{
+  background:var(--panel2);
+  font-size:10px;
+  letter-spacing:.03em;
+  color:var(--text);
+  font-weight:800;
+}
+.nd-table tbody tr:last-child td{
+  border-bottom:0;
+}
+.nd-table tbody td:first-child,
+.nd-table tbody td:nth-child(2){
+  font-weight:700;
+}

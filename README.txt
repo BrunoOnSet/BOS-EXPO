@@ -23,3 +23,9 @@ Installation
 2. Déposer tous les fichiers du ZIP à la racine.
 3. Activer GitHub Pages sur main / root.
 4. Ouvrir l'URL sur Android Chrome puis Installer l'application.
+
+
+V1.1
+- ISO : ajout des valeurs intermédiaires courantes sur les boîtiers/appareils actuels.
+- TIPS : ajout d’un tableau ND avec densité optique, indice filtre, transmittance et équivalence en stops.
+- Version visible : v1.1
