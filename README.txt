@@ -289,3 +289,10 @@ V3.15
 - Les réglages caméra restent mémorisés après fermeture de l'app.
 - Réglages caméra reste replié par défaut.
 - Version visible : v3.15
+
+
+V3.16
+- ND QUICK retiré de l'écran principal.
+- ND QUICK déplacé tel quel dans la page TIPS.
+- Les 12 valeurs ND et leurs appellations restent inchangées.
+- Version visible : v3.16

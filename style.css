@@ -602,3 +602,9 @@ body.dark .chips button.native-iso:not(.active){
     font-size:27px;
   }
 }
+
+
+/* V3.16 — ND QUICK moved to TIPS */
+.nd-quick-tip .nd-grid{
+  margin-top:10px;
+}
