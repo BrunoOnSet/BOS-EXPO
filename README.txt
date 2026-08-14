@@ -107,3 +107,9 @@ V2.5
 - Référence f/5.6 + ISO 800, puis ISO 400 => ouverture AUTO f/4 (et non f/3.96).
 - Le calcul brut reste disponible en repli pour une valeur manuelle hors série standard.
 - Version visible : v2.5
+
+
+V2.6
+- Correctif desktop : la molette de souris permet désormais de faire défiler horizontalement les lignes de valeurs.
+- Le comportement tactile sur téléphone reste inchangé.
+- Version visible : v2.6

@@ -301,6 +301,18 @@ $("resetBtn").addEventListener("click",()=>{
   renderFps(); updateUI();
 });
 
+
+// Desktop: vertical mouse wheel scrolls horizontal quick-value rows.
+// Mobile/touch behavior remains native.
+document.querySelectorAll(".chips").forEach(row=>{
+  row.addEventListener("wheel", e=>{
+    if(row.scrollWidth <= row.clientWidth) return;
+    if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    e.preventDefault();
+    row.scrollLeft += e.deltaY;
+  }, {passive:false});
+});
+
 // Theme
 const themeToggle=$("themeToggle"), themeColor=$("themeColor");
 function applyTheme(theme){

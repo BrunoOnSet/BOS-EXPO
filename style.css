@@ -272,3 +272,14 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
 .main-stop-chips button{
   min-width:38px;
 }
+
+
+/* V2.6 — desktop horizontal navigation */
+@media (hover:hover) and (pointer:fine){
+  .chips{
+    cursor:grab;
+  }
+  .chips:active{
+    cursor:grabbing;
+  }
+}
