@@ -1,5 +1,5 @@
-const CACHE="bruno-onset-expo-v3.20";
-const ASSETS=["./","./index.html","./style.css?v=3.20","./app.js?v=3.20","./manifest.webmanifest","./icon-192.png","./icon-512.png","./logo-bruno-guillard.png"];
+const CACHE= "bruno-onset-expo-v322-v3.22";
+const ASSETS=["./","./index.html","./style.css?v=3.22","./app.js?v=3.22","./manifest.webmanifest","./icon-192.png","./icon-512.png","./logo-bruno-guillard.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
 self.addEventListener("fetch",e=>{
