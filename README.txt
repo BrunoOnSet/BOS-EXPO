@@ -1,4 +1,4 @@
-BRUNO ONSET / EXPOSURE — V1.0
+BRUNO ONSET / EXPOSURE — V3.24
 
 Fonctions
 - Comparaison de deux réglages : ouverture, ISO, shutter, ND.
@@ -25,31 +25,31 @@ Installation
 4. Ouvrir l'URL sur Android Chrome puis Installer l'application.
 
 
-V1.1
+V3.24
 - ISO : ajout des valeurs intermédiaires courantes sur les boîtiers/appareils actuels.
 - TIPS : ajout d’un tableau ND avec densité optique, indice filtre, transmittance et équivalence en stops.
-- Version visible : v1.1
+- Version visible : v3.24
 
 
-V1.2
+V3.24
 - Panneau MÉTHODE compacté.
 - Suppression de la saisie manuelle de cadence.
 - Sélecteur 50 Hz / 60 Hz.
 - 50 Hz : 25 / 50 / 100 / 200 fps.
 - 60 Hz : 23,98 / 24 / 29,97 / 30 / 60 / 120 / 240 fps.
 - Tableau ND : "Transmittance" remplacé par "Transmission lumineuse".
-- Version visible : v1.2
+- Version visible : v3.24
 
 
-V1.3
+V3.24
 - Suppression du sélecteur f/ / T dans MÉTHODE.
 - Ouverture affichée simplement comme "f/ ou T".
 - Bloc MÉTHODE encore plus compact.
 - Aucun changement dans le calcul d’exposition.
-- Version visible : v1.3
+- Version visible : v3.24
 
 
-V2.0 — Compensation liée
+V3.24 — Compensation liée
 - Refonte du calculateur : suppression du comparateur DÉPART / NOUVEAU en colonnes.
 - Une exposition RÉFÉRENCE est définie : ouverture, ISO, shutter, ND.
 - Si l’ouverture du nouveau réglage est modifiée, l’ISO passe en AUTO et compense immédiatement.
@@ -58,38 +58,38 @@ V2.0 — Compensation liée
 - Les modifications de shutter ou de ND sont intégrées automatiquement à la compensation.
 - Méthode 50 Hz / 60 Hz et shutter vitesse / angle conservée.
 - Page TIPS et tableau ND conservés.
-- Version visible : v2.0
+- Version visible : v3.24
 
 
-V2.1
+V3.24
 - ND de référence exprimé directement en stops.
 - ND du nouveau réglage exprimé directement en stops pour garder une logique cohérente.
 - Choix rapides ND : 0 à 8 stops.
 - Suppression du grand tableau ND dans TIPS, peu adapté à l'écran téléphone.
 - ND QUICK enrichi avec les appellations ND2 / ND4 / ND8 / ND16 / ND32 / ND64 / ND128 / ND256.
 - Calcul ND adapté : la valeur saisie est désormais directement le nombre de stops.
-- Version visible : v2.1
+- Version visible : v3.24
 
 
-V2.2
+V3.24
 - Ajout de choix rapides cliquables sous Ouverture dans RÉFÉRENCE.
 - Ajout des ISO intermédiaires en choix rapides sous ISO dans RÉFÉRENCE.
 - Ajout de choix rapides sous Shutter dans RÉFÉRENCE.
 - Les choix Shutter suivent automatiquement le mode Vitesse / Angle.
 - Aucun changement dans les calculs.
-- Version visible : v2.2
+- Version visible : v3.24
 
 
-V2.3
+V3.24
 - ND QUICK étendu sur 3 lignes / 12 valeurs.
 - Ajout : 2.7 / ND512 / 9 stops.
 - Ajout : 3.0 / ND1024 / 10 stops.
 - Ajout : 3.3 / ND2048 / 11 stops.
 - Ajout : 3.6 / ND4096 / 12 stops.
-- Version visible : v2.3
+- Version visible : v3.24
 
 
-V2.4
+V3.24
 - Ouverture : raccourcis limités aux valeurs principales (stops entiers).
 - ISO : raccourcis limités aux valeurs principales (stops entiers).
 - Ajout de boutons −⅓ / +⅓ sous Ouverture et ISO, dans RÉFÉRENCE et NOUVEAU RÉGLAGE.
@@ -97,50 +97,50 @@ V2.4
 - ISO AUTO utilise la séquence courante : 100 / 125 / 160 / 200 / ...
 - Ouverture AUTO utilise la séquence courante : 2.8 / 3.2 / 3.5 / 4 / ...
 - Si l'arrondi au tiers génère un petit écart résiduel, l'app l'indique.
-- Version visible : v2.4
+- Version visible : v3.24
 
 
-V2.5
+V3.24
 - Correction du calcul des ouvertures normalisées.
 - Les valeurs photographiques arrondies sont désormais traitées comme de vrais crans de 1/3 stop.
 - Exemple : f/5.6 -> f/4 est considéré comme exactement +1 stop.
 - Référence f/5.6 + ISO 800, puis ISO 400 => ouverture AUTO f/4 (et non f/3.96).
 - Le calcul brut reste disponible en repli pour une valeur manuelle hors série standard.
-- Version visible : v2.5
+- Version visible : v3.24
 
 
-V2.6
+V3.24
 - Correctif desktop : la molette de souris permet désormais de faire défiler horizontalement les lignes de valeurs.
 - Le comportement tactile sur téléphone reste inchangé.
-- Version visible : v2.6
+- Version visible : v3.24
 
 
-V2.7
+V3.24
 - Correctif desktop : vrai glisser horizontal à la souris sur les lignes de valeurs.
 - Cliquer + maintenir + déplacer permet maintenant de parcourir les ISO, diaphragmes, etc.
 - La molette reste également active pour le défilement horizontal.
 - Le comportement tactile mobile reste inchangé.
-- Version visible : v2.7
+- Version visible : v3.24
 
 
-V2.8
+V3.24
 - Les lignes de valeurs ISO et Ouverture se recentrent automatiquement sur la valeur sélectionnée.
 - Fonctionne dans RÉFÉRENCE et NOUVEAU RÉGLAGE.
 - Pour une valeur intermédiaire au 1/3 stop, la ligne se centre sur la valeur principale la plus proche.
 - Le drag souris / tactile reste disponible.
-- Version visible : v2.8
+- Version visible : v3.24
 
 
-V2.9
+V3.24
 - Plage ISO étendue jusqu’à 51 200.
 - Ajout des valeurs principales : 12 800 / 25 600 / 51 200.
 - Ajout des valeurs intermédiaires 1/3 stop : 8 000 / 10 000 / 12 800 / 16 000 / 20 000 / 25 600 / 32 000 / 40 000 / 51 200.
 - L'AUTO peut maintenant proposer des ISO jusqu’à 51 200.
 - Recentrage automatique conservé.
-- Version visible : v2.9
+- Version visible : v3.24
 
 
-V3.0
+V3.24
 - MÉTHODE : ajout du choix Sensibilité ISO / Gain.
 - Gain : +6 dB = +1 stop ; réglage fin par pas de 2 dB.
 - MÉTHODE : ajout du choix caméra FX3 / FX5 / FX30 / FX6.
@@ -154,10 +154,10 @@ V3.0
 - FX5 : 800 / 4000 / 12800.
 - FX3 et FX30 en S-Cinetone : aucune seconde Base ISO n'est inventée ; l'app indique que Sony ne la définit pas explicitement comme Base ISO.
 - ISO jusqu'à 51200 conservé.
-- Version visible : v3.0
+- Version visible : v3.24
 
 
-V3.1
+V3.24
 - Ordre caméras : FX30 / FX3 / FX5 / FX6.
 - Caméra par défaut : FX30.
 - S-Cinetone FX30 : repères Lo/Hi 125 / 400.
@@ -170,111 +170,111 @@ V3.1
 - FX5 S-Cinetone : laissé non renseigné tant qu'un repère Lo/Hi fiable n'est pas retenu.
 - L'indication "Base ISO Sony" devient "ISO natifs / Lo-Hi".
 - Les valeurs correspondantes restent mises en bleu dans l'interface.
-- Version visible : v3.1
+- Version visible : v3.24
 
 
-V3.2
+V3.24
 - TIPS n°2 : suppression de la phrase jugée trop peu claire sur la comparaison f/ / T.
 - Aucun autre changement.
-- Version visible : v3.2
+- Version visible : v3.24
 
 
-V3.3
+V3.24
 - TIPS n°6 : suppression de la phrase supplémentaire sur les modes sans Base ISO explicitement définie.
 - Aucun autre changement.
-- Version visible : v3.3
+- Version visible : v3.24
 
 
-V3.4
+V3.24
 - Les ISO natifs / Lo-Hi ont maintenant un contour bleu renforcé autour de toute la bulle.
 - Lorsqu'un ISO natif est sélectionné, la bulle reste pleine en bleu.
 - Le point bleu existant est conservé comme repère secondaire.
-- Version visible : v3.4
+- Version visible : v3.24
 
 
-V3.5
+V3.24
 - Correction desktop : les bulles ISO / diaph sont de nouveau pleinement cliquables.
 - Suppression du drag souris qui interceptait les clics.
 - La molette horizontale reste active.
 - Le recentrage automatique sur la valeur sélectionnée reste actif.
 - Aucun changement sur mobile.
-- Version visible : v3.5
+- Version visible : v3.24
 
 
-V3.6
+V3.24
 - Rétablissement du recentrage automatique des valeurs ISO / Gain / Ouverture.
 - Les bulles restent entièrement cliquables à la souris.
 - Aucun drag souris n'est réintroduit.
 - Après un clic ou un ajustement +/- 1/3, la valeur choisie se replace au centre.
 - Recentrage également après changement caméra / gamma / mode ISO-Gain.
-- Version visible : v3.6
+- Version visible : v3.24
 
 
-V3.7
+V3.24
 - Ajout des vitesses shutter 1/400 s et 1/800 s dans les choix rapides.
 - Ajout dans RÉFÉRENCE et NOUVEAU RÉGLAGE.
 - Recentrage automatique ISO / Gain / Ouverture conservé.
 - Clic direct sur les bulles conservé.
-- Version visible : v3.7
+- Version visible : v3.24
 
 
-V3.8
+V3.24
 - Correction complète du recentrage ISO / Gain / Ouverture.
 - Le centrage utilise maintenant la position réelle de la bulle dans la ligne.
 - Ajout d'espace invisible aux extrémités pour permettre aux premières et dernières valeurs d'être réellement centrées.
 - Recentrage après clic, +/- 1/3 stop, changement caméra/gamma et compensation AUTO.
 - Les bulles restent pleinement cliquables.
 - Shutter 400 / 800 conservés.
-- Version visible : v3.8
+- Version visible : v3.24
 
 
-V3.9
+V3.24
 - Dans le gros résultat COMPENSATION, suppression de "(f/ ou T)".
 - L'ouverture compensée s'affiche désormais simplement sous la forme f/4, f/5.6, etc.
 - Aucun autre changement.
-- Version visible : v3.9
+- Version visible : v3.24
 
 
-V3.10
+V3.24
 - Réglage fin du Gain modifié de ±2 dB à ±1 dB.
 - Les repères principaux restent espacés de 6 dB = 1 stop.
 - Les TIPS indiquent désormais qu'un pas de 1 dB correspond à environ 1/6 de stop.
-- Version visible : v3.10
+- Version visible : v3.24
 
 
-V3.11
+V3.24
 - Retour au réglage fin Gain par pas de ±2 dB.
 - 6 dB = 1 stop, donc 2 dB ≈ 1/3 de stop.
 - Cohérence avec les ajustements fins ±1/3 stop du diaph et des ISO.
-- Version visible : v3.11
+- Version visible : v3.24
 
 
-V3.12
+V3.24
 - Réglage fin du Gain repassé à ±1 dB pour plus de flexibilité en tournage.
 - Les repères principaux restent espacés de 6 dB = 1 stop.
 - 1 dB ≈ 1/6 stop ; 2 dB ≈ 1/3 stop.
 - TIPS mis à jour avec cette logique.
-- Version visible : v3.12
+- Version visible : v3.24
 
 
-V3.13
+V3.24
 - Les choix de MÉTHODE sont sauvegardés localement sur l'appareil.
 - Mémorisation : caméra, gamma, ISO/Gain, shutter Vitesse/Angle, réseau 50/60 Hz et cadence fps.
 - Les préférences sont restaurées automatiquement après fermeture/réouverture de l'application.
 - Le bouton RESET rétablit les valeurs par défaut et les enregistre comme nouvelles préférences.
 - Les données restent locales dans le navigateur/PWA ; aucun compte ni connexion internet nécessaire.
-- Version visible : v3.13
+- Version visible : v3.24
 
 
-V3.14
+V3.24
 - "MÉTHODE" devient "RÉGLAGES CAMÉRA".
 - La section Réglages caméra est maintenant repliée par défaut au lancement.
 - Un clic sur l'en-tête déplie / replie la section.
-- Les choix internes restent mémorisés comme en V3.13.
-- Version visible : v3.14
+- Les choix internes restent mémorisés comme en V3.24.
+- Version visible : v3.24
 
 
-V3.15
+V3.24
 - Suppression des longues rangées permanentes de valeurs dans l'écran principal.
 - Ouverture / ISO-Gain / Shutter / ND sont désormais affichés sous forme d'une seule valeur cliquable.
 - Un clic ouvre un panneau de sélection avec toutes les valeurs disponibles.
@@ -288,32 +288,32 @@ V3.15
 - La cadence fps n'est affichée que si le shutter est en Angle.
 - Les réglages caméra restent mémorisés après fermeture de l'app.
 - Réglages caméra reste replié par défaut.
-- Version visible : v3.15
+- Version visible : v3.24
 
 
-V3.16
+V3.24
 - ND QUICK retiré de l'écran principal.
 - ND QUICK déplacé tel quel dans la page TIPS.
 - Les 12 valeurs ND et leurs appellations restent inchangées.
-- Version visible : v3.16
+- Version visible : v3.24
 
 
-V3.17
+V3.24
 - Icône de l'app Exposure alignée sur la DA de l'app DOF.
 - Titre d'icône passé à EXPO pour matcher DOF.
 - Typo, tailles et structure visuelle harmonisées entre les deux apps.
-- Cache versionné en v3.17 pour forcer la mise à jour de l'icône.
+- Cache versionné en v3.24 pour forcer la mise à jour de l'icône.
 
-V3.18 — FAMILY ICON SYSTEM
+V3.24 — FAMILY ICON SYSTEM
 - Nom utilisateur harmonisé : EXPO (et non EXPOSURE) dans toute l'identité de l'app.
 - short_name : EXPO · BRUNO, sur le même modèle que DOF · BRUNO.
 - Nouvelle icône basée directement sur le master DOF :
   même fond, même position verticale, même cadre central,
   même taille de titre, et bloc BRUNO / SET TOOLS strictement identique.
 - Icônes 512 px et 192 px générées depuis le même master.
-- Cache PWA : v3.18
+- Cache PWA : v3.24
 
-V3.19
+V3.24
 - short_name PWA raccourci en "EXPO - BST" pour un affichage plus lisible sous l’icône.
 - Nom harmonisé avec DOF.
-- Cache PWA mis à jour en v3.19.
+- Cache PWA mis à jour en v3.24.
