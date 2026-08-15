@@ -6,27 +6,24 @@
   <meta name="theme-color" id="themeColor" content="#F3F1EC" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="EXPO · BRUNO" />
-  <title>BRUNO SET TOOLS / EXPO</title>
+  <meta name="apple-mobile-web-app-title" content="EXPO · BOS" />
+  <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.19" />
+  <link rel="stylesheet" href="style.css?v=3.20" />
 </head>
 <body>
   <main class="app" id="mainApp">
     <header class="top">
       <div class="top-inner">
-        <div>
-          <div class="eyebrow-row">
-            <a class="eyebrow eyebrow-link" href="https://www.brunoguillard.com/" target="_blank" rel="noopener noreferrer">
-              <span class="eyebrow-mark"></span>
-              <span class="eyebrow-brand">BRUNO SET TOOLS</span>
-              <span class="eyebrow-tool">/ EXPO</span>
-            </a>
-          </div>
-          <h1>Compensateur d’exposition</h1>
+        <div class="brand-stack">
+          <a class="brandline" href="https://www.brunoguillard.com/" target="_blank" rel="noopener noreferrer" aria-label="Site de Bruno Guillard">
+            <span class="bos-pill">BOS</span>
+            <span class="brand-name">BRUNO ONSET</span>
+          </a>
+          <h1>EXPO</h1>
         </div>
-        <button class="theme-toggle" id="themeToggle" type="button">DARK</button>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Changer de thème">DARK</button>
       </div>
     </header>
 
@@ -349,7 +346,7 @@
   <dialog id="infoDialog">
     <div class="dialog-inner">
       <button id="closeDialog" class="close" aria-label="Fermer">×</button>
-      <div class="dialog-kicker">BRUNO SET TOOLS / EXPO</div>
+      <div class="dialog-kicker">BRUNO ONSET / EXPO</div>
       <h2>Comment lire le résultat</h2>
       <p><strong>+1 stop</strong> signifie que le nouveau réglage donne un niveau d’exposition équivalent deux fois plus élevé que le réglage de départ.</p>
       <p><strong>−1 stop</strong> signifie deux fois moins.</p>
@@ -357,6 +354,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.19"></script>
+  <script src="app.js?v=3.20"></script>
 </body>
 </html>

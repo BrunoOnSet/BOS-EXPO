@@ -1,4 +1,4 @@
-BRUNO SET TOOLS / EXPOSURE — V1.0
+BRUNO ONSET / EXPOSURE — V1.0
 
 Fonctions
 - Comparaison de deux réglages : ouverture, ISO, shutter, ND.
