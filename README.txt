@@ -317,3 +317,13 @@ V3.24
 - short_name PWA raccourci en "EXPO - BST" pour un affichage plus lisible sous l’icône.
 - Nom harmonisé avec DOF.
 - Cache PWA mis à jour en v3.24.
+
+
+V3.28 — BOS Camera DB
+- EXPO lit maintenant la même base centrale `BOS-CAMERA-DB/cameras.json` que FRAME, DOF et MEDIA.
+- La liste des caméras et des profils gamma est construite depuis le bloc `expo` de la base.
+- Les ISO natifs / Lo-Hi sont lus depuis la base et surlignés dans le picker ISO.
+- En passant ISO → Gain, EXPO choisit automatiquement la base native la plus proche de l’ISO de référence et exprime le gain relativement à cette base (0 dB = base native).
+- Pour une caméra dual/multi-base, une ligne “Base gain” permet de changer d’ancrage sans modifier l’exposition équivalente.
+- Si aucune base native n’est renseignée pour un profil, le passage en Gain n’est pas effectué.
+- Cache local de la DB + fallback embarqué pour le hors-ligne.

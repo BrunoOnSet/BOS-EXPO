@@ -1,3 +1,9 @@
+const CAMERA_DB_URL="https://raw.githubusercontent.com/BrunoSetTools/BOS-CAMERA-DB/main/cameras.json";
+const CAMERA_DB_CACHE_KEY="bos-camera-db-cache-v1";
+const FALLBACK_CAMERA_DB={"schemaVersion":1,"databaseVersion":"1.2","updated":"2026-08-18","cameras":[{"id":"fx30","name":"Sony FX30","brand":"Sony","group":"SONY","expo":{"label":"FX30","defaultProfile":"slog3","profiles":{"slog3":{"label":"S-Log3","nativeBases":[{"iso":800,"gainDb":0},{"iso":2500,"gainDb":0}]},"scinetone":{"label":"S-Cinetone","nativeBases":[{"iso":125,"gainDb":0},{"iso":400,"gainDb":0}]}}}},{"id":"fx3","name":"Sony FX3","brand":"Sony","group":"SONY","expo":{"label":"FX3","defaultProfile":"slog3","profiles":{"slog3":{"label":"S-Log3","nativeBases":[{"iso":800,"gainDb":0},{"iso":12800,"gainDb":0}]},"scinetone":{"label":"S-Cinetone","nativeBases":[{"iso":100,"gainDb":0},{"iso":2000,"gainDb":0}]}}}},{"id":"fx5","name":"Sony FX5","brand":"Sony","group":"SONY","expo":{"label":"FX5","defaultProfile":"slog3","profiles":{"slog3":{"label":"S-Log3","nativeBases":[{"iso":800,"gainDb":0},{"iso":4000,"gainDb":0},{"iso":12800,"gainDb":0}]},"scinetone":{"label":"S-Cinetone","nativeBases":[]}}}},{"id":"fx6","name":"Sony FX6","brand":"Sony","group":"SONY","expo":{"label":"FX6","defaultProfile":"slog3","profiles":{"slog3":{"label":"S-Log3","nativeBases":[{"iso":800,"gainDb":0},{"iso":12800,"gainDb":0}]},"scinetone":{"label":"S-Cinetone","nativeBases":[{"iso":320,"gainDb":0},{"iso":5000,"gainDb":0}]}}}}]};
+let cameraDb=FALLBACK_CAMERA_DB;
+let expoCameras=[];
+
 const $ = id => document.getElementById(id);
 
 const inputs = {
@@ -6,8 +12,9 @@ const inputs = {
 };
 
 let sensitivityMode="iso";
-let cameraMode="FX30";
+let cameraMode="fx30";
 let gammaMode="slog3";
+let gainBaseIso=800;
 let shutterMode="speed";
 let currentFps=25;
 let manualParam="aperture";
@@ -36,12 +43,6 @@ const SHUTTER_SPEEDS=[25,40,50,100,200,400,800];
 const SHUTTER_ANGLES=[45,60,90,120,144,172.8,180,216,270,360];
 const ND_STOPS=[0,1,2,3,4,5,6,7,8];
 
-const CAMERA_BASE_ISO={
-  FX30:{slog3:[800,2500],scinetone:[125,400]},
-  FX3:{slog3:[800,12800],scinetone:[100,2000]},
-  FX5:{slog3:[800,4000,12800],scinetone:[]},
-  FX6:{slog3:[800,12800],scinetone:[320,5000]}
-};
 
 const METHOD_STORAGE_KEY="bruno-set-tools-exposure-method-v2";
 
@@ -125,13 +126,77 @@ function shutterEquiv(v){
     :`1/${fmt(360*currentFps/v,1)} s à ${fmt(currentFps,2)} fps`;
 }
 
-function currentBaseIsos(){return CAMERA_BASE_ISO[cameraMode]?.[gammaMode]||[];}
+function validCameraDb(data){
+  return !!(data&&Array.isArray(data.cameras)&&data.cameras.some(c=>c?.id&&c?.expo?.profiles));
+}
+function setCameraDb(data){
+  if(!validCameraDb(data))return false;
+  cameraDb=data;
+  expoCameras=data.cameras.filter(c=>c?.id&&c?.expo?.profiles&&Object.keys(c.expo.profiles).length);
+  if(!expoCameras.length)return false;
+  if(!expoCameras.some(c=>c.id===cameraMode))cameraMode=expoCameras[0].id;
+  ensureProfileValid();
+  ensureGainBaseValid();
+  renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
+  return true;
+}
+function loadCachedCameraDb(){
+  try{const cached=JSON.parse(localStorage.getItem(CAMERA_DB_CACHE_KEY)||"null");if(cached)setCameraDb(cached);}catch(_){}
+}
+async function refreshCameraDb(){
+  try{
+    const res=await fetch(CAMERA_DB_URL,{cache:"no-store"});
+    if(!res.ok)throw new Error(String(res.status));
+    const data=await res.json();
+    if(!setCameraDb(data))throw new Error("invalid camera db");
+    try{localStorage.setItem(CAMERA_DB_CACHE_KEY,JSON.stringify(data));}catch(_){}
+    saveMethodPreferences();updateUI();
+  }catch(_){}
+}
+function currentCamera(){return expoCameras.find(c=>c.id===cameraMode)||expoCameras[0]||null;}
+function currentProfile(){return currentCamera()?.expo?.profiles?.[gammaMode]||null;}
+function profileKeys(){return Object.keys(currentCamera()?.expo?.profiles||{});}
+function ensureProfileValid(){
+  const cam=currentCamera();if(!cam)return;
+  const keys=Object.keys(cam.expo.profiles||{});
+  if(!keys.includes(gammaMode))gammaMode=(cam.expo.defaultProfile&&keys.includes(cam.expo.defaultProfile))?cam.expo.defaultProfile:keys[0];
+}
+function currentBaseIsos(){return (currentProfile()?.nativeBases||[]).map(b=>Number(b.iso)).filter(v=>v>0);}
 function isNativeIso(v){return sensitivityMode==="iso"&&currentBaseIsos().some(x=>Math.abs(x-v)<0.001);}
+function nearestNativeBase(iso){
+  const bases=currentBaseIsos();if(!bases.length)return null;
+  return bases.reduce((best,b)=>Math.abs(Math.log(b/iso))<Math.abs(Math.log(best/iso))?b:best,bases[0]);
+}
+function ensureGainBaseValid(preferred){
+  const bases=currentBaseIsos();
+  if(!bases.length){gainBaseIso=null;return;}
+  if(preferred>0)gainBaseIso=nearestNativeBase(preferred);
+  else if(!bases.includes(Number(gainBaseIso)))gainBaseIso=bases[0];
+}
+function isoToGainDb(iso){return gainBaseIso>0&&iso>0?6*log2(iso/gainBaseIso):NaN;}
+function gainDbToIso(gain){return gainBaseIso>0&&Number.isFinite(gain)?gainBaseIso*Math.pow(2,gain/6):NaN;}
+function snapIso(v){return ISO_THIRDS[nearestIndex(ISO_THIRDS,v,true)];}
+function renderCameraButtons(){
+  const host=$("cameraMode");if(!host)return;host.innerHTML="";
+  expoCameras.forEach(c=>{const b=document.createElement("button");b.type="button";b.dataset.value=c.id;b.textContent=c.expo.label||c.name;b.classList.toggle("active",c.id===cameraMode);host.appendChild(b);});
+}
+function renderGammaButtons(){
+  const host=$("gammaMode"),cam=currentCamera();if(!host||!cam)return;host.innerHTML="";
+  Object.entries(cam.expo.profiles||{}).forEach(([key,p])=>{const b=document.createElement("button");b.type="button";b.dataset.value=key;b.textContent=p.label||key;b.classList.toggle("active",key===gammaMode);host.appendChild(b);});
+}
+function renderGainBaseButtons(){
+  const row=$("gainBaseRow"),host=$("gainBaseMode"),help=$("gainBaseHelp");if(!row||!host)return;
+  const bases=currentBaseIsos();
+  const gainBtn=$("sensitivityMode")?.querySelector('button[data-value="gain"]');if(gainBtn)gainBtn.disabled=!bases.length;
+  row.classList.toggle("hidden",sensitivityMode!=="gain"||!bases.length);host.innerHTML="";
+  bases.forEach(iso=>{const b=document.createElement("button");b.type="button";b.dataset.value=String(iso);b.textContent=`ISO ${formatThousands(iso)}`;b.classList.toggle("active",Number(gainBaseIso)===iso);host.appendChild(b);});
+  if(help)help.textContent=bases.length>1?"0 dB = base native sélectionnée · change de base sans changer l’exposition équivalente":"0 dB = base native de ce profil";
+}
 
 function saveMethodPreferences(){
   try{
     localStorage.setItem(METHOD_STORAGE_KEY,JSON.stringify({
-      cameraMode,gammaMode,sensitivityMode,shutterMode,currentFps
+      cameraMode,gammaMode,sensitivityMode,shutterMode,currentFps,gainBaseIso
     }));
   }catch(_){}
 }
@@ -139,9 +204,14 @@ function loadMethodPreferences(){
   try{
     const saved=JSON.parse(localStorage.getItem(METHOD_STORAGE_KEY)||"null");
     if(!saved)return;
-    if(["FX30","FX3","FX5","FX6"].includes(saved.cameraMode))cameraMode=saved.cameraMode;
-    if(["slog3","scinetone"].includes(saved.gammaMode))gammaMode=saved.gammaMode;
+    const legacyCameraMap={FX30:"fx30",FX3:"fx3",FX5:"fx5",FX6:"fx6"};
+    const wantedCamera=legacyCameraMap[saved.cameraMode]||saved.cameraMode;
+    if(expoCameras.some(c=>c.id===wantedCamera))cameraMode=wantedCamera;
+    ensureProfileValid();
+    if(profileKeys().includes(saved.gammaMode))gammaMode=saved.gammaMode;
     if(["iso","gain"].includes(saved.sensitivityMode))sensitivityMode=saved.sensitivityMode;
+    if(Number(saved.gainBaseIso)>0)gainBaseIso=Number(saved.gainBaseIso);
+    ensureGainBaseValid();
     if(["speed","angle"].includes(saved.shutterMode))shutterMode=saved.shutterMode;
     if(FPS_VALUES.includes(Number(saved.currentFps)))currentFps=Number(saved.currentFps);
 
@@ -154,6 +224,7 @@ function loadMethodPreferences(){
   }catch(_){}
 }
 function syncMethodButtons(){
+  renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
   [["cameraMode",cameraMode],["gammaMode",gammaMode],["sensitivityMode",sensitivityMode],["shutterMode",shutterMode]]
     .forEach(([id,val])=>{
       $(id)?.querySelectorAll("button[data-value]").forEach(b=>b.classList.toggle("active",b.dataset.value===String(val)));
@@ -168,10 +239,10 @@ function updateBaseIsoNote(){
   if(!note)return;
   if(bases.length){
     note.classList.remove("no-base");
-    note.innerHTML=`<span class="base-dot"></span><span>ISO natifs / Lo-Hi · ${cameraMode} · ${gammaMode==="slog3"?"S-Log3":"S-Cinetone"} : ${bases.map(formatThousands).join(" / ")}</span>`;
+    note.innerHTML=`<span class="base-dot"></span><span>ISO natifs / Lo-Hi · ${currentCamera()?.expo?.label||currentCamera()?.name||cameraMode} · ${currentProfile()?.label||gammaMode} : ${bases.map(formatThousands).join(" / ")}</span>`;
   }else{
     note.classList.add("no-base");
-    note.innerHTML=`<span class="base-dot"></span><span>${cameraMode} · S-Cinetone : repères Lo/Hi non renseignés</span>`;
+    note.innerHTML=`<span class="base-dot"></span><span>${currentCamera()?.expo?.label||currentCamera()?.name||cameraMode} · ${currentProfile()?.label||gammaMode} : repères Lo/Hi non renseignés</span>`;
   }
 }
 
@@ -231,9 +302,9 @@ function updateModes(){
 function updateSensitivityLabels(){
   const gain=sensitivityMode==="gain";
   $("refSensitivityLabel").textContent=gain?"Gain":"ISO";
-  $("refSensitivityUnit").textContent=gain?"dB":"sensibilité";
+  $("refSensitivityUnit").textContent=gain?(gainBaseIso?`dB · base ISO ${formatThousands(gainBaseIso)}`:"dB"):"sensibilité";
   $("newSensitivityLabel").textContent=gain?"GAIN":"ISO";
-  $("newSensitivityUnit").textContent=gain?"dB · compensation":"compensation";
+  $("newSensitivityUnit").textContent=gain?(gainBaseIso?`dB · base ISO ${formatThousands(gainBaseIso)}`:"dB · compensation"):"compensation";
   $("quickSensitivityLabel").textContent=gain?"Gain":"ISO";
 }
 
@@ -378,28 +449,62 @@ pickerDialog.addEventListener("click",e=>{if(e.target===pickerDialog)pickerDialo
 // ---------- Method controls ----------
 $("cameraMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-value]"); if(!btn)return;
-  cameraMode=btn.dataset.value;
-  $("cameraMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
+  const oldBase=gainBaseIso,oldRef=num(inputs.refIso.value),oldNew=num(inputs.newIso.value);
+  const isoRef=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldRef/6):oldRef;
+  const isoNew=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldNew/6):oldNew;
+  cameraMode=btn.dataset.value;ensureProfileValid();ensureGainBaseValid(isoRef);
+  if(sensitivityMode==="gain"){
+    if(gainBaseIso){inputs.refIso.value=fmt(isoToGainDb(isoRef),1);inputs.newIso.value=fmt(isoToGainDb(isoNew),1);}
+    else{sensitivityMode="iso";inputs.refIso.value=String(snapIso(isoRef));inputs.newIso.value=String(snapIso(isoNew));}
+  }
+  renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
   saveMethodPreferences(); updateUI();
 });
 $("gammaMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-value]"); if(!btn)return;
-  gammaMode=btn.dataset.value;
-  $("gammaMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
+  const oldBase=gainBaseIso,oldRef=num(inputs.refIso.value),oldNew=num(inputs.newIso.value);
+  const isoRef=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldRef/6):oldRef;
+  const isoNew=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldNew/6):oldNew;
+  gammaMode=btn.dataset.value;ensureGainBaseValid(isoRef);
+  if(sensitivityMode==="gain"){
+    if(gainBaseIso){inputs.refIso.value=fmt(isoToGainDb(isoRef),1);inputs.newIso.value=fmt(isoToGainDb(isoNew),1);}
+    else{sensitivityMode="iso";inputs.refIso.value=String(snapIso(isoRef));inputs.newIso.value=String(snapIso(isoNew));}
+  }
+  renderGammaButtons();renderGainBaseButtons();
   saveMethodPreferences(); updateUI();
 });
 $("sensitivityMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-value]"); if(!btn||btn.dataset.value===sensitivityMode)return;
-
-  sensitivityState[sensitivityMode].ref=num(inputs.refIso.value);
-  sensitivityState[sensitivityMode].new=num(inputs.newIso.value);
-  sensitivityMode=btn.dataset.value;
-  $("sensitivityMode").querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
-
-  inputs.refIso.value=String(sensitivityState[sensitivityMode].ref);
-  inputs.newIso.value=String(sensitivityState[sensitivityMode].new);
+  const next=btn.dataset.value;
+  if(next==="gain"){
+    const bases=currentBaseIsos();
+    if(!bases.length){updateBaseIsoNote();return;}
+    const refIso=num(inputs.refIso.value),newIso=num(inputs.newIso.value);
+    ensureGainBaseValid(refIso);
+    sensitivityState.iso={ref:refIso,new:newIso};
+    sensitivityMode="gain";
+    inputs.refIso.value=fmt(isoToGainDb(refIso),1);
+    inputs.newIso.value=fmt(isoToGainDb(newIso),1);
+  }else{
+    const refGain=num(inputs.refIso.value),newGain=num(inputs.newIso.value);
+    sensitivityState.gain={ref:refGain,new:newGain};
+    const refIso=gainDbToIso(refGain),newIso=gainDbToIso(newGain);
+    sensitivityMode="iso";
+    inputs.refIso.value=String(snapIso(refIso));
+    inputs.newIso.value=String(snapIso(newIso));
+  }
   manualParam="aperture";
-  saveMethodPreferences(); updateUI();
+  syncMethodButtons();saveMethodPreferences();updateUI();
+});
+$("gainBaseMode").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-value]");if(!btn||sensitivityMode!=="gain")return;
+  const oldBase=Number(gainBaseIso),nextBase=Number(btn.dataset.value);if(!(oldBase>0&&nextBase>0)||oldBase===nextBase)return;
+  const refIso=oldBase*Math.pow(2,num(inputs.refIso.value)/6);
+  const newIso=oldBase*Math.pow(2,num(inputs.newIso.value)/6);
+  gainBaseIso=nextBase;
+  inputs.refIso.value=fmt(isoToGainDb(refIso),1);
+  inputs.newIso.value=fmt(isoToGainDb(newIso),1);
+  renderGainBaseButtons();saveMethodPreferences();updateUI();
 });
 $("shutterMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-value]"); if(!btn)return;
@@ -429,7 +534,7 @@ $("copyRefBtn").addEventListener("click",()=>{
 });
 
 $("resetBtn").addEventListener("click",()=>{
-  sensitivityMode="iso"; cameraMode="FX30"; gammaMode="slog3"; shutterMode="speed"; currentFps=25;
+  sensitivityMode="iso"; cameraMode="fx30"; gammaMode="slog3"; gainBaseIso=800; shutterMode="speed"; currentFps=25;
   manualParam="aperture";
   sensitivityState.iso={ref:800,new:1600};
   sensitivityState.gain={ref:0,new:6};
@@ -479,9 +584,13 @@ $("infoBtn").addEventListener("click",()=>dialog.showModal());
 $("closeDialog").addEventListener("click",()=>dialog.close());
 dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close();});
 
+setCameraDb(FALLBACK_CAMERA_DB);
+loadCachedCameraDb();
 loadMethodPreferences();
+ensureProfileValid();ensureGainBaseValid();
 syncMethodButtons();
 updateUI();
+refreshCameraDb();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
