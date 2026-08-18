@@ -44,6 +44,7 @@ const SHUTTER_ANGLES=[45,60,90,120,144,172.8,180,216,270,360];
 const ND_STOPS=[0,1,2,3,4,5,6,7,8];
 
 
+const LAST_CAMERA_BY_BRAND_KEY="bos-expo-last-camera-by-brand-v1";
 const METHOD_STORAGE_KEY="bruno-set-tools-exposure-method-v2";
 
 function num(v){return Number(String(v).replace(",",".").replace("+","").replace(" dB","").trim());}
@@ -231,12 +232,36 @@ function renderBrandButtons(){
     const b=document.createElement("button");b.type="button";b.dataset.brand=brand;b.textContent=brand;b.classList.toggle("active",brand===activeBrand);host.appendChild(b);
   });
 }
+function camerasForBrand(brand){
+  return expoCameras.filter(c=>cameraBrand(c)===brand);
+}
+function getLastCameraForBrand(brand){
+  try{
+    const saved=JSON.parse(localStorage.getItem(LAST_CAMERA_BY_BRAND_KEY)||"{}");
+    const id=saved?.[brand];
+    return camerasForBrand(brand).some(c=>c.id===id)?id:null;
+  }catch(_){return null;}
+}
+function rememberCameraForBrand(camera){
+  if(!camera)return;
+  try{
+    const saved=JSON.parse(localStorage.getItem(LAST_CAMERA_BY_BRAND_KEY)||"{}");
+    saved[cameraBrand(camera)]=camera.id;
+    localStorage.setItem(LAST_CAMERA_BY_BRAND_KEY,JSON.stringify(saved));
+  }catch(_){}
+}
 function renderCameraButtons(){
   const host=$("cameraMode");if(!host)return;host.innerHTML="";
   const activeBrand=cameraBrand(currentCamera());
-  expoCameras.filter(c=>cameraBrand(c)===activeBrand).forEach(c=>{
-    const b=document.createElement("button");b.type="button";b.dataset.value=c.id;b.textContent=c.expo.label||cameraShortLabel(c);b.classList.toggle("active",c.id===cameraMode);host.appendChild(b);
+  camerasForBrand(activeBrand).forEach(c=>{
+    const option=document.createElement("option");
+    option.value=c.id;
+    option.textContent=c.expo.label||cameraShortLabel(c);
+    option.selected=c.id===cameraMode;
+    host.appendChild(option);
   });
+  host.value=cameraMode;
+  host.title=host.options[host.selectedIndex]?.textContent||"";
 }
 function renderGammaButtons(){
   const host=$("gammaMode"),cam=currentCamera();if(!host||!cam)return;host.innerHTML="";
@@ -283,7 +308,7 @@ function loadMethodPreferences(){
 }
 function syncMethodButtons(){
   renderBrandButtons();renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
-  [["cameraMode",cameraMode],["gammaMode",gammaMode],["sensitivityMode",sensitivityMode],["shutterMode",shutterMode]]
+  [["gammaMode",gammaMode],["sensitivityMode",sensitivityMode],["shutterMode",shutterMode]]
     .forEach(([id,val])=>{
       $(id)?.querySelectorAll("button[data-value]").forEach(b=>b.classList.toggle("active",b.dataset.value===String(val)));
     });
@@ -519,7 +544,7 @@ function applyCameraSelection(nextCameraId){
   const oldBase=gainBaseIso,oldRef=num(inputs.refIso.value),oldNew=num(inputs.newIso.value);
   const isoRef=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldRef/6):oldRef;
   const isoNew=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldNew/6):oldNew;
-  cameraMode=nextCameraId;ensureProfileValid();ensureGainBaseValid(isoRef);
+  cameraMode=nextCameraId;rememberCameraForBrand(currentCamera());ensureProfileValid();ensureGainBaseValid(isoRef);
   if(sensitivityMode==="gain"){
     if(gainBaseIso&&currentGainSupported()){inputs.refIso.value=fmt(isoToGainDb(isoRef),1);inputs.newIso.value=fmt(isoToGainDb(isoNew),1);}
     else{sensitivityMode="iso";inputs.refIso.value=String(snapIso(isoRef));inputs.newIso.value=String(snapIso(isoNew));}
@@ -531,12 +556,14 @@ function applyCameraSelection(nextCameraId){
 // ---------- Method controls ----------
 $("cameraBrandMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-brand]");if(!btn)return;
-  const first=expoCameras.find(c=>cameraBrand(c)===btn.dataset.brand);
-  if(first)applyCameraSelection(first.id);
+  const brand=btn.dataset.brand;
+  const remembered=getLastCameraForBrand(brand);
+  const first=camerasForBrand(brand)[0];
+  if(remembered)applyCameraSelection(remembered);
+  else if(first)applyCameraSelection(first.id);
 });
-$("cameraMode").addEventListener("click",e=>{
-  const btn=e.target.closest("button[data-value]");if(!btn)return;
-  applyCameraSelection(btn.dataset.value);
+$("cameraMode").addEventListener("change",e=>{
+  applyCameraSelection(e.target.value);
 });
 $("gammaMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-value]"); if(!btn)return;

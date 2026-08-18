@@ -315,13 +315,11 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
   color:var(--muted);
   font-weight:800;
 }
-.camera-chips{
-  padding-top:0;
-}
-
-/* V3.30 — sélection caméra en deux niveaux : marque puis modèle */
+/* V3.31 — marque en boutons + modèle en menu déroulant */
 .brand-chips{
   margin-bottom:9px;
+  flex-wrap:wrap;
+  overflow:visible;
 }
 .brand-chips button{
   font-weight:850;
@@ -331,9 +329,47 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
   margin-top:2px;
   margin-bottom:6px;
 }
-.camera-chips button{
-  flex:1 0 auto;
-  min-width:54px;
+.camera-select-wrap{
+  position:relative;
+  width:100%;
+}
+.camera-select-wrap::after{
+  content:"⌄";
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-55%);
+  color:var(--muted);
+  font-size:16px;
+  font-weight:900;
+  pointer-events:none;
+}
+.camera-select{
+  width:100%;
+  min-width:0;
+  height:46px;
+  appearance:none;
+  -webkit-appearance:none;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--field-bg);
+  color:var(--text);
+  padding:0 42px 0 13px;
+  font:inherit;
+  font-size:13px;
+  font-weight:850;
+  outline:none;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.camera-select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-soft);
+}
+.camera-select option{
+  background:var(--panel);
+  color:var(--text);
 }
 .method-profile-grid{
   margin-bottom:10px;
@@ -401,8 +437,8 @@ body.dark .chips button.native-iso.active{
   .method-exposure-grid{
     grid-template-columns:1fr 1fr;
   }
-  .camera-chips button{
-    min-width:52px;
+  .camera-select{
+    font-size:12px;
   }
 }
 

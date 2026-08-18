@@ -351,3 +351,13 @@ V3.30 — Sélection caméra par marque
 - En changeant de marque, EXPO sélectionne le premier modèle disponible de cette marque, puis permet de choisir un autre modèle.
 - Les données d'exposition restent entièrement lues depuis BOS Camera DB.
 - Cache PWA/version : v3.30.
+
+
+V3.31 — Sélection caméra compacte
+- Conservation du choix de marque sous forme de boutons.
+- Remplacement des longues rangées de modèles par un menu déroulant pleine largeur.
+- Le menu n'affiche que les caméras de la marque active.
+- La marque n'est pas répétée dans le nom du modèle.
+- Mémorisation de la dernière caméra choisie pour chaque marque.
+- Interface adaptée aux noms longs (notamment Blackmagic), sans débordement horizontal.
+- Cache PWA/version : v3.31.
