@@ -327,3 +327,19 @@ V3.28 — BOS Camera DB
 - Pour une caméra dual/multi-base, une ligne “Base gain” permet de changer d’ancrage sans modifier l’exposition équivalente.
 - Si aucune base native n’est renseignée pour un profil, le passage en Gain n’est pas effectué.
 - Cache local de la DB + fallback embarqué pour le hors-ligne.
+
+
+V3.29 — BOS Camera DB V1.2 / EXPO automatique
+- EXPO accepte maintenant le schéma central `exposure` de BOS_CAMERA_DB V1.2, tout en restant compatible avec l'ancien bloc `expo`.
+- Les 11 caméras réelles de la DB V1.2 apparaissent automatiquement ; les entrées capteur génériques sans exposition restent exclues.
+- Conversion automatique de `baseValues` vers les repères natifs utilisés par l'interface EXPO.
+- ARRI est affiché en EI (Base EI) au lieu d'être présenté abusivement comme ISO.
+- RED ISO 800 reste un ISO de référence, affiché sans surlignage bleu de valeur native.
+- Le mode Gain est réservé aux profils dont la DB indique `gain.type = cameraSpecific`; il n'est pas proposé pour ARRI EI ni pour l'ISO métadonnée RED.
+- Cache DB passé en v2 pour éviter qu'une ancienne liste de 4 Sony masque la nouvelle base.
+- Fallback hors-ligne remplacé par la BOS_CAMERA_DB V1.2 complète.
+- Cache PWA/version : v3.29.
+
+IMPORTANT — BASE CENTRALE
+- Pour que les futures modifications de BOS_CAMERA_DB arrivent dans EXPO sans republier l'app, le fichier `cameras.json` V1.2 (ou supérieur) doit être publié dans le dépôt central BOS-CAMERA-DB utilisé par CAMERA_DB_URL.
+- EXPO V3.29 refuse volontairement une base distante plus ancienne que sa base embarquée afin de ne pas perdre des caméras.
