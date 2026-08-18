@@ -174,7 +174,7 @@ function setCameraDb(data){
   if(!expoCameras.some(c=>c.id===cameraMode))cameraMode=expoCameras[0].id;
   ensureProfileValid();
   ensureGainBaseValid();
-  renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
+  renderBrandButtons();renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
   return true;
 }
 function loadCachedCameraDb(){
@@ -216,9 +216,27 @@ function ensureGainBaseValid(preferred){
 function isoToGainDb(iso){return gainBaseIso>0&&iso>0?6*log2(iso/gainBaseIso):NaN;}
 function gainDbToIso(gain){return gainBaseIso>0&&Number.isFinite(gain)?gainBaseIso*Math.pow(2,gain/6):NaN;}
 function snapIso(v){return ISO_THIRDS[nearestIndex(ISO_THIRDS,v,true)];}
+function cameraBrand(c){
+  return String(c?.brand||c?.group||"Autre").trim()||"Autre";
+}
+function cameraBrands(){
+  const seen=new Set(),brands=[];
+  expoCameras.forEach(c=>{const brand=cameraBrand(c);if(!seen.has(brand)){seen.add(brand);brands.push(brand);}});
+  return brands;
+}
+function renderBrandButtons(){
+  const host=$("cameraBrandMode");if(!host)return;host.innerHTML="";
+  const activeBrand=cameraBrand(currentCamera());
+  cameraBrands().forEach(brand=>{
+    const b=document.createElement("button");b.type="button";b.dataset.brand=brand;b.textContent=brand;b.classList.toggle("active",brand===activeBrand);host.appendChild(b);
+  });
+}
 function renderCameraButtons(){
   const host=$("cameraMode");if(!host)return;host.innerHTML="";
-  expoCameras.forEach(c=>{const b=document.createElement("button");b.type="button";b.dataset.value=c.id;b.textContent=c.expo.label||c.name;b.classList.toggle("active",c.id===cameraMode);host.appendChild(b);});
+  const activeBrand=cameraBrand(currentCamera());
+  expoCameras.filter(c=>cameraBrand(c)===activeBrand).forEach(c=>{
+    const b=document.createElement("button");b.type="button";b.dataset.value=c.id;b.textContent=c.expo.label||cameraShortLabel(c);b.classList.toggle("active",c.id===cameraMode);host.appendChild(b);
+  });
 }
 function renderGammaButtons(){
   const host=$("gammaMode"),cam=currentCamera();if(!host||!cam)return;host.innerHTML="";
@@ -264,7 +282,7 @@ function loadMethodPreferences(){
   }catch(_){}
 }
 function syncMethodButtons(){
-  renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
+  renderBrandButtons();renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
   [["cameraMode",cameraMode],["gammaMode",gammaMode],["sensitivityMode",sensitivityMode],["shutterMode",shutterMode]]
     .forEach(([id,val])=>{
       $(id)?.querySelectorAll("button[data-value]").forEach(b=>b.classList.toggle("active",b.dataset.value===String(val)));
@@ -494,19 +512,31 @@ pickerGrid.addEventListener("click",e=>{
 $("pickerClose").addEventListener("click",()=>pickerDialog.close());
 pickerDialog.addEventListener("click",e=>{if(e.target===pickerDialog)pickerDialog.close();});
 
-// ---------- Method controls ----------
-$("cameraMode").addEventListener("click",e=>{
-  const btn=e.target.closest("button[data-value]"); if(!btn)return;
+function applyCameraSelection(nextCameraId){
+  if(!expoCameras.some(c=>c.id===nextCameraId)||nextCameraId===cameraMode){
+    renderBrandButtons();renderCameraButtons();return;
+  }
   const oldBase=gainBaseIso,oldRef=num(inputs.refIso.value),oldNew=num(inputs.newIso.value);
   const isoRef=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldRef/6):oldRef;
   const isoNew=sensitivityMode==="gain"&&oldBase?oldBase*Math.pow(2,oldNew/6):oldNew;
-  cameraMode=btn.dataset.value;ensureProfileValid();ensureGainBaseValid(isoRef);
+  cameraMode=nextCameraId;ensureProfileValid();ensureGainBaseValid(isoRef);
   if(sensitivityMode==="gain"){
     if(gainBaseIso&&currentGainSupported()){inputs.refIso.value=fmt(isoToGainDb(isoRef),1);inputs.newIso.value=fmt(isoToGainDb(isoNew),1);}
     else{sensitivityMode="iso";inputs.refIso.value=String(snapIso(isoRef));inputs.newIso.value=String(snapIso(isoNew));}
   }
-  renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
-  saveMethodPreferences(); updateUI();
+  renderBrandButtons();renderCameraButtons();renderGammaButtons();renderGainBaseButtons();
+  saveMethodPreferences();updateUI();
+}
+
+// ---------- Method controls ----------
+$("cameraBrandMode").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-brand]");if(!btn)return;
+  const first=expoCameras.find(c=>cameraBrand(c)===btn.dataset.brand);
+  if(first)applyCameraSelection(first.id);
+});
+$("cameraMode").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-value]");if(!btn)return;
+  applyCameraSelection(btn.dataset.value);
 });
 $("gammaMode").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-value]"); if(!btn)return;

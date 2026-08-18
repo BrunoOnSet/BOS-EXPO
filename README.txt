@@ -343,3 +343,11 @@ V3.29 — BOS Camera DB V1.2 / EXPO automatique
 IMPORTANT — BASE CENTRALE
 - Pour que les futures modifications de BOS_CAMERA_DB arrivent dans EXPO sans republier l'app, le fichier `cameras.json` V1.2 (ou supérieur) doit être publié dans le dépôt central BOS-CAMERA-DB utilisé par CAMERA_DB_URL.
 - EXPO V3.29 refuse volontairement une base distante plus ancienne que sa base embarquée afin de ne pas perdre des caméras.
+
+
+V3.30 — Sélection caméra par marque
+- Le choix des caméras se fait désormais en deux étapes : MARQUE puis CAMÉRA.
+- La marque active est déduite de la caméra sélectionnée et les modèles affichés sont filtrés par marque.
+- En changeant de marque, EXPO sélectionne le premier modèle disponible de cette marque, puis permet de choisir un autre modèle.
+- Les données d'exposition restent entièrement lues depuis BOS Camera DB.
+- Cache PWA/version : v3.30.

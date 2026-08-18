@@ -318,6 +318,19 @@ dialog{border:none;border-radius:20px;background:#17191C;color:#fff;max-width:46
 .camera-chips{
   padding-top:0;
 }
+
+/* V3.30 — sélection caméra en deux niveaux : marque puis modèle */
+.brand-chips{
+  margin-bottom:9px;
+}
+.brand-chips button{
+  font-weight:850;
+}
+.camera-model-label{
+  display:block;
+  margin-top:2px;
+  margin-bottom:6px;
+}
 .camera-chips button{
   flex:1 0 auto;
   min-width:54px;
