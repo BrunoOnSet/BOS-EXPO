@@ -631,11 +631,25 @@ body.dark .chips button.native-iso:not(.active){
   color:var(--chip-active-text);
   border-color:var(--chip-active-bg);
 }
-/* ISO : le bleu signale toujours l'ISO natif ; la sélection est indiquée uniquement par un contour. */
+/* ISO : le point bleu signale l’ISO natif ; la sélection est indiquée uniquement par un contour. */
 .iso-picker .picker-option.native-choice{
+  position:relative;
+  background:var(--field-bg);
+  color:var(--text);
+  border-color:var(--line);
+  padding-left:27px;
+}
+.iso-picker .picker-option.native-choice::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:50%;
+  width:9px;
+  height:9px;
+  margin-top:-4.5px;
+  border-radius:50%;
   background:var(--accent);
-  color:#fff;
-  border-color:var(--accent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--accent),#000 15%);
 }
 .iso-picker .picker-option.selected{
   background:var(--field-bg);
@@ -643,11 +657,12 @@ body.dark .chips button.native-iso:not(.active){
   border:2px solid #17191C;
 }
 .iso-picker .picker-option.native-choice.selected{
-  background:var(--accent);
-  color:#fff;
+  background:var(--field-bg);
+  color:var(--text);
   border-color:#17191C;
 }
-body.dark .iso-picker .picker-option.selected{border-color:#F3F3F0}
+body.dark .iso-picker .picker-option.selected,
+body.dark .iso-picker .picker-option.native-choice.selected{border-color:#F3F3F0}
 .picker-native-legend{
   display:flex;
   align-items:center;
@@ -925,7 +940,7 @@ body.dark .iso-picker .picker-option.selected{border-color:#F3F3F0}
 
 
 
-/* V3.44 — cadenas par paramètre */
+/* V3.45 — cadenas par paramètre */
 .simple-calc-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));

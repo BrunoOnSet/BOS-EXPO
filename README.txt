@@ -410,7 +410,7 @@ V3.41 — PRIORITÉ VISIBLE
 - Le bouton = RÉF. reste séparé dans l'en-tête.
 
 
-V3.44 — CADENAS DE COMPENSATION
+V3.45 — CADENAS DE COMPENSATION
 - Suppression du choix de préférence ISO / ND.
 - Ajout d’un cadenas indépendant au-dessus de Diaph, ISO, Shutter et ND dans CALCUL.
 - Cadenas fermé : le paramètre est protégé et ne peut pas être modifié par la compensation automatique.
@@ -420,15 +420,15 @@ V3.44 — CADENAS DE COMPENSATION
 - Les limites ISO MIN / MAX et DIAPH MIN / MAX restent appliquées.
 
 
-V3.44 — CAMERA DB REFRESH
+V3.45 — CAMERA DB REFRESH
 - Correction du Service Worker : BOS-CAMERA-DB n'est plus servi en cache-first.
 - En ligne, cameras.json est toujours relu depuis GitHub avec le fetch no-store de l'app.
-- Un parametre anti-cache est ajoute a la requete DB pour contourner aussi un ancien Service Worker encore actif lors du tout premier chargement de V3.44.
+- Un parametre anti-cache est ajoute a la requete DB pour contourner aussi un ancien Service Worker encore actif lors du tout premier chargement de V3.45.
 - Hors ligne, EXPO conserve le dernier cameras.json valide via localStorage, puis utilise le fallback embarque si necessaire.
-- Le changement de cache v3.44 supprime automatiquement l'ancien cache v3.42 lors de l'activation.
+- Le changement de cache v3.45 supprime automatiquement l'ancien cache v3.42 lors de l'activation.
 
 
-V3.44 — ISO NATIF / SÉLECTION
+V3.45 — ISO NATIF / SÉLECTION
 - Dans les sélecteurs ISO de RÉFÉRENCE et CALCUL, les ISO natifs restent toujours remplis en bleu.
 - L'ISO sélectionné est indiqué par un contour, sans remplacer le code couleur natif.
 - Si l'ISO sélectionné est lui-même natif, il reste bleu et reçoit aussi le contour de sélection.

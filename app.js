@@ -831,7 +831,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.44 — lock-based compensation workflow
+// BOS EXPO V3.45 — lock-based compensation workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
