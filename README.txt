@@ -361,3 +361,13 @@ V3.31 — Sélection caméra compacte
 - Mémorisation de la dernière caméra choisie pour chaque marque.
 - Interface adaptée aux noms longs (notamment Blackmagic), sans débordement horizontal.
 - Cache PWA/version : v3.31.
+
+
+V3.32 — COMPACT + SCÈNES
+- Réglages caméra repliés : le nom de la caméra choisie reste visible dans le titre, comme dans DOF.
+- Référence et Nouveau réglage réunis dans un seul workflow compact.
+- Shutter et ND du nouveau réglage intégrés au même bloc, suppression de la séparation « Autres changements ».
+- Compensation transformée en récapitulatif compact : résultat + détail des stops par paramètre.
+- Nouvelle section SCÈNES : saisie d’un écart de lumière relatif à la référence et proposition de réglage en conservant la logique MANUEL/AUTO.
+- Les scènes sont mémorisées localement.
+- Prépare l’arrivée future d’une cellule téléphone : la mesure pourra alimenter automatiquement l’écart de lumière.

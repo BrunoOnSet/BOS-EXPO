@@ -673,3 +673,66 @@ body.dark .chips button.native-iso:not(.active){
 .gain-base-chips{padding-top:0;flex-wrap:wrap;overflow:visible}
 .gain-base-help{display:block;margin-top:7px;color:var(--muted);font-size:9px;line-height:1.35;font-weight:700}
 #sensitivityMode button:disabled{opacity:.42;cursor:not-allowed}
+
+
+/* ============================================================
+   BOS EXPO V3.32 — compact workflow + scenes
+   ============================================================ */
+.camera-collapse-title{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.camera-collapse-title strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px;font-weight:850;letter-spacing:0;text-transform:none}
+.method-panel:not(.collapsed) .camera-collapse-title strong{opacity:.7}
+
+.exposure-workflow-panel{margin-top:14px}
+.compact-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.workflow-divider{height:1px;background:var(--line);margin:15px 0}
+.expo-compact-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 10px}
+.new-setting-grid .linked-card,.new-setting-grid .compact-linked-field{min-width:0}
+.compact-linked-field.linked-card{padding:10px;border-radius:14px}
+.compact-linked-field .value-select{min-height:48px}
+.compact-linked-field .linked-card-head{margin-bottom:6px}
+.new-setting-head{margin-bottom:10px}
+.exposure-workflow-panel .equiv-message{margin-top:11px;padding:9px 10px}
+
+.compact-compensation-panel{margin-top:14px;padding-top:15px;padding-bottom:15px}
+.compensation-topline{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.compact-state{margin-top:4px;font-size:11px;color:var(--accent);font-weight:900;letter-spacing:.08em}
+.compact-result-value{margin:0;font-size:30px;line-height:1;font-weight:900;letter-spacing:-.035em;text-align:right}
+.compact-result-detail{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:11px;line-height:1.4;color:var(--text)}
+.compensation-strip{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:9px;color:var(--muted);font-size:9px}
+.compensation-strip span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.compensation-strip b{color:var(--text);font-size:10px}
+.compensation-strip i{font-style:normal}
+
+.scenes-panel{margin-top:14px}
+.scenes-head{margin-bottom:7px}
+.scene-add-btn{white-space:nowrap}
+.scene-rule{color:var(--muted);font-size:9px;line-height:1.4;margin-bottom:10px}
+.scenes-list{display:grid;gap:8px}
+.scene-empty{border:1px dashed var(--line);border-radius:14px;padding:14px;color:var(--muted);font-size:10px;text-align:center}
+.scene-card{border:1px solid var(--line);border-radius:15px;background:var(--field-bg);padding:11px}
+.scene-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.scene-name{min-width:0;flex:1;border:0;background:transparent;color:var(--text);font:inherit;font-size:12px;font-weight:900;outline:none;padding:0}
+.scene-remove{border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px}
+.scene-row{display:grid;grid-template-columns:minmax(115px,.8fr) 1.6fr;gap:9px;align-items:center}
+.scene-offset-wrap label{display:block;color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.scene-offset-control{display:flex;align-items:center;border:1px solid var(--line);border-radius:11px;background:var(--panel);height:42px;padding:0 9px}
+.scene-offset{min-width:0;width:100%;border:0;background:transparent;color:var(--text);font:inherit;font-size:18px;font-weight:900;outline:none}
+.scene-offset-unit{color:var(--muted);font-size:9px;font-weight:800;white-space:nowrap}
+.scene-proposal{min-width:0;border-left:1px solid var(--line);padding-left:10px}
+.scene-proposal-label{display:block;color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.scene-proposal-main{display:block;font-size:12px;font-weight:900;line-height:1.35}
+.scene-proposal-note{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.35}
+
+@media(max-width:430px){
+  .expo-compact-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .compact-linked-field.linked-card{padding:9px}
+  .compact-result-value{font-size:27px}
+  .compensation-topline{align-items:flex-end}
+  .compensation-strip{gap:5px 10px}
+  .scene-row{grid-template-columns:105px minmax(0,1fr);gap:8px}
+  .scene-proposal{padding-left:8px}
+}
+@media(max-width:360px){
+  .scene-row{grid-template-columns:1fr}
+  .scene-proposal{border-left:0;border-top:1px solid var(--line);padding:8px 0 0}
+}
