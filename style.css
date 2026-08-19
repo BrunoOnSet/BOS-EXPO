@@ -898,7 +898,7 @@ body.dark .chips button.native-iso:not(.active){
 
 
 
-/* V3.42 — cadenas par paramètre */
+/* V3.43 — cadenas par paramètre */
 .simple-calc-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));

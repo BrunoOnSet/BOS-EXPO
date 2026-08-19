@@ -190,7 +190,7 @@ function loadCachedCameraDb(){
 }
 async function refreshCameraDb(){
   try{
-    const res=await fetch(CAMERA_DB_URL,{cache:"no-store"});
+    const res=await fetch(`${CAMERA_DB_URL}?bosdb=${Date.now()}`,{cache:"no-store"});
     if(!res.ok)throw new Error(String(res.status));
     const data=await res.json();
     if(!setCameraDb(data))throw new Error("invalid camera db");
@@ -827,7 +827,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.42 — lock-based compensation workflow
+// BOS EXPO V3.43 — lock-based compensation workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};

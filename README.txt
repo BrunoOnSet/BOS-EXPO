@@ -410,7 +410,7 @@ V3.41 — PRIORITÉ VISIBLE
 - Le bouton = RÉF. reste séparé dans l'en-tête.
 
 
-V3.42 — CADENAS DE COMPENSATION
+V3.43 — CADENAS DE COMPENSATION
 - Suppression du choix de préférence ISO / ND.
 - Ajout d’un cadenas indépendant au-dessus de Diaph, ISO, Shutter et ND dans CALCUL.
 - Cadenas fermé : le paramètre est protégé et ne peut pas être modifié par la compensation automatique.
@@ -418,3 +418,11 @@ V3.42 — CADENAS DE COMPENSATION
 - Ordre fixe pour assombrir : Diaph ↑ → ISO ↓ → ND ↑ → Shutter.
 - Ordre fixe pour éclaircir : Diaph ↓ → ND ↓ → ISO ↑ → Shutter.
 - Les limites ISO MIN / MAX et DIAPH MIN / MAX restent appliquées.
+
+
+V3.43 — CAMERA DB REFRESH
+- Correction du Service Worker : BOS-CAMERA-DB n'est plus servi en cache-first.
+- En ligne, cameras.json est toujours relu depuis GitHub avec le fetch no-store de l'app.
+- Un parametre anti-cache est ajoute a la requete DB pour contourner aussi un ancien Service Worker encore actif lors du tout premier chargement de V3.43.
+- Hors ligne, EXPO conserve le dernier cameras.json valide via localStorage, puis utilise le fallback embarque si necessaire.
+- Le changement de cache v3.43 supprime automatiquement l'ancien cache v3.42 lors de l'activation.
