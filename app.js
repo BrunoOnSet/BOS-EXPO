@@ -548,6 +548,7 @@ function addScene(){
 const pickerDialog=$("valuePickerDialog");
 const pickerGrid=$("pickerGrid");
 const pickerTitle=$("pickerTitle");
+const pickerNativeLegend=$("pickerNativeLegend");
 let activePickerTarget=null;
 
 function pickerConfig(target){
@@ -582,6 +583,9 @@ function openPicker(target){
   if(!cfg)return;
   activePickerTarget=target;
   pickerTitle.textContent=cfg.title;
+  const isIsoPicker=!!cfg.native;
+  pickerGrid.classList.toggle("iso-picker",isIsoPicker);
+  pickerNativeLegend?.classList.toggle("hidden",!isIsoPicker);
 
   const current=target==="fps"?currentFps:num(inputs[target].value);
   pickerGrid.innerHTML=cfg.values.map(v=>{
@@ -827,7 +831,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.43 — lock-based compensation workflow
+// BOS EXPO V3.44 — lock-based compensation workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
