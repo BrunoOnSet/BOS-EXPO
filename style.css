@@ -940,7 +940,7 @@ body.dark .iso-picker .picker-option.native-choice.selected{border-color:#F3F3F0
 
 
 
-/* V3.46 — cadenas par paramètre */
+/* V3.47 — cadenas par paramètre */
 .simple-calc-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -976,7 +976,7 @@ body.dark .iso-picker .picker-option.native-choice.selected{border-color:#F3F3F0
 
 
 /* ============================================================
-   BOS EXPO V3.46 — SITUATIONS / CONTINUITÉ D’EXPO
+   BOS EXPO V3.47 — SITUATIONS / CONTINUITÉ D’EXPO
    ============================================================ */
 .situations-panel .scenes-head{align-items:flex-start}
 .continuity-overview{margin:10px 0 10px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--field-bg)}
@@ -1015,4 +1015,45 @@ body.dark .iso-picker .picker-option.native-choice.selected{border-color:#F3F3F0
 @media(max-width:360px){
   .situation-offset-tools{grid-template-columns:32px 34px minmax(68px,1fr) 34px 32px;gap:3px}
   .scene-nudge{padding:0 2px}
+}
+
+
+/* ============================================================
+   BOS EXPO V3.47 — SITUATIONS + PASSAGES
+   ============================================================ */
+.situation-one-head{margin-bottom:8px}
+.situation-one-title{min-width:0;flex:1}
+.situation-one-kicker-row{display:flex;align-items:center;gap:7px}
+.situation-active-badge{display:inline-flex;align-items:center;height:17px;padding:0 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:7px;font-weight:950;letter-spacing:.09em}
+.situation-main-name{display:block;width:100%;margin:5px 0 0;border:0;background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:950;outline:none;padding:0}
+.situation-settings-card{padding:12px}
+.situation-card-head-v2{align-items:flex-start;margin-bottom:4px}
+.situation-number-block{min-width:0;flex:1}
+.situation-number-block>span{display:block;color:var(--accent);font-size:8px;font-weight:950;letter-spacing:.12em;margin-bottom:4px}
+.situation-number-block .scene-name{width:100%;font-size:14px}
+.situation-setting-note{margin:0 0 9px}
+.situation-setting-grid{margin-bottom:0}
+.situation-transitions{display:grid;gap:8px;margin-top:11px}
+.situation-transition{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:10px}
+.situation-transition.direct{background:var(--panel2)}
+.transition-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.transition-head>div:first-child{min-width:0}
+.transition-head span{display:block;color:var(--muted);font-size:7px;font-weight:950;letter-spacing:.1em;margin-bottom:3px}
+.transition-head strong{display:block;color:var(--text);font-size:10px;font-weight:950;line-height:1.3}
+.transition-delta{flex:0 0 auto;color:var(--accent);font-size:8px;font-weight:900;text-align:right;line-height:1.35}
+.transition-direct-badge{display:inline-flex!important;margin:0 0 3px auto!important;width:max-content;padding:3px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent)!important;letter-spacing:.08em!important}
+.transition-intro{margin-bottom:6px;color:var(--muted);font-size:8px;font-weight:800}
+.transition-options{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.transition-option{min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--field-bg);padding:8px}
+.transition-option-label{display:block;color:var(--accent);font-size:7px;font-weight:950;letter-spacing:.09em;margin-bottom:3px}
+.transition-option strong{display:block;color:var(--text);font-size:9px;line-height:1.3;font-weight:900}
+.transition-option small{display:block;margin-top:3px;color:var(--muted);font-size:7.5px;line-height:1.3}
+.transition-option.limit{opacity:.65}
+.transition-option.limit .transition-option-label{color:var(--muted)}
+.transition-same{color:var(--muted);font-size:9px;line-height:1.4}
+@media(max-width:430px){
+  .transition-head{display:block}
+  .transition-delta{text-align:left;margin-top:5px}
+  .transition-direct-badge{margin:0 0 3px 0!important}
+  .transition-options{grid-template-columns:1fr}
 }

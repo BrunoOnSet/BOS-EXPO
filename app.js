@@ -468,125 +468,154 @@ function updateUI(){
 }
 
 
-// ---------- Scenes ----------
-const SCENES_STORAGE_KEY="bos-expo-scenes-v1";
+// ---------- Situations ----------
+const SCENES_STORAGE_KEY="bos-expo-situations-v2";
 let scenes=[];
-function loadScenes(){
-  try{
-    const saved=JSON.parse(localStorage.getItem(SCENES_STORAGE_KEY)||"[]");
-    scenes=Array.isArray(saved)?saved.filter(s=>s&&typeof s==="object"):[];
-  }catch(_){scenes=[];}
+let situation1Name="Situation 1";
+
+function escapeHtml(value){
+  return String(value??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
-function saveScenes(){
-  try{localStorage.setItem(SCENES_STORAGE_KEY,JSON.stringify(scenes));}catch(_){}
-}
-function sceneSuggestion(lightOffset){
-  const offset=Number(lightOffset)||0;
-  const rN=num(inputs.refAperture.value),rS=num(inputs.refIso.value);
-  const rSh=num(inputs.refShutter.value),nSh=num(inputs.newShutter.value);
-  const rNd=num(inputs.refNd.value),nNd=num(inputs.newNd.value);
-  if(!(rN>0&&sensitivityValid(rS)&&rSh>0&&nSh>0&&rNd>=0&&nNd>=0))return null;
-  const dS=log2(timeFromShutter(nSh)/timeFromShutter(rSh));
-  const dN=-(nNd-rNd);
-  const targetCameraDelta=-offset;
-  let aperture=num(inputs.newAperture.value),sensitivity=num(inputs.newIso.value);
-  if(manualParam==="aperture"){
-    if(!(aperture>0))return null;
-    const dA=apertureDeltaStops(rN,aperture);
-    const requiredSensitivity=targetCameraDelta-(dA+dS+dN);
-    sensitivity=targetSensitivityFromStops(rS,requiredSensitivity);
-  }else{
-    if(!sensitivityValid(sensitivity))return null;
-    const dI=sensitivityDeltaStops(rS,sensitivity);
-    const requiredAperture=targetCameraDelta-(dI+dS+dN);
-    aperture=targetApertureFromStops(rN,requiredAperture);
-  }
-  const sensText=sensitivityMode==="iso"?`${currentSensitivityUnit()} ${fmtIso(sensitivity)}`:fmtGain(sensitivity,true);
-  const shutterText=shutterMode==="speed"?`1/${fmt(nSh,1)} s`:`${fmt(nSh,1)}°`;
+function normalizeSituationSettings(v){
+  const ref=(typeof simpleReferenceValues==="function")?simpleReferenceValues():{aperture:2.8,iso:800,shutter:50,nd:0};
+  const s=v&&typeof v==="object"?v:{};
   return {
-    aperture,sensitivity,
-    main:`f/${fmtAperture(aperture)} · ${sensText} · ${shutterText} · ND ${fmt(nNd,0)}`,
-    note:offset===0?"Même lumière que la référence":`${offset<0?"Scène plus sombre":"Scène plus lumineuse"} de ${fmtStop(Math.abs(offset)).replace(/^\+/,"")}`
+    aperture:Number(s.aperture)>0?Number(s.aperture):ref.aperture,
+    iso:Number(s.iso)>0?Number(s.iso):ref.iso,
+    shutter:Number(s.shutter)>0?Number(s.shutter):ref.shutter,
+    nd:Number(s.nd)>=0?Number(s.nd):ref.nd
   };
 }
-function sceneStatusText(suggestion){
-  if(!suggestion)return {label:"INCOMPLET",kind:"warning",detail:"Réglages incomplets"};
-  const r=Math.abs(Number(suggestion.residual)||0);
-  if(r<0.08)return {label:"OK",kind:"ok",detail:"Réalisable avec les limites actuelles"};
-  return {label:"LIMITE",kind:"warning",detail:`Il manque ${fmtStop(r).replace(/^\+/,"")} pour compenser complètement`};
+function loadScenes(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(SCENES_STORAGE_KEY)||"null");
+    if(saved&&typeof saved==="object"&&!Array.isArray(saved)){
+      situation1Name=String(saved.situation1Name||"Situation 1");
+      scenes=Array.isArray(saved.scenes)?saved.scenes.filter(s=>s&&typeof s==="object").map((s,i)=>({
+        id:String(s.id||`situation-${Date.now()}-${i}`),
+        name:String(s.name||`Situation ${i+2}`),
+        settings:normalizeSituationSettings(s.settings)
+      })):[];
+    }else{
+      scenes=[];
+      situation1Name="Situation 1";
+    }
+  }catch(_){scenes=[];situation1Name="Situation 1";}
+  syncSituation1NameUI();
 }
-function sceneOffsetDescription(offset){
-  const n=Number(offset)||0;
-  if(Math.abs(n)<0.01)return "Même niveau de lumière que la référence";
-  return `${Math.abs(n).toLocaleString("fr-FR",{maximumFractionDigits:2})} stop${Math.abs(n)>=2?"s":""} ${n<0?"plus sombre":"plus lumineux"} que la référence`;
+function saveScenes(){
+  try{localStorage.setItem(SCENES_STORAGE_KEY,JSON.stringify({situation1Name,scenes}));}catch(_){}
 }
-function continuityReferenceText(){
-  const r=simpleReferenceValues();
-  if(!(r.aperture>0&&r.iso>0&&r.shutter>0&&r.nd>=0))return "Référence : —";
-  return `Référence : ${simpleValueText("aperture",r.aperture)} · ${simpleValueText("iso",r.iso)} · ${simpleValueText("shutter",r.shutter)} · ${simpleValueText("nd",r.nd)}`;
+function syncSituation1NameUI(){
+  const el=$("situation1Name");
+  if(el&&document.activeElement!==el)el.value=situation1Name||"Situation 1";
 }
-function renderContinuityOverview(results=[]){
-  const status=$("continuityStatus"),ref=$("continuityReference"),note=$("continuityNote");
-  if(ref)ref.textContent=continuityReferenceText();
-  if(!status||!note)return;
-  if(!results.length){
-    status.textContent="Aucune situation";
-    status.className="";
-    note.textContent="Ajoute une situation puis indique son écart de lumière mesuré ou estimé.";
-    return;
-  }
-  const ok=results.filter(x=>x?.suggestion&&Math.abs(Number(x.suggestion.residual)||0)<0.08).length;
-  const limited=results.length-ok;
-  status.textContent=limited?`${ok}/${results.length} réalisables`:`${ok}/${results.length} réalisables`;
-  status.className=limited?"is-warning":"is-ok";
-  note.textContent=limited
-    ? `${limited} situation${limited>1?"s":""} atteint${limited>1?"ent":""} une limite avec les réglages actuels.`
-    : "Toutes les situations sont couvertes avec les limites et cadenas actuels.";
+function situation1Object(){
+  return {id:"situation-1",name:situation1Name||"Situation 1",settings:simpleReferenceValues()};
+}
+function allSituations(){return [situation1Object(),...scenes];}
+function situationById(id){
+  if(id==="situation-1")return situation1Object();
+  return scenes.find(s=>s.id===id)||null;
+}
+function situationPickerTarget(id,key){return `situation|${id}|${key}`;}
+function parseSituationPickerTarget(target){
+  const m=/^situation\|([^|]+)\|(aperture|iso|shutter|nd)$/.exec(String(target||""));
+  return m?{id:m[1],key:m[2]}:null;
+}
+function situationSettingText(key,value){return simpleValueText(key,value);}
+function situationTotal(settings){return simpleTotal(settings);}
+function situationDelta(fromSettings,toSettings){return situationTotal(toSettings)-situationTotal(fromSettings);}
+function transitionCandidateValues(key){
+  if(key==="aperture")return simpleAvailableApertureValues().filter(v=>v>=simpleApertureMin-1e-9&&v<=simpleApertureMax+1e-9);
+  if(key==="iso")return simpleAvailableIsoValues().filter(v=>v>=simpleIsoMin-1e-9&&v<=simpleIsoMax+1e-9);
+  if(key==="shutter")return (shutterMode==="speed"?SHUTTER_SPEEDS:SHUTTER_ANGLES).slice();
+  if(key==="nd")return ND_STOPS.slice();
+  return [];
+}
+function transitionSingleProposal(key,fromSettings,delta){
+  const start=Number(fromSettings[key]);
+  const vals=transitionCandidateValues(key);
+  if(!Number.isFinite(start)||!vals.length)return {key,ok:false,text:"Impossible avec les réglages actuels"};
+  const startStop=simpleStopFor(key,start);
+  const desired=startStop+delta;
+  let best=null,bestDiff=Infinity;
+  vals.forEach(v=>{
+    const d=Math.abs(simpleStopFor(key,v)-desired);
+    if(d<bestDiff){bestDiff=d;best=v;}
+  });
+  const move=simpleStopFor(key,best)-startStop;
+  const residual=delta-move;
+  const exact=Math.abs(residual)<0.08;
+  let action="";
+  if(key==="aperture")action=best>start?`Fermer le diaph à ${simpleValueText(key,best)}`:best<start?`Ouvrir le diaph à ${simpleValueText(key,best)}`:`Garder le diaph à ${simpleValueText(key,best)}`;
+  if(key==="iso")action=best>start?`Monter les ${currentSensitivityUnit()} à ${simpleValueText(key,best)}`:best<start?`Baisser les ${currentSensitivityUnit()} à ${simpleValueText(key,best)}`:`Garder ${simpleValueText(key,best)}`;
+  if(key==="nd")action=best>start?`Ajouter du ND jusqu’à ${simpleValueText(key,best)}`:best<start?`Retirer du ND jusqu’à ${simpleValueText(key,best)}`:`Garder ${simpleValueText(key,best)}`;
+  if(key==="shutter")action=`Passer le shutter à ${simpleValueText(key,best)}`;
+  const label={aperture:"DIAPH",iso:currentSensitivityUnit().toUpperCase(),nd:"ND",shutter:"SHUTTER"}[key];
+  return {key,label,best,residual,ok:exact,text:action,detail:exact?"Équivalent":`Seul : reste ${fmtStop(residual).replace(/^\+/,"")}`};
+}
+function transitionDescription(delta){
+  if(Math.abs(delta)<0.08)return "Même exposition caméra";
+  return `${delta>0?"+":"−"}${Math.abs(delta).toLocaleString("fr-FR",{maximumFractionDigits:2})} stop${Math.abs(delta)>=2?"s":""} à compenser`;
+}
+function transitionCard(from,to,kind="sequence"){
+  const delta=situationDelta(from.settings,to.settings);
+  const proposals=["aperture","iso","nd","shutter"].map(k=>transitionSingleProposal(k,from.settings,delta));
+  const fromName=escapeHtml(from.name||"Situation");
+  const toName=escapeHtml(to.name||"Situation");
+  const direct=kind==="direct"?'<span class="transition-direct-badge">DIRECT</span>':'';
+  const options=proposals.map(p=>`<div class="transition-option ${p.ok?"ok":"limit"}"><span class="transition-option-label">${p.label}</span><strong>${escapeHtml(p.text)}</strong><small>${escapeHtml(p.detail||"")}</small></div>`).join("");
+  return `<div class="situation-transition ${kind}">
+    <div class="transition-head"><div><span>PASSAGE</span><strong>${fromName} → ${toName}</strong></div><div class="transition-delta">${direct}${escapeHtml(transitionDescription(delta))}</div></div>
+    ${Math.abs(delta)<0.08?'<div class="transition-same">Aucun changement d’exposition nécessaire.</div>':`<div class="transition-intro">Tu peux compenser uniquement avec :</div><div class="transition-options">${options}</div>`}
+  </div>`;
 }
 function renderScenes(){
   const host=$("scenesList"),empty=$("sceneEmpty");if(!host||!empty)return;
+  syncSituation1NameUI();
   empty.hidden=scenes.length>0;
   host.innerHTML="";
-  const results=[];
+  const all=allSituations();
   scenes.forEach((scene,index)=>{
-    const suggestion=sceneSuggestion(scene.offset);
-    const status=sceneStatusText(suggestion);
-    results.push({scene,suggestion,status});
-    const safeName=String(scene.name||`Situation ${index+1}`).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
-    const offset=Number(scene.offset)||0;
-    const card=document.createElement("div");card.className="scene-card situation-card";card.dataset.sceneId=scene.id;
+    scene.settings=normalizeSituationSettings(scene.settings);
+    const number=index+2;
+    const safeName=escapeHtml(scene.name||`Situation ${number}`);
+    const v=scene.settings;
+    const previous=all[index]; // situation immediately before this one
+    const base=all[0];
+    const to={...scene,name:scene.name||`Situation ${number}`};
+    const directNeeded=number>2;
+    const card=document.createElement("div");
+    card.className="scene-card situation-card situation-settings-card";
+    card.dataset.sceneId=scene.id;
     card.innerHTML=`
-      <div class="scene-card-head">
-        <input class="scene-name" data-scene-name value="${safeName}" aria-label="Nom de la situation" />
-        <span class="situation-status ${status.kind}">${status.label}</span>
+      <div class="scene-card-head situation-card-head-v2">
+        <div class="situation-number-block"><span>SITUATION ${number}</span><input class="scene-name" data-scene-name value="${safeName}" aria-label="Nom de la situation ${number}" /></div>
         <button class="scene-remove" data-scene-remove type="button" aria-label="Supprimer la situation">×</button>
       </div>
-      <div class="situation-offset-label">ÉCART LUMIÈRE · <span>${sceneOffsetDescription(offset)}</span></div>
-      <div class="situation-offset-tools">
-        <button type="button" class="scene-nudge" data-scene-nudge="-1">−1</button>
-        <button type="button" class="scene-nudge" data-scene-nudge="-0.333333">−⅓</button>
-        <div class="scene-offset-control">
-          <input class="scene-offset" data-scene-offset inputmode="decimal" type="text" value="${String(offset).replace(".",",")}" aria-label="Écart de lumière en stops" />
-          <span class="scene-offset-unit">stop</span>
-        </div>
-        <button type="button" class="scene-nudge" data-scene-nudge="0.333333">+⅓</button>
-        <button type="button" class="scene-nudge" data-scene-nudge="1">+1</button>
+      <div class="simple-section-note situation-setting-note">Réglage donnant une exposition juste dans cette situation.</div>
+      <div class="simple-reference-grid situation-setting-grid">
+        <button type="button" class="simple-reference-value" data-picker-target="${situationPickerTarget(scene.id,"aperture")}"><span>Diaph</span><strong>${situationSettingText("aperture",v.aperture)}</strong></button>
+        <button type="button" class="simple-reference-value" data-picker-target="${situationPickerTarget(scene.id,"iso")}"><span>${currentSensitivityUnit()}</span><strong>${situationSettingText("iso",v.iso)}</strong></button>
+        <button type="button" class="simple-reference-value" data-picker-target="${situationPickerTarget(scene.id,"shutter")}"><span>Shutter</span><strong>${situationSettingText("shutter",v.shutter)}</strong></button>
+        <button type="button" class="simple-reference-value" data-picker-target="${situationPickerTarget(scene.id,"nd")}"><span>ND</span><strong>${situationSettingText("nd",v.nd)}</strong></button>
       </div>
-      <div class="situation-result">
-        <div class="situation-result-top">
-          <span>RÉGLAGE PROPOSÉ</span>
-          ${suggestion?'<button type="button" class="situation-apply" data-scene-apply>APPLIQUER</button>':''}
-        </div>
-        <strong class="scene-proposal-main">${suggestion?suggestion.main:"—"}</strong>
-        <span class="scene-proposal-note ${status.kind}">${suggestion?status.detail:"Réglages incomplets"}</span>
+      <div class="situation-transitions">
+        ${transitionCard(previous,to,"sequence")}
+        ${directNeeded?transitionCard(base,to,"direct"):""}
       </div>`;
     host.appendChild(card);
   });
-  renderContinuityOverview(results);
 }
 function addScene(){
-  const next=scenes.length+1;
-  scenes.push({id:`scene-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,name:`Situation ${next}`,offset:0});
+  const number=scenes.length+2;
+  const ref=simpleReferenceValues();
+  scenes.push({
+    id:`situation-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+    name:`Situation ${number}`,
+    settings:normalizeSituationSettings(ref)
+  });
   saveScenes();renderScenes();
 }
 
@@ -598,10 +627,17 @@ const pickerNativeLegend=$("pickerNativeLegend");
 let activePickerTarget=null;
 
 function pickerConfig(target){
-  if(target==="refAperture"||target==="newAperture"){
+  const sit=parseSituationPickerTarget(target);
+  const key=sit?.key||(
+    target==="refAperture"||target==="newAperture"?"aperture":
+    target==="refIso"||target==="newIso"?"iso":
+    target==="refShutter"||target==="newShutter"?"shutter":
+    target==="refNd"||target==="newNd"?"nd":null
+  );
+  if(key==="aperture"){
     return {title:"Ouverture",values:simpleAvailableApertureValues().filter(v=>v>=simpleApertureMin-1e-9&&v<=simpleApertureMax+1e-9),label:v=>`f/${fmt(v,2)}`};
   }
-  if(target==="refIso"||target==="newIso"){
+  if(key==="iso"){
     const unit=currentSensitivityUnit();
     if(sensitivityMode==="gain"){
       const vals=GAIN_VALUES.filter(v=>{const iso=gainBaseIso>0?gainDbToIso(v):NaN;return iso>=simpleIsoMin-1e-9&&iso<=simpleIsoMax+1e-9;});
@@ -610,18 +646,21 @@ function pickerConfig(target){
     const vals=simpleAvailableIsoValues().filter(v=>v>=simpleIsoMin-1e-9&&v<=simpleIsoMax+1e-9);
     return {title:unit,values:vals,label:v=>`${unit} ${formatThousands(v)}`,native:v=>isNativeIso(v)};
   }
-  if(target==="refShutter"||target==="newShutter"){
+  if(key==="shutter"){
     return shutterMode==="speed"
       ?{title:"Shutter — vitesse",values:SHUTTER_SPEEDS,label:v=>`1/${fmt(v,1)} s`}
       :{title:"Shutter — angle",values:SHUTTER_ANGLES,label:v=>`${fmt(v,1)}°`};
   }
-  if(target==="refNd"||target==="newNd"){
-    return {title:"ND",values:ND_STOPS,label:v=>ndDisplay(v)};
-  }
-  if(target==="fps"){
-    return {title:"Cadence",values:FPS_VALUES,label:v=>`${fmt(v,2)} fps`};
-  }
+  if(key==="nd")return {title:"ND",values:ND_STOPS,label:v=>ndDisplay(v)};
+  if(target==="fps")return {title:"Cadence",values:FPS_VALUES,label:v=>`${fmt(v,2)} fps`};
   return null;
+}
+function situationPickerCurrent(target){
+  const sit=parseSituationPickerTarget(target);if(!sit)return null;
+  const scene=situationById(sit.id);if(!scene)return null;
+  const value=Number(scene.settings?.[sit.key]);
+  if(sit.key==="iso"&&sensitivityMode==="gain"&&gainBaseIso>0)return isoToGainDb(value);
+  return value;
 }
 
 function openPicker(target){
@@ -633,7 +672,8 @@ function openPicker(target){
   pickerGrid.classList.toggle("iso-picker",isIsoPicker);
   pickerNativeLegend?.classList.toggle("hidden",!isIsoPicker);
 
-  const current=target==="fps"?currentFps:num(inputs[target].value);
+  const situationCurrent=situationPickerCurrent(target);
+  const current=situationCurrent!==null?situationCurrent:(target==="fps"?currentFps:num(inputs[target].value));
   pickerGrid.innerHTML=cfg.values.map(v=>{
     const selected=Math.abs(v-current)<0.001?" selected":"";
     const native=cfg.native?.(v)?" native-choice":"";
@@ -660,6 +700,19 @@ pickerGrid.addEventListener("click",e=>{
   if(!btn||!activePickerTarget)return;
   const v=Number(btn.dataset.value);
 
+  const sitTarget=parseSituationPickerTarget(activePickerTarget);
+  if(sitTarget){
+    const scene=scenes.find(s=>s.id===sitTarget.id);
+    if(scene){
+      scene.settings=normalizeSituationSettings(scene.settings);
+      scene.settings[sitTarget.key]=(sitTarget.key==="iso"&&sensitivityMode==="gain"&&gainBaseIso>0)?gainDbToIso(v):v;
+      saveScenes();
+    }
+    pickerDialog.close();
+    renderScenes();
+    return;
+  }
+
   let simpleChangedKey=null;
   let referenceEdited=false;
   if(activePickerTarget==="fps"){
@@ -679,7 +732,7 @@ pickerGrid.addEventListener("click",e=>{
     simpleSetCurrentFromValues(simpleReferenceValues());
     simpleLastRecap=null;
     updateUI();
-    simpleSetCalcSummary("Référence modifiée : CALCUL a été réaligné automatiquement.","ok");
+    simpleSetCalcSummary("Situation 1 modifiée : CALCUL a été réaligné automatiquement.","ok");
   }else{
     updateUI();
     if(simpleChangedKey)simpleCalculateNow(simpleChangedKey);
@@ -803,52 +856,21 @@ $("resetBtn").addEventListener("click",()=>{
 });
 
 
-// Scene controls
+// Situation controls
 $("addSceneBtn")?.addEventListener("click",addScene);
+$("situation1Name")?.addEventListener("input",e=>{situation1Name=e.target.value;saveScenes();renderScenes();});
 $("scenesList")?.addEventListener("input",e=>{
   const card=e.target.closest(".scene-card");if(!card)return;
   const scene=scenes.find(s=>s.id===card.dataset.sceneId);if(!scene)return;
   if(e.target.matches("[data-scene-name]")){scene.name=e.target.value;saveScenes();}
 });
 $("scenesList")?.addEventListener("change",e=>{
-  const card=e.target.closest(".scene-card");if(!card||!e.target.matches("[data-scene-offset]"))return;
-  const scene=scenes.find(s=>s.id===card.dataset.sceneId);if(!scene)return;
-  const parsed=num(e.target.value);
-  scene.offset=Math.max(-12,Math.min(12,Number.isFinite(parsed)?parsed:0));
-  saveScenes();renderScenes();
+  if(e.target.matches("[data-scene-name]"))renderScenes();
 });
 $("scenesList")?.addEventListener("click",e=>{
   const card=e.target.closest(".scene-card");if(!card)return;
-  const scene=scenes.find(s=>s.id===card.dataset.sceneId);if(!scene)return;
-
   const remove=e.target.closest("[data-scene-remove]");
-  if(remove){
-    scenes=scenes.filter(s=>s.id!==card.dataset.sceneId);saveScenes();renderScenes();return;
-  }
-
-  const nudge=e.target.closest("[data-scene-nudge]");
-  if(nudge){
-    const delta=Number(nudge.dataset.sceneNudge)||0;
-    scene.offset=Math.max(-12,Math.min(12,(Number(scene.offset)||0)+delta));
-    scene.offset=Math.round(scene.offset*100)/100;
-    saveScenes();renderScenes();return;
-  }
-
-  const apply=e.target.closest("[data-scene-apply]");
-  if(apply){
-    const suggestion=sceneSuggestion(scene.offset);
-    if(!suggestion?.values)return;
-    simpleSetCurrentFromValues(suggestion.values);
-    simpleLastRecap=null;
-    updateUI();
-    const residual=Math.abs(Number(suggestion.residual)||0);
-    simpleSetCalcSummary(
-      residual<0.08
-        ? `Situation “${scene.name||"Situation"}” appliquée dans CALCUL.`
-        : `Situation appliquée, mais il reste ${fmtStop(residual).replace(/^\+/,"")} non compensé.`,
-      residual<0.08?"ok":"warning"
-    );
-  }
+  if(remove){scenes=scenes.filter(s=>s.id!==card.dataset.sceneId);saveScenes();renderScenes();}
 });
 
 // Collapsible "Réglages caméra"
@@ -891,7 +913,6 @@ $("closeDialog").addEventListener("click",()=>dialog.close());
 dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close();});
 
 setCameraDb(FALLBACK_CAMERA_DB);
-loadScenes();
 loadCachedCameraDb();
 loadMethodPreferences();
 ensureProfileValid();ensureGainBaseValid();
@@ -905,7 +926,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.46 — situations / continuity workflow
+// BOS EXPO V3.47 — situations & transition alternatives workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
@@ -1159,7 +1180,7 @@ function simpleCalculateNow(changedKey=null){
   const reference=simpleReferenceValues();
   const current=simplePhysicalValues();
   if(!(reference.aperture>0&&reference.iso>0&&reference.shutter>0&&reference.nd>=0)){
-    simpleSetCalcSummary("Référence incomplète ou invalide.","warning");
+    simpleSetCalcSummary("Situation 1 incomplète ou invalide.","warning");
     return;
   }
   const targetTotal=simpleTotal(reference);
@@ -1177,36 +1198,6 @@ function simpleCalculateNow(changedKey=null){
   simpleLastRecap={reference,current,after,result};
   simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
 }
-function simpleSceneSolve(offset){
-  const base=simpleReferenceValues();
-  const target=simpleTotal(base)-Number(offset||0);
-  const temp={...base};
-  let remaining=target-simpleTotal(temp);
-  const order=simplePriorityOrders(remaining);
-  for(const key of order){
-    if(Math.abs(remaining)<.015)break;
-    if(simpleLocks[key])continue;
-    const current=temp[key],currentStop=simpleStopFor(key,current),targetStop=currentStop+remaining;
-    const vals=simpleCandidates(key);let best=current,diff=Infinity;
-    vals.forEach(v=>{
-      const s=simpleStopFor(key,v),move=s-currentStop;
-      if(remaining>0&&move<0)return;
-      if(remaining<0&&move>0)return;
-      const d=Math.abs(s-targetStop);
-      if(d<diff){diff=d;best=v;}
-    });
-    temp[key]=best;
-    remaining-=simpleStopFor(key,best)-currentStop;
-  }
-  return {values:temp,residual:remaining};
-}
-sceneSuggestion=function(lightOffset){
-  const solved=simpleSceneSolve(lightOffset),v=solved.values;
-  const main=`${simpleValueText("aperture",v.aperture)} · ${simpleValueText("iso",v.iso)} · ${simpleValueText("shutter",v.shutter)} · ${simpleValueText("nd",v.nd)}`;
-  const off=Number(lightOffset)||0;
-  return {values:v,residual:solved.residual,main,note:sceneOffsetDescription(off)};
-};
-
 // Replace the legacy updater once the original app has initialised.
 // V3.34 : les changements restent libres tant que CALCULER n'est pas pressé.
 updateUI=function(){
@@ -1251,14 +1242,14 @@ $("simpleResetBtn")?.addEventListener("click",()=>{
   simpleLimitsLoadedFor="";simpleLoadLimits(true);
   inputs.newAperture.value="2.8";simpleSetIsoPhysical(simpleDefaultMin());inputs.newShutter.value=shutterMode==="speed"?"50":"180";inputs.newNd.value="0";
   simpleSetReferenceFromValues(simplePhysicalValues());
-  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();updateUI();simpleSetCalcSummary("Référence et CALCUL réinitialisés.","ok");
+  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();updateUI();simpleSetCalcSummary("Situation 1 et CALCUL réinitialisés.","ok");
 });
 
 $("simpleCalcResetBtn")?.addEventListener("click",()=>{
   simpleSetCurrentFromValues(simpleReferenceValues());
   simpleLastRecap=null;
   updateUI();
-  simpleSetCalcSummary("CALCUL réaligné sur la référence.","ok");
+  simpleSetCalcSummary("CALCUL réaligné sur la Situation 1.","ok");
 });
 
 // Initial current values for the simplified workflow.
@@ -1268,4 +1259,5 @@ if(!(num(inputs.newShutter.value)>0))inputs.newShutter.value=shutterMode==="spee
 if(!(num(inputs.newNd.value)>=0))inputs.newNd.value="0";
 const initialRef=simpleReferenceValues();
 if(!(initialRef.aperture>0&&initialRef.iso>0&&initialRef.shutter>0&&initialRef.nd>=0))simpleSetReferenceFromValues(simplePhysicalValues());
+loadScenes();
 simpleLastMethodSig="";simpleBaselineValues=null;updateUI();
