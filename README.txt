@@ -395,7 +395,7 @@ V3.34 — CALCULER + ND CLAIR
 - ISO MIN / ISO MAX et ordre de priorité AUTO conservés.
 
 
-V3.35 — RÉFÉRENCE EXPLICITE
+V3.37 — RÉFÉRENCE EXPLICITE
 - Ajout d’un bloc RÉFÉRENCE compact dans la compensation simplifiée.
 - L’utilisateur définit explicitement Diaph / ISO / Shutter / ND de départ.
 - Le NOUVEAU RÉGLAGE est séparé visuellement de la référence.

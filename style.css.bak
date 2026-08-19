@@ -750,12 +750,16 @@ body.dark .chips button.native-iso:not(.active){
 .iso-limit-field select{width:100%;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--field-bg);color:var(--text);padding:0 34px 0 11px;font:inherit;font-size:14px;font-weight:850;outline:none}
 .iso-limit-help{margin:0 2px 13px;color:var(--muted);font-size:9px;line-height:1.35}
 .simple-expo-rows{display:grid;gap:8px}
-.simple-expo-row{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;align-items:end}
+.simple-expo-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:9px;align-items:end}
+.simple-role-pill{height:48px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);color:var(--text);font-size:14px;font-weight:900;cursor:pointer}
+.simple-role-pill.auto{background:#3478F6;border-color:#3478F6;color:#fff}
+.simple-role-pill.manual{background:var(--panel2);border-color:var(--line);color:var(--text)}
 .simple-expo-control{min-width:0}
 .simple-expo-control>span{display:block;margin:0 0 5px 2px;color:var(--muted);font-size:10px;font-weight:700}
 .simple-value-select{width:100%;height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:13px;background:var(--field-bg);color:var(--text);padding:0 12px;font:inherit;font-size:18px;font-weight:850;text-align:left;cursor:pointer}
 .simple-value-select i{font-style:normal;color:var(--muted);font-size:13px}
 .simple-value-select:disabled{opacity:.68;cursor:default}
+.simple-expo-row.is-auto .simple-value-select{opacity:1}
 .simple-priority-note{margin-top:11px;color:var(--muted);font-size:9px;line-height:1.45}
 .simple-recap{margin-top:13px;padding:11px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
 .simple-recap-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.09em}
@@ -763,8 +767,8 @@ body.dark .chips button.native-iso:not(.active){
 .simple-recap-main{font-size:11px;font-weight:900;line-height:1.4;color:var(--text)}
 .simple-recap-detail{margin-top:4px;color:var(--muted);font-size:9px;line-height:1.4}
 @media(max-width:430px){
-  .simple-expo-row{grid-template-columns:minmax(0,1fr);gap:8px}
-  .simple-value-select{height:46px}
+  .simple-expo-row{grid-template-columns:50px minmax(0,1fr);gap:8px}
+  .simple-role-pill,.simple-value-select{height:46px}
   .simple-value-select{font-size:17px}
   .iso-limit-field select{font-size:13px}
 }
@@ -803,7 +807,7 @@ body.dark .chips button.native-iso:not(.active){
 }
 
 
-/* V3.37 — référence explicite + nouveau réglage */
+/* V3.35 — référence explicite + nouveau réglage */
 .simple-reference-block{
   margin:12px 0 12px;
   padding:12px;
@@ -877,11 +881,3 @@ body.dark .chips button.native-iso:not(.active){
   .simple-reference-value{padding:8px}
   .simple-new-setting-head .simple-calculate-btn{min-width:102px;padding:0 12px}
 }
-
-
-/* V3.37 simple switch workflow */
-.simple-workflow-panel .simple-reference-head{align-items:flex-start;gap:12px}
-.simple-workflow-panel .simple-reference-grid{margin-top:12px}
-.simple-workflow-panel .simple-priority-note{margin-top:12px}
-.simple-workflow-panel .simple-calc-summary{margin-top:10px}
-.simple-workflow-panel.is-calc #simpleModeSwitchBtn{background:var(--brand);border-color:var(--brand);color:#fff}

@@ -803,7 +803,7 @@ body.dark .chips button.native-iso:not(.active){
 }
 
 
-/* V3.37 — référence explicite + nouveau réglage */
+/* V3.36 — référence explicite + nouveau réglage */
 .simple-reference-block{
   margin:12px 0 12px;
   padding:12px;
@@ -877,11 +877,3 @@ body.dark .chips button.native-iso:not(.active){
   .simple-reference-value{padding:8px}
   .simple-new-setting-head .simple-calculate-btn{min-width:102px;padding:0 12px}
 }
-
-
-/* V3.37 simple switch workflow */
-.simple-workflow-panel .simple-reference-head{align-items:flex-start;gap:12px}
-.simple-workflow-panel .simple-reference-grid{margin-top:12px}
-.simple-workflow-panel .simple-priority-note{margin-top:12px}
-.simple-workflow-panel .simple-calc-summary{margin-top:10px}
-.simple-workflow-panel.is-calc #simpleModeSwitchBtn{background:var(--brand);border-color:var(--brand);color:#fff}
