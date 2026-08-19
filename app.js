@@ -552,14 +552,15 @@ let activePickerTarget=null;
 
 function pickerConfig(target){
   if(target==="refAperture"||target==="newAperture"){
-    return {title:"Ouverture",values:APERTURE_THIRDS,label:v=>`f/${fmt(v,2)}`};
+    return {title:"Ouverture",values:simpleAvailableApertureValues().filter(v=>v>=simpleApertureMin-1e-9&&v<=simpleApertureMax+1e-9),label:v=>`f/${fmt(v,2)}`};
   }
   if(target==="refIso"||target==="newIso"){
-    if(sensitivityMode==="gain"){
-      return {title:"Gain",values:GAIN_VALUES,label:v=>fmtGain(v,true)};
-    }
-    const vals=[...new Set([...ISO_THIRDS,...currentBaseIsos(),...currentReferenceValues()])].sort((a,b)=>a-b);
     const unit=currentSensitivityUnit();
+    if(sensitivityMode==="gain"){
+      const vals=GAIN_VALUES.filter(v=>{const iso=gainBaseIso>0?gainDbToIso(v):NaN;return iso>=simpleIsoMin-1e-9&&iso<=simpleIsoMax+1e-9;});
+      return {title:"Gain",values:vals,label:v=>fmtGain(v,true)};
+    }
+    const vals=simpleAvailableIsoValues().filter(v=>v>=simpleIsoMin-1e-9&&v<=simpleIsoMax+1e-9);
     return {title:unit,values:vals,label:v=>`${unit} ${formatThousands(v)}`,native:v=>isNativeIso(v)};
   }
   if(target==="refShutter"||target==="newShutter"){
@@ -624,13 +625,15 @@ pickerGrid.addEventListener("click",e=>{
   }
 
   pickerDialog.close();
-  updateUI();
-  if(referenceEdited&&simpleMode!=="calc") {
+  if(referenceEdited){
     simpleSetCurrentFromValues(simpleReferenceValues());
-    simpleRenderReference();
-    simpleSetCalcSummary("Mode RÉFÉRENCE : règle ton exposition de base, puis passe en CALCUL.");
+    simpleLastRecap=null;
+    updateUI();
+    simpleSetCalcSummary("Référence modifiée : CALCUL a été réaligné automatiquement.","ok");
+  }else{
+    updateUI();
+    if(simpleChangedKey)simpleCalculateNow(simpleChangedKey);
   }
-  if(simpleChangedKey&&simpleMode==="calc")simpleCalculateNow(simpleChangedKey);
 });
 
 $("pickerClose").addEventListener("click",()=>pickerDialog.close());
@@ -824,16 +827,17 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.37 — explicit reference + calculate workflow
+// BOS EXPO V3.39 — explicit reference + calculate workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
 let simpleIsoMin=null;
 let simpleIsoMax=null;
+let simpleApertureMin=null;
+let simpleApertureMax=null;
 let simpleBaselineValues=null;
 let simpleLastMethodSig="";
 let simpleLastRecap=null;
-let simpleMode="reference";
 let simpleLimitsLoadedFor="";
 
 function simpleMethodSig(){return `${cameraMode}|${gammaMode}|${sensitivityMode}|${shutterMode}|${currentFps}`;}
@@ -859,6 +863,7 @@ function simpleAvailableIsoValues(){
   if(maxRange>0)vals=vals.filter(v=>v<=maxRange);
   return vals.length?vals:[50,100,200,400,800,1600,3200,6400,12800,25600,51200];
 }
+function simpleAvailableApertureValues(){return APERTURE_THIRDS.slice();}
 function simpleDefaultMin(){
   const bases=currentBaseIsos(); if(bases.length)return Math.min(...bases);
   const p=currentProfile()||{};
@@ -867,21 +872,28 @@ function simpleDefaultMin(){
   return simpleAvailableIsoValues()[0];
 }
 function simpleDefaultMax(){const vals=simpleAvailableIsoValues();return vals[vals.length-1];}
+function simpleDefaultApertureMin(){const vals=simpleAvailableApertureValues();return vals[0];}
+function simpleDefaultApertureMax(){const vals=simpleAvailableApertureValues();return vals[vals.length-1];}
 function simpleLimitKey(){return `${cameraMode}|${gammaMode}`;}
 function simpleLoadLimits(force=false){
   const key=simpleLimitKey();
-  if(!force&&simpleLimitsLoadedFor===key&&simpleIsoMin>0&&simpleIsoMax>0)return;
+  if(!force&&simpleLimitsLoadedFor===key&&simpleIsoMin>0&&simpleIsoMax>0&&simpleApertureMin>0&&simpleApertureMax>0)return;
   let saved=null;try{saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"null");}catch(_){saved=null;}
   const lim=saved?.limits?.[key];
   simpleIsoMin=Number(lim?.min)>0?Number(lim.min):simpleDefaultMin();
   simpleIsoMax=Number(lim?.max)>0?Number(lim.max):simpleDefaultMax();
+  simpleApertureMin=Number(lim?.apMin)>0?Number(lim.apMin):simpleDefaultApertureMin();
+  simpleApertureMax=Number(lim?.apMax)>0?Number(lim.apMax):simpleDefaultApertureMax();
   if(simpleIsoMin>simpleIsoMax)simpleIsoMax=simpleIsoMin;
+  if(simpleApertureMin>simpleApertureMax)simpleApertureMax=simpleApertureMin;
   simpleLimitsLoadedFor=key;
 }
 function simpleSave(){
   try{
     const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"{}");
-    saved.roles=simpleRoles;saved.limits=saved.limits||{};saved.limits[simpleLimitKey()]={min:simpleIsoMin,max:simpleIsoMax};
+    saved.roles=simpleRoles;
+    saved.limits=saved.limits||{};
+    saved.limits[simpleLimitKey()]={min:simpleIsoMin,max:simpleIsoMax,apMin:simpleApertureMin,apMax:simpleApertureMax};
     localStorage.setItem(SIMPLE_EXPO_STORAGE_KEY,JSON.stringify(saved));
   }catch(_){ }
 }
@@ -916,42 +928,21 @@ function simpleSetCurrentFromValues(v){
   if(v.shutter>0)inputs.newShutter.value=String(v.shutter);
   if(v.nd>=0)inputs.newNd.value=String(v.nd);
 }
-function simpleInteractiveValues(){return simpleMode==="calc"?simplePhysicalValues():simpleReferenceValues();}
-function simpleInteractiveTargetMap(){
-  return simpleMode==="calc"
-    ? {aperture:"newAperture",iso:"newIso",shutter:"newShutter",nd:"newNd"}
-    : {aperture:"refAperture",iso:"refIso",shutter:"refShutter",nd:"refNd"};
-}
-function simpleSetMode(mode,{syncFromReference=true}={}){
-  simpleMode=(mode==="calc")?"calc":"reference";
-  if(simpleMode==="calc"&&syncFromReference){
-    simpleSetCurrentFromValues(simpleReferenceValues());
-  }
-  const panel=document.querySelector('.simple-workflow-panel');
-  panel?.classList.toggle('is-calc',simpleMode==="calc");
-  const kicker=$("simpleModeKicker"),note=$("simpleModeNote"),btn=$("simpleModeSwitchBtn");
-  if(kicker)kicker.textContent=simpleMode==="calc"?"CALCUL":"RÉFÉRENCE";
-  if(note)note.textContent=simpleMode==="calc"?"Modifie un réglage : les autres compensent automatiquement selon la règle définie.":"Réglages de départ à conserver en exposition.";
-  if(btn)btn.textContent=simpleMode==="calc"?"RÉFÉRENCE":"CALCUL";
-  simpleRenderReference();
-  simpleRenderRows();
-}
 function simpleRenderReference(){
-  const v=simpleInteractiveValues(),unit=currentSensitivityUnit(),map=simpleInteractiveTargetMap();
-  const set=(id,key,label,value)=>{
+  const v=simpleReferenceValues(),unit=currentSensitivityUnit();
+  const set=(id,label,value)=>{
     const el=$(id);if(!el)return;
     el.querySelector("span").textContent=label;
     el.querySelector("strong").textContent=value;
-    el.dataset.pickerTarget=map[key];
   };
-  set("simpleRefAperture","aperture","Diaph",simpleValueText("aperture",v.aperture));
-  set("simpleRefIso","iso",unit,simpleValueText("iso",v.iso));
-  set("simpleRefShutter","shutter","Shutter",simpleValueText("shutter",v.shutter));
-  set("simpleRefNd","nd","ND",simpleValueText("nd",v.nd));
+  set("simpleRefAperture","Diaph",simpleValueText("aperture",v.aperture));
+  set("simpleRefIso",unit,simpleValueText("iso",v.iso));
+  set("simpleRefShutter","Shutter",simpleValueText("shutter",v.shutter));
+  set("simpleRefNd","ND",simpleValueText("nd",v.nd));
 }
 function simpleTotal(v=simplePhysicalValues()){return simpleStopFor("aperture",v.aperture)+simpleStopFor("iso",v.iso)+simpleStopFor("shutter",v.shutter)+simpleStopFor("nd",v.nd);}
 function simpleCandidates(key){
-  if(key==="aperture")return APERTURE_THIRDS.slice();
+  if(key==="aperture")return simpleAvailableApertureValues().filter(v=>v>=simpleApertureMin-1e-9&&v<=simpleApertureMax+1e-9);
   if(key==="iso")return simpleAvailableIsoValues().filter(v=>v>=simpleIsoMin-1e-9&&v<=simpleIsoMax+1e-9);
   if(key==="shutter")return (shutterMode==="speed"?SHUTTER_SPEEDS:SHUTTER_ANGLES).slice();
   if(key==="nd")return ND_STOPS.slice();
@@ -1003,21 +994,40 @@ function simpleDeltaText(change){return `${simpleValueText(change.key,change.bef
 function simpleRenderLimits(){
   simpleLoadLimits();
   const unit=currentSensitivityUnit();
-  $("isoMinLabel").textContent=`${unit} MIN`;$("isoMaxLabel").textContent=`${unit} MAX`;
-  const vals=simpleAvailableIsoValues();
-  const fill=(sel,current)=>{sel.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-current)<.001?"selected":""}>${unit} ${formatThousands(v)}</option>`).join("");};
-  fill($("isoMinSelect"),simpleIsoMin);fill($("isoMaxSelect"),simpleIsoMax);
+  $("isoMinLabel").textContent=`${unit} MIN`;
+  $("isoMaxLabel").textContent=`${unit} MAX`;
+  const isoVals=simpleAvailableIsoValues();
+  const apVals=simpleAvailableApertureValues();
+  const fillIso=(sel,current)=>{sel.innerHTML=isoVals.map(v=>`<option value="${v}" ${Math.abs(v-current)<.001?"selected":""}>${unit} ${formatThousands(v)}</option>`).join("");};
+  const fillAp=(sel,current)=>{sel.innerHTML=apVals.map(v=>`<option value="${v}" ${Math.abs(v-current)<.001?"selected":""}>f/${fmtAperture(v)}</option>`).join("");};
+  fillIso($("isoMinSelect"),simpleIsoMin);
+  fillIso($("isoMaxSelect"),simpleIsoMax);
+  fillAp($("apertureMinSelect"),simpleApertureMin);
+  fillAp($("apertureMaxSelect"),simpleApertureMax);
   const bases=currentBaseIsos();
-  $("isoLimitHelp").textContent=bases.length?`${unit} MIN reprend la base native la plus basse (${bases.map(formatThousands).join(" / ")}). Les deux limites restent modifiables.`:`Les deux limites restent modifiables pour cette caméra.`;
+  $("isoLimitHelp").textContent=bases.length?`${unit} MIN reprend la base native la plus basse (${bases.map(formatThousands).join(" / ")}). Tu peux aussi fixer diaph min / max selon tes optiques.`:`Les limites ${unit.toLowerCase()} et diaph restent modifiables pour cette caméra.`;
 }
 function simpleRenderRows(){
   const vals=simplePhysicalValues();
-  const set=(id,html)=>{const el=$(id);if(el)el.innerHTML=html;};
-  set("simpleApertureSelect",`${simpleValueText("aperture",vals.aperture)} <i>⌄</i>`);
-  set("simpleIsoSelect",`${simpleValueText("iso",vals.iso)} <i>⌄</i>`);
-  set("simpleShutterSelect",`${simpleValueText("shutter",vals.shutter)} <i>⌄</i>`);
-  set("simpleNdSelect",`${simpleValueText("nd",vals.nd)} <i>⌄</i>`);
+  const set=(id,label,value)=>{
+    const el=$(id);if(!el)return;
+    el.querySelector("span").textContent=label;
+    el.querySelector("strong").textContent=value;
+  };
+  set("simpleApertureSelect","Diaph",simpleValueText("aperture",vals.aperture));
+  set("simpleIsoSelect",currentSensitivityUnit(),simpleValueText("iso",vals.iso));
+  set("simpleShutterSelect","Shutter",simpleValueText("shutter",vals.shutter));
+  set("simpleNdSelect","ND",simpleValueText("nd",vals.nd));
   const label=$("simpleSensitivityLabel");if(label)label.textContent=currentSensitivityUnit();
+}
+function simpleClampValue(v,minv,maxv){return Math.min(maxv,Math.max(minv,v));}
+function simpleClampReferenceToLimits(){
+  const r=simpleReferenceValues();
+  simpleSetReferenceFromValues({...r,aperture:simpleClampValue(r.aperture,simpleApertureMin,simpleApertureMax),iso:simpleClampValue(r.iso,simpleIsoMin,simpleIsoMax)});
+}
+function simpleClampCurrentToLimits(){
+  const c=simplePhysicalValues();
+  simpleSetCurrentFromValues({...c,aperture:simpleClampValue(c.aperture,simpleApertureMin,simpleApertureMax),iso:simpleClampValue(c.iso,simpleIsoMin,simpleIsoMax)});
 }
 function simpleChangedKey(prev,now){
   if(!prev)return null;
@@ -1090,10 +1100,9 @@ updateUI=function(){
   const methodChanged=methodSig!==simpleLastMethodSig;
   if(methodChanged){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);}
   simpleRenderLimits();
-  // Garde la valeur courante dans les limites choisies, sans lancer de compensation.
-  let phys=simpleCurrentIsoPhysical();
-  if(phys<simpleIsoMin)simpleSetIsoPhysical(simpleIsoMin);
-  if(phys>simpleIsoMax)simpleSetIsoPhysical(simpleIsoMax);
+  // Garde les valeurs de référence et de calcul dans les limites choisies, sans lancer de compensation.
+  simpleClampReferenceToLimits();
+  simpleClampCurrentToLimits();
   simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
   if(methodChanged){
     // Sur changement caméra/profil, garde une référence valide et lisible.
@@ -1102,31 +1111,28 @@ updateUI=function(){
       const v=simplePhysicalValues();simpleSetReferenceFromValues(v);
     }
     simpleRenderReference();
-    simpleSetCalcSummary(simpleMode==="calc"?"Modifie un réglage : les autres compensent automatiquement.":"Mode RÉFÉRENCE : règle ton exposition de base, puis passe en CALCUL.");
+    simpleSetCalcSummary("Change un réglage dans CALCUL : les autres s’adaptent automatiquement.");
   }
 };
 
-$("simpleModeSwitchBtn")?.addEventListener("click",()=>{
-  const next=simpleMode==="reference"?"calc":"reference";
-  simpleSetMode(next,{syncFromReference:true});
-  simpleSetCalcSummary(simpleMode==="calc"?"Mode CALCUL : modifie un réglage, les autres compensent automatiquement.":"Mode RÉFÉRENCE : règle ton exposition de base, puis passe en CALCUL.");
-  updateUI();
-});
 simpleLoadRoles();
-simpleSetMode(simpleMode,{syncFromReference:false});
 $("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.value);if(simpleIsoMin>simpleIsoMax)simpleIsoMax=simpleIsoMin;simpleSave();updateUI();});
 $("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();updateUI();});
-$("simpleReferenceFromCurrentBtn")?.addEventListener("click",()=>{
-  simpleSetReferenceFromValues(simplePhysicalValues());
-  simpleRenderReference();
-  simpleSetCalcSummary("Réglage actuel mémorisé comme référence.","ok");
-});
+$("apertureMinSelect")?.addEventListener("change",e=>{simpleApertureMin=Number(e.target.value);if(simpleApertureMin>simpleApertureMax)simpleApertureMax=simpleApertureMin;simpleSave();updateUI();});
+$("apertureMaxSelect")?.addEventListener("change",e=>{simpleApertureMax=Number(e.target.value);if(simpleApertureMax<simpleApertureMin)simpleApertureMin=simpleApertureMax;simpleSave();updateUI();});
 $("simpleResetBtn")?.addEventListener("click",()=>{
   simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
   simpleLimitsLoadedFor="";simpleLoadLimits(true);
   inputs.newAperture.value="2.8";simpleSetIsoPhysical(simpleDefaultMin());inputs.newShutter.value=shutterMode==="speed"?"50":"180";inputs.newNd.value="0";
   simpleSetReferenceFromValues(simplePhysicalValues());
-  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();simpleSetCalcSummary("Référence et nouveau réglage réinitialisés. Modifie ensuite un réglage pour lancer la compensation.");updateUI();
+  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();updateUI();simpleSetCalcSummary("Référence et CALCUL réinitialisés.","ok");
+});
+
+$("simpleCalcResetBtn")?.addEventListener("click",()=>{
+  simpleSetCurrentFromValues(simpleReferenceValues());
+  simpleLastRecap=null;
+  updateUI();
+  simpleSetCalcSummary("CALCUL réaligné sur la référence.","ok");
 });
 
 // Initial current values for the simplified workflow.

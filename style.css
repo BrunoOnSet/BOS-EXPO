@@ -803,7 +803,7 @@ body.dark .chips button.native-iso:not(.active){
 }
 
 
-/* V3.37 — référence explicite + nouveau réglage */
+/* V3.39 — référence explicite + nouveau réglage */
 .simple-reference-block{
   margin:12px 0 12px;
   padding:12px;
@@ -879,9 +879,16 @@ body.dark .chips button.native-iso:not(.active){
 }
 
 
-/* V3.37 simple switch workflow */
+/* V3.39 simple switch workflow */
 .simple-workflow-panel .simple-reference-head{align-items:flex-start;gap:12px}
 .simple-workflow-panel .simple-reference-grid{margin-top:12px}
 .simple-workflow-panel .simple-priority-note{margin-top:12px}
 .simple-workflow-panel .simple-calc-summary{margin-top:10px}
-.simple-workflow-panel.is-calc #simpleModeSwitchBtn{background:var(--brand);border-color:var(--brand);color:#fff}
+
+
+.simple-calc-block{margin-top:12px}
+.simple-calc-block .small-action{min-width:70px}
+.simple-reference-value i{font-style:normal}
+
+.camera-limits-grid{margin:12px 0 6px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:560px){.camera-limits-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
