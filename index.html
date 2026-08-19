@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.32" />
+  <link rel="stylesheet" href="style.css?v=3.33" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -93,6 +93,70 @@
           </div>
           <button type="button" class="value-select compact-select" data-picker-target="fps" id="fpsSelect">25 fps <span>⌄</span></button>
         </div>
+      </div>
+    </section>
+
+    <section class="panel simple-expo-panel" id="simpleExpoPanel">
+      <div class="compact-section-head simple-expo-head">
+        <div>
+          <div class="panel-kicker">COMPENSATION</div>
+          <div class="panel-subtitle">Choisis ce qui reste MANUEL. Les réglages AUTO compensent dans l’ordre utile.</div>
+        </div>
+        <button class="small-action" id="simpleResetBtn" type="button">RESET</button>
+      </div>
+
+      <div class="iso-limits" id="isoLimitsBlock">
+        <label class="iso-limit-field">
+          <span id="isoMinLabel">ISO MIN</span>
+          <select id="isoMinSelect" aria-label="ISO minimum"></select>
+        </label>
+        <label class="iso-limit-field">
+          <span id="isoMaxLabel">ISO MAX</span>
+          <select id="isoMaxSelect" aria-label="ISO maximum"></select>
+        </label>
+      </div>
+      <div class="iso-limit-help" id="isoLimitHelp">ISO MIN reprend la base native de la caméra. Tu peux modifier les deux limites.</div>
+
+      <div class="simple-expo-rows" id="simpleExpoRows">
+        <div class="simple-expo-row" data-simple-key="aperture">
+          <button class="simple-role-pill manual" type="button" data-simple-role="aperture">M</button>
+          <div class="simple-expo-control">
+            <span>Diaph</span>
+            <button type="button" class="simple-value-select" data-picker-target="newAperture" id="simpleApertureSelect">f/2,8 <i>⌄</i></button>
+          </div>
+        </div>
+        <div class="simple-expo-row" data-simple-key="iso">
+          <button class="simple-role-pill auto" type="button" data-simple-role="iso">A</button>
+          <div class="simple-expo-control">
+            <span id="simpleSensitivityLabel">ISO</span>
+            <button type="button" class="simple-value-select" data-picker-target="newIso" id="simpleIsoSelect">ISO 800 <i>⌄</i></button>
+          </div>
+        </div>
+        <div class="simple-expo-row" data-simple-key="shutter">
+          <button class="simple-role-pill auto" type="button" data-simple-role="shutter">A</button>
+          <div class="simple-expo-control">
+            <span>Shutter</span>
+            <button type="button" class="simple-value-select" data-picker-target="newShutter" id="simpleShutterSelect">1/50 <i>⌄</i></button>
+          </div>
+        </div>
+        <div class="simple-expo-row" data-simple-key="nd">
+          <button class="simple-role-pill auto" type="button" data-simple-role="nd">A</button>
+          <div class="simple-expo-control">
+            <span>ND</span>
+            <button type="button" class="simple-value-select" data-picker-target="newNd" id="simpleNdSelect">ND 0 <i>⌄</i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="simple-priority-note" id="simplePriorityNote">Assombrir : ISO ↓ → ND ↑ → Shutter · Éclaircir : ND ↓ → ISO ↑ → Shutter.</div>
+
+      <div class="simple-recap" id="simpleRecap">
+        <div class="simple-recap-head">
+          <span>RÉCAP COMPENSATION</span>
+          <strong id="simpleRecapState">PRÊT</strong>
+        </div>
+        <div class="simple-recap-main" id="simpleRecapMain">Modifie un réglage en M pour calculer la compensation.</div>
+        <div class="simple-recap-detail" id="simpleRecapDetail">—</div>
       </div>
     </section>
 
@@ -212,7 +276,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v3.32</span>
+        <span class="app-version">v3.33</span>
       </div>
     </footer>
   </main>
@@ -347,6 +411,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.32"></script>
+  <script src="app.js?v=3.33"></script>
 </body>
 </html>

@@ -371,3 +371,15 @@ V3.32 — COMPACT + SCÈNES
 - Nouvelle section SCÈNES : saisie d’un écart de lumière relatif à la référence et proposition de réglage en conservant la logique MANUEL/AUTO.
 - Les scènes sont mémorisées localement.
 - Prépare l’arrivée future d’une cellule téléphone : la mesure pourra alimenter automatiquement l’écart de lumière.
+
+
+V3.33 — COMPENSATION SIMPLE M/A + LIMITES ISO
+- Interface principale alignée sur le module EXPO de BrunoOnSet : une ligne par Diaph / ISO / Shutter / ND avec bascule M/A.
+- Ajout ISO MIN et ISO MAX en haut du bloc.
+- ISO MIN prend par défaut la base native la plus basse du profil choisi ; l’utilisateur peut la modifier (utile notamment pour verrouiller une seconde base native).
+- ISO MAX prend par défaut la valeur maximale disponible et reste modifiable.
+- Assombrir : ISO descend jusqu’à ISO MIN, puis ND monte, puis Shutter, puis Diaph si celui-ci est aussi en AUTO.
+- Éclaircir : ND descend d’abord jusqu’à 0, puis ISO monte jusqu’à ISO MAX, puis Shutter, puis Diaph si AUTO.
+- Un réglage en MANUEL est toujours ignoré par la compensation automatique.
+- Récapitulatif direct des stops appliqués.
+- SCÈNES utilise la même logique de priorité.

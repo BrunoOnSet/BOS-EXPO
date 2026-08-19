@@ -803,3 +803,230 @@ refreshCameraDb();
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
+
+
+// ============================================================
+// BOS EXPO V3.33 — simple M/A compensation with ISO limits
+// ============================================================
+const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
+let simpleRoles={aperture:"manual",iso:"auto",shutter:"auto",nd:"auto"};
+let simpleIsoMin=null;
+let simpleIsoMax=null;
+let simpleLastValues=null;
+let simpleLastMethodSig="";
+let simpleLastRecap=null;
+let simpleLimitsLoadedFor="";
+
+function simpleMethodSig(){return `${cameraMode}|${gammaMode}|${sensitivityMode}|${shutterMode}|${currentFps}`;}
+function simpleCurrentIsoPhysical(v=num(inputs.newIso.value)){
+  if(sensitivityMode==="gain") return gainBaseIso>0?gainDbToIso(v):NaN;
+  return v;
+}
+function simpleSetIsoPhysical(iso){
+  if(!(iso>0))return;
+  if(sensitivityMode==="gain"&&gainBaseIso>0)inputs.newIso.value=fmt(isoToGainDb(iso),1);
+  else inputs.newIso.value=String(snapIso(iso));
+}
+function simpleAvailableIsoValues(){
+  const p=currentProfile()||{};
+  let minRange=null,maxRange=null;
+  const range=Array.isArray(p.isoRange)?p.isoRange:(Array.isArray(p.eiRange)?p.eiRange:null);
+  if(range&&range.length>=2){minRange=Number(range[0]);maxRange=Number(range[1]);}
+  let vals=[...ISO_THIRDS,...currentBaseIsos(),...currentReferenceValues()].map(Number).filter(v=>v>0&&Number.isFinite(v));
+  if(minRange>0)vals.push(minRange);
+  if(maxRange>0)vals.push(maxRange);
+  vals=[...new Set(vals)].sort((a,b)=>a-b);
+  if(minRange>0)vals=vals.filter(v=>v>=minRange);
+  if(maxRange>0)vals=vals.filter(v=>v<=maxRange);
+  return vals.length?vals:[50,100,200,400,800,1600,3200,6400,12800,25600,51200];
+}
+function simpleDefaultMin(){
+  const bases=currentBaseIsos(); if(bases.length)return Math.min(...bases);
+  const p=currentProfile()||{};
+  if(Number(p.defaultValue)>0)return Number(p.defaultValue);
+  const refs=currentReferenceValues();if(refs.length)return Math.min(...refs);
+  return simpleAvailableIsoValues()[0];
+}
+function simpleDefaultMax(){const vals=simpleAvailableIsoValues();return vals[vals.length-1];}
+function simpleLimitKey(){return `${cameraMode}|${gammaMode}`;}
+function simpleLoadLimits(force=false){
+  const key=simpleLimitKey();
+  if(!force&&simpleLimitsLoadedFor===key&&simpleIsoMin>0&&simpleIsoMax>0)return;
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"null");}catch(_){saved=null;}
+  const lim=saved?.limits?.[key];
+  simpleIsoMin=Number(lim?.min)>0?Number(lim.min):simpleDefaultMin();
+  simpleIsoMax=Number(lim?.max)>0?Number(lim.max):simpleDefaultMax();
+  if(simpleIsoMin>simpleIsoMax)simpleIsoMax=simpleIsoMin;
+  simpleLimitsLoadedFor=key;
+}
+function simpleSave(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"{}");
+    saved.roles=simpleRoles;saved.limits=saved.limits||{};saved.limits[simpleLimitKey()]={min:simpleIsoMin,max:simpleIsoMax};
+    localStorage.setItem(SIMPLE_EXPO_STORAGE_KEY,JSON.stringify(saved));
+  }catch(_){ }
+}
+function simpleLoadRoles(){
+  try{const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"null");if(saved?.roles)Object.keys(simpleRoles).forEach(k=>{if(["manual","auto"].includes(saved.roles[k]))simpleRoles[k]=saved.roles[k];});}catch(_){ }
+}
+function simpleStopFor(key,value){
+  if(key==="aperture")return -2*log2(Number(value));
+  if(key==="iso")return log2(Number(value));
+  if(key==="shutter")return log2(timeFromShutter(Number(value)));
+  if(key==="nd")return -Number(value);
+  return 0;
+}
+function simplePhysicalValues(){return {aperture:num(inputs.newAperture.value),iso:simpleCurrentIsoPhysical(),shutter:num(inputs.newShutter.value),nd:num(inputs.newNd.value)};}
+function simpleTotal(v=simplePhysicalValues()){return simpleStopFor("aperture",v.aperture)+simpleStopFor("iso",v.iso)+simpleStopFor("shutter",v.shutter)+simpleStopFor("nd",v.nd);}
+function simpleCandidates(key){
+  if(key==="aperture")return APERTURE_THIRDS.slice();
+  if(key==="iso")return simpleAvailableIsoValues().filter(v=>v>=simpleIsoMin-1e-9&&v<=simpleIsoMax+1e-9);
+  if(key==="shutter")return (shutterMode==="speed"?SHUTTER_SPEEDS:SHUTTER_ANGLES).slice();
+  if(key==="nd")return ND_STOPS.slice();
+  return [];
+}
+function simpleSetPhysicalValue(key,value){
+  if(key==="iso")simpleSetIsoPhysical(value);else inputs[{aperture:"newAperture",shutter:"newShutter",nd:"newNd"}[key]].value=String(value);
+}
+function simpleBestCandidate(key,current,remaining){
+  const vals=simpleCandidates(key);if(!vals.length)return current;
+  const currentStop=simpleStopFor(key,current),target=currentStop+remaining;
+  let best=current,bestDiff=Infinity;
+  vals.forEach(v=>{
+    const s=simpleStopFor(key,v),move=s-currentStop;
+    if(remaining>0&&move<-1e-9)return;
+    if(remaining<0&&move>1e-9)return;
+    const d=Math.abs(s-target);
+    if(d<bestDiff-1e-12){bestDiff=d;best=v;}
+  });
+  return best;
+}
+function simpleApplyCompensation(targetTotal,changedKey,baseBefore){
+  let remaining=targetTotal-simpleTotal();
+  const order=remaining<0?["iso","nd","shutter","aperture"]:["nd","iso","shutter","aperture"];
+  const changes=[];
+  for(const key of order){
+    if(Math.abs(remaining)<0.015)break;
+    if(key===changedKey||simpleRoles[key]!=="auto")continue;
+    const before=simplePhysicalValues()[key];
+    const beforeStop=simpleStopFor(key,before);
+    const next=simpleBestCandidate(key,before,remaining);
+    if(!(Number.isFinite(next))||Math.abs(next-before)<1e-9)continue;
+    simpleSetPhysicalValue(key,next);
+    const after=simplePhysicalValues()[key];
+    const move=simpleStopFor(key,after)-beforeStop;
+    remaining-=move;
+    changes.push({key,before,after,stops:move});
+  }
+  return {changes,residual:targetTotal-simpleTotal(),direction:(targetTotal-simpleTotal())};
+}
+function simpleValueText(key,v){
+  if(key==="aperture")return `f/${fmtAperture(v)}`;
+  if(key==="iso")return `${currentSensitivityUnit()} ${fmtIso(v)}`;
+  if(key==="shutter")return shutterMode==="speed"?`1/${fmt(v,1)}`:`${fmt(v,1)}°`;
+  if(key==="nd")return `ND ${fmt(v,0)}`;
+  return String(v);
+}
+function simpleDeltaText(change){return `${simpleValueText(change.key,change.before)} → ${simpleValueText(change.key,change.after)} : ${fmtStop(change.stops)}`;}
+function simpleRenderLimits(){
+  simpleLoadLimits();
+  const unit=currentSensitivityUnit();
+  $("isoMinLabel").textContent=`${unit} MIN`;$("isoMaxLabel").textContent=`${unit} MAX`;
+  const vals=simpleAvailableIsoValues();
+  const fill=(sel,current)=>{sel.innerHTML=vals.map(v=>`<option value="${v}" ${Math.abs(v-current)<.001?"selected":""}>${unit} ${formatThousands(v)}</option>`).join("");};
+  fill($("isoMinSelect"),simpleIsoMin);fill($("isoMaxSelect"),simpleIsoMax);
+  const bases=currentBaseIsos();
+  $("isoLimitHelp").textContent=bases.length?`${unit} MIN reprend la base native la plus basse (${bases.map(formatThousands).join(" / ")}). Les deux limites restent modifiables.`:`Les deux limites restent modifiables pour cette caméra.`;
+}
+function simpleRenderRows(){
+  const vals=simplePhysicalValues();
+  $("simpleApertureSelect").innerHTML=`${simpleValueText("aperture",vals.aperture)} <i>⌄</i>`;
+  $("simpleIsoSelect").innerHTML=`${simpleValueText("iso",vals.iso)} <i>⌄</i>`;
+  $("simpleShutterSelect").innerHTML=`${simpleValueText("shutter",vals.shutter)} <i>⌄</i>`;
+  $("simpleNdSelect").innerHTML=`${simpleValueText("nd",vals.nd)} <i>⌄</i>`;
+  $("simpleSensitivityLabel").textContent=currentSensitivityUnit();
+  const ids={aperture:"simpleApertureSelect",iso:"simpleIsoSelect",shutter:"simpleShutterSelect",nd:"simpleNdSelect"};
+  document.querySelectorAll("[data-simple-role]").forEach(btn=>{
+    const k=btn.dataset.simpleRole,auto=simpleRoles[k]==="auto";btn.textContent=auto?"A":"M";btn.classList.toggle("auto",auto);btn.classList.toggle("manual",!auto);
+    const row=btn.closest(".simple-expo-row");row?.classList.toggle("is-auto",auto);const target=$(ids[k]);if(target)target.disabled=auto;
+  });
+}
+function simpleChangedKey(prev,now){
+  if(!prev)return null;
+  for(const k of ["aperture","iso","shutter","nd"]){if(Math.abs((prev[k]||0)-(now[k]||0))>1e-7)return k;}
+  return null;
+}
+function simpleUpdateRecap(changedKey,before,after,autoResult){
+  if(!changedKey||!before||!after)return;
+  const manualMove={key:changedKey,before:before[changedKey],after:after[changedKey],stops:simpleStopFor(changedKey,after[changedKey])-simpleStopFor(changedKey,before[changedKey])};
+  const parts=[simpleDeltaText(manualMove),...(autoResult?.changes||[]).map(simpleDeltaText)];
+  const residual=autoResult?.residual??0;
+  $("simpleRecapState").textContent=Math.abs(residual)<.08?"EXPO CONSERVÉE":`${fmtStop(residual)} RESTANT`;
+  $("simpleRecapMain").textContent=parts.join(" · ");
+  const dir=manualMove.stops<0?"Éclaircir la compensation":"Assombrir la compensation";
+  $("simpleRecapDetail").textContent=(autoResult?.changes?.length?`Compensation AUTO appliquée dans l’ordre prévu.`:`Aucun réglage AUTO disponible pour compenser.`);
+  simpleLastRecap={changedKey,before,after,autoResult};
+}
+function simpleSceneSolve(offset){
+  const base=simplePhysicalValues();
+  const target=simpleTotal(base)-Number(offset||0);
+  const temp={...base};
+  // local candidate solver without mutating UI
+  let remaining=target-simpleTotal(temp);
+  const order=remaining<0?["iso","nd","shutter","aperture"]:["nd","iso","shutter","aperture"];
+  for(const key of order){
+    if(Math.abs(remaining)<.015)break;if(simpleRoles[key]!=="auto")continue;
+    const current=temp[key],currentStop=simpleStopFor(key,current),targetStop=currentStop+remaining;
+    const vals=simpleCandidates(key);let best=current,diff=Infinity;
+    vals.forEach(v=>{const s=simpleStopFor(key,v),move=s-currentStop;if(remaining>0&&move<0)return;if(remaining<0&&move>0)return;const d=Math.abs(s-targetStop);if(d<diff){diff=d;best=v;}});
+    temp[key]=best;remaining-=simpleStopFor(key,best)-currentStop;
+  }
+  return {values:temp,residual:remaining};
+}
+sceneSuggestion=function(lightOffset){
+  const solved=simpleSceneSolve(lightOffset),v=solved.values;
+  const main=`${simpleValueText("aperture",v.aperture)} · ${simpleValueText("iso",v.iso)} · ${simpleValueText("shutter",v.shutter)} · ${simpleValueText("nd",v.nd)}`;
+  const off=Number(lightOffset)||0;
+  return {main,note:off===0?"Même lumière que le réglage actuel":`${off<0?"Scène plus sombre":"Scène plus lumineuse"} de ${fmtStop(Math.abs(off)).replace(/^\+/,"")} · résiduel ${fmtStop(solved.residual)}`};
+};
+
+// Replace the legacy updater once the original app has initialised.
+updateUI=function(){
+  ensureProfileValid();ensureGainBaseValid();
+  const methodSig=simpleMethodSig();
+  if(methodSig!==simpleLastMethodSig){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);simpleLastValues=null;}
+  simpleRenderLimits();
+  // Keep current sensitivity inside the selected limits.
+  let phys=simpleCurrentIsoPhysical();
+  if(phys<simpleIsoMin)simpleSetIsoPhysical(simpleIsoMin);
+  if(phys>simpleIsoMax)simpleSetIsoPhysical(simpleIsoMax);
+  const now=simplePhysicalValues();
+  const changed=simpleChangedKey(simpleLastValues,now);
+  if(changed&&simpleRoles[changed]==="manual"){
+    const before={...simpleLastValues};
+    const target=simpleTotal(before);
+    const result=simpleApplyCompensation(target,changed,before);
+    const after=simplePhysicalValues();
+    simpleUpdateRecap(changed,before,after,result);
+  }
+  simpleRenderRows();updateBaseIsoNote();renderScenes();
+  simpleLastValues=simplePhysicalValues();
+};
+
+simpleLoadRoles();
+$("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.value);if(simpleIsoMin>simpleIsoMax)simpleIsoMax=simpleIsoMin;simpleSave();simpleLastValues=null;updateUI();});
+$("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();simpleLastValues=null;updateUI();});
+document.querySelectorAll("[data-simple-role]").forEach(btn=>btn.addEventListener("click",()=>{const k=btn.dataset.simpleRole;simpleRoles[k]=simpleRoles[k]==="auto"?"manual":"auto";simpleSave();simpleLastValues=simplePhysicalValues();simpleRenderRows();}));
+$("simpleResetBtn")?.addEventListener("click",()=>{
+  simpleRoles={aperture:"manual",iso:"auto",shutter:"auto",nd:"auto"};
+  simpleLimitsLoadedFor="";simpleLoadLimits(true);
+  inputs.newAperture.value="2.8";simpleSetIsoPhysical(simpleDefaultMin());inputs.newShutter.value=shutterMode==="speed"?"50":"180";inputs.newNd.value="0";
+  simpleLastValues=null;simpleLastRecap=null;simpleSave();$("simpleRecapState").textContent="PRÊT";$("simpleRecapMain").textContent="Modifie un réglage en M pour calculer la compensation.";$("simpleRecapDetail").textContent="—";updateUI();
+});
+
+// Initial current values for the simplified workflow.
+inputs.newAperture.value=inputs.newAperture.value||"2.8";
+if(!(simpleCurrentIsoPhysical()>0))simpleSetIsoPhysical(simpleDefaultMin());
+if(!(num(inputs.newShutter.value)>0))inputs.newShutter.value=shutterMode==="speed"?"50":"180";
+if(!(num(inputs.newNd.value)>=0))inputs.newNd.value="0";
+simpleLastMethodSig="";simpleLastValues=null;updateUI();
