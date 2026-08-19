@@ -827,7 +827,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.40 — explicit reference + calculate workflow
+// BOS EXPO V3.42 — lock-based compensation workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
@@ -838,7 +838,7 @@ let simpleApertureMax=null;
 let simpleBaselineValues=null;
 let simpleLastMethodSig="";
 let simpleLastRecap=null;
-let simpleCompPreference="iso";
+let simpleLocks={aperture:false,iso:false,shutter:false,nd:false};
 let simpleLimitsLoadedFor="";
 
 function simpleMethodSig(){return `${cameraMode}|${gammaMode}|${sensitivityMode}|${shutterMode}|${currentFps}`;}
@@ -893,7 +893,7 @@ function simpleSave(){
   try{
     const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"{}");
     saved.roles=simpleRoles;
-    saved.preference=simpleCompPreference;
+    saved.locks={...simpleLocks};
     saved.limits=saved.limits||{};
     saved.limits[simpleLimitKey()]={min:simpleIsoMin,max:simpleIsoMax,apMin:simpleApertureMin,apMax:simpleApertureMax};
     localStorage.setItem(SIMPLE_EXPO_STORAGE_KEY,JSON.stringify(saved));
@@ -903,7 +903,9 @@ function simpleLoadRoles(){
   try{
     const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"null");
     if(saved?.roles)Object.keys(simpleRoles).forEach(k=>{if(["manual","auto"].includes(saved.roles[k]))simpleRoles[k]=saved.roles[k];});
-    if(saved?.preference==="nd")simpleCompPreference="nd"; else simpleCompPreference="iso";
+    if(saved?.locks&&typeof saved.locks==="object"){
+      Object.keys(simpleLocks).forEach(k=>{simpleLocks[k]=!!saved.locks[k];});
+    }
   }catch(_){ }
 }
 function simpleStopFor(key,value){
@@ -971,22 +973,26 @@ function simpleBestCandidate(key,current,remaining){
   return best;
 }
 function simplePriorityOrders(delta){
-  const preferNd=simpleCompPreference==="nd";
-  if(delta<0){
-    return preferNd?["nd","iso","shutter","aperture"]:["iso","nd","shutter","aperture"];
-  }
-  return preferNd?["iso","nd","shutter","aperture"]:["nd","iso","shutter","aperture"];
+  // delta < 0 : il faut assombrir ; delta > 0 : il faut éclaircir.
+  return delta<0
+    ? ["aperture","iso","nd","shutter"]
+    : ["aperture","nd","iso","shutter"];
 }
 function simplePriorityNoteText(){
-  const sens=(currentSensitivityUnit()||"ISO").toUpperCase();
-  if(simpleCompPreference==="nd")return `Assombrir : ND ↑ → ${sens} ↓ → Shutter · Éclaircir : ${sens} ↑ → ND ↓ → Shutter.`;
-  return `Assombrir : ${sens} ↓ → ND ↑ → Shutter · Éclaircir : ND ↓ → ${sens} ↑ → Shutter.`;
+  return "Assombrir : Diaph ↑ → ISO ↓ → ND ↑ → Shutter · Éclaircir : Diaph ↓ → ND ↓ → ISO ↑ → Shutter.";
 }
-function simpleRenderPreferenceToggle(){
-  const isoBtn=$("simplePrefIsoBtn"), ndBtn=$("simplePrefNdBtn"), note=$("simplePriorityNote");
-  if(isoBtn){isoBtn.textContent=`PRÉF. ${(currentSensitivityUnit()||"ISO").toUpperCase()}`;isoBtn.classList.toggle("active",simpleCompPreference!=="nd");}
-  if(ndBtn)ndBtn.classList.toggle("active",simpleCompPreference==="nd");
-  if(note)note.textContent=simplePriorityNoteText();
+function simpleRenderLocks(){
+  document.querySelectorAll("[data-simple-lock]").forEach(btn=>{
+    const key=btn.dataset.simpleLock;
+    const locked=!!simpleLocks[key];
+    btn.classList.toggle("locked",locked);
+    btn.setAttribute("aria-pressed",locked?"true":"false");
+    const names={aperture:"diaph",iso:(currentSensitivityUnit()||"ISO").toLowerCase(),shutter:"shutter",nd:"ND"};
+    const label=locked?`Déverrouiller ${names[key]||key}`:`Verrouiller ${names[key]||key}`;
+    btn.setAttribute("aria-label",label);
+    btn.setAttribute("title",label);
+  });
+  const note=$("simplePriorityNote");if(note)note.textContent=simplePriorityNoteText();
 }
 function simpleApplyCompensation(targetTotal,changedKey,baseBefore){
   let remaining=targetTotal-simpleTotal();
@@ -994,7 +1000,7 @@ function simpleApplyCompensation(targetTotal,changedKey,baseBefore){
   const changes=[];
   for(const key of order){
     if(Math.abs(remaining)<0.015)break;
-    if(key===changedKey)continue;
+    if(key===changedKey||simpleLocks[key])continue;
     const before=simplePhysicalValues()[key];
     const beforeStop=simpleStopFor(key,before);
     const next=simpleBestCandidate(key,before,remaining);
@@ -1101,7 +1107,7 @@ function simpleSceneSolve(offset){
   let remaining=target-simpleTotal(temp);
   const order=simplePriorityOrders(remaining);
   for(const key of order){
-    if(Math.abs(remaining)<.015)break;if(simpleRoles[key]!=="auto")continue;
+    if(Math.abs(remaining)<.015)break;if(simpleLocks[key])continue;
     const current=temp[key],currentStop=simpleStopFor(key,current),targetStop=currentStop+remaining;
     const vals=simpleCandidates(key);let best=current,diff=Infinity;
     vals.forEach(v=>{const s=simpleStopFor(key,v),move=s-currentStop;if(remaining>0&&move<0)return;if(remaining<0&&move>0)return;const d=Math.abs(s-targetStop);if(d<diff){diff=d;best=v;}});
@@ -1124,7 +1130,7 @@ updateUI=function(){
   const methodChanged=methodSig!==simpleLastMethodSig;
   if(methodChanged){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);}
   simpleRenderLimits();
-  simpleRenderPreferenceToggle();
+  simpleRenderLocks();
   // Garde les valeurs de référence et de calcul dans les limites choisies, sans lancer de compensation.
   simpleClampReferenceToLimits();
   simpleClampCurrentToLimits();
@@ -1145,10 +1151,18 @@ $("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.va
 $("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();updateUI();});
 $("apertureMinSelect")?.addEventListener("change",e=>{simpleApertureMin=Number(e.target.value);if(simpleApertureMin>simpleApertureMax)simpleApertureMax=simpleApertureMin;simpleSave();updateUI();});
 $("apertureMaxSelect")?.addEventListener("change",e=>{simpleApertureMax=Number(e.target.value);if(simpleApertureMax<simpleApertureMin)simpleApertureMin=simpleApertureMax;simpleSave();updateUI();});
-$("simplePrefIsoBtn")?.addEventListener("click",()=>{simpleCompPreference="iso";simpleSave();updateUI();simpleSetCalcSummary(`Préférence de compensation : ${(currentSensitivityUnit()||"ISO").toUpperCase()} d’abord.`,"ok");});
-$("simplePrefNdBtn")?.addEventListener("click",()=>{simpleCompPreference="nd";simpleSave();updateUI();simpleSetCalcSummary("Préférence de compensation : ND d’abord.","ok");});
+document.querySelectorAll("[data-simple-lock]").forEach(btn=>btn.addEventListener("click",()=>{
+  const key=btn.dataset.simpleLock;
+  if(!(key in simpleLocks))return;
+  simpleLocks[key]=!simpleLocks[key];
+  simpleSave();
+  simpleRenderLocks();
+  const names={aperture:"Diaph",iso:(currentSensitivityUnit()||"ISO").toUpperCase(),shutter:"Shutter",nd:"ND"};
+  simpleSetCalcSummary(`${names[key]} ${simpleLocks[key]?"verrouillé : le calcul ne le modifiera pas.":"déverrouillé : le calcul peut le modifier."}`,"ok");
+}));
 $("simpleResetBtn")?.addEventListener("click",()=>{
   simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
+  simpleLocks={aperture:false,iso:false,shutter:false,nd:false};
   simpleLimitsLoadedFor="";simpleLoadLimits(true);
   inputs.newAperture.value="2.8";simpleSetIsoPhysical(simpleDefaultMin());inputs.newShutter.value=shutterMode==="speed"?"50":"180";inputs.newNd.value="0";
   simpleSetReferenceFromValues(simplePhysicalValues());

@@ -402,3 +402,19 @@ V3.40 — RÉFÉRENCE EXPLICITE
 - M = valeur imposée ; A = paramètre autorisé à compenser.
 - CALCULER compare le nouveau réglage à la référence et applique uniquement les paramètres en A.
 - Bouton = ACTUEL pour mémoriser rapidement le réglage courant comme nouvelle référence.
+
+
+V3.41 — PRIORITÉ VISIBLE
+- La préférence de compensation est déplacée dans une ligne dédiée sous le titre CALCUL.
+- Deux boutons bien visibles : ISO / ND.
+- Le bouton = RÉF. reste séparé dans l'en-tête.
+
+
+V3.42 — CADENAS DE COMPENSATION
+- Suppression du choix de préférence ISO / ND.
+- Ajout d’un cadenas indépendant au-dessus de Diaph, ISO, Shutter et ND dans CALCUL.
+- Cadenas fermé : le paramètre est protégé et ne peut pas être modifié par la compensation automatique.
+- Cadenas ouvert : le paramètre peut être utilisé pour compenser.
+- Ordre fixe pour assombrir : Diaph ↑ → ISO ↓ → ND ↑ → Shutter.
+- Ordre fixe pour éclaircir : Diaph ↓ → ND ↓ → ISO ↑ → Shutter.
+- Les limites ISO MIN / MAX et DIAPH MIN / MAX restent appliquées.

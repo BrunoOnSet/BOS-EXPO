@@ -894,9 +894,40 @@ body.dark .chips button.native-iso:not(.active){
 @media(min-width:560px){.camera-limits-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
 
-/* V3.40 — préférence de compensation ISO / ND */
-.simple-calc-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.simple-pref-toggle{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
-.simple-pref-toggle button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:7px 10px;font-size:9px;font-weight:900;letter-spacing:.08em;cursor:pointer}
-.simple-pref-toggle button.active{background:var(--chip-active-bg);color:var(--chip-active-text)}
-@media(max-width:560px){.simple-calc-actions{width:100%;justify-content:space-between}.simple-pref-toggle button{padding:7px 9px;font-size:8.5px}}
+
+
+
+
+/* V3.42 — cadenas par paramètre */
+.simple-calc-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+}
+.simple-calc-item{min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.simple-lock-btn{
+  align-self:center;
+  width:27px;
+  height:27px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel);
+  color:var(--muted);
+  cursor:pointer;
+  padding:0;
+  transition:background .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;
+}
+.simple-lock-btn:active{transform:scale(.95)}
+.simple-lock-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.simple-lock-btn .lock-closed{display:none}
+.simple-lock-btn.locked{background:var(--chip-active-bg);border-color:var(--chip-active-bg);color:var(--chip-active-text)}
+.simple-lock-btn.locked .lock-open{display:none}
+.simple-lock-btn.locked .lock-closed{display:block}
+.simple-calc-item:has(.simple-lock-btn.locked) .simple-reference-value{border-color:var(--chip-active-bg)}
+@media(max-width:560px){
+  .simple-calc-grid{grid-template-columns:1fr 1fr;gap:8px 7px}
+  .simple-lock-btn{width:26px;height:26px}
+}
