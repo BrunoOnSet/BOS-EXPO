@@ -393,3 +393,12 @@ V3.34 — CALCULER + ND CLAIR
 - Résumé de calcul affiché en une ligne sans bulle.
 - Nomenclature ND clarifiée : ex. 1 stop · ND2 · 0,3.
 - ISO MIN / ISO MAX et ordre de priorité AUTO conservés.
+
+
+V3.35 — RÉFÉRENCE EXPLICITE
+- Ajout d’un bloc RÉFÉRENCE compact dans la compensation simplifiée.
+- L’utilisateur définit explicitement Diaph / ISO / Shutter / ND de départ.
+- Le NOUVEAU RÉGLAGE est séparé visuellement de la référence.
+- M = valeur imposée ; A = paramètre autorisé à compenser.
+- CALCULER compare le nouveau réglage à la référence et applique uniquement les paramètres en A.
+- Bouton = ACTUEL pour mémoriser rapidement le réglage courant comme nouvelle référence.

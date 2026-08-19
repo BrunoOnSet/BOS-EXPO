@@ -813,7 +813,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.34 — explicit calculate + clear ND labels
+// BOS EXPO V3.35 — explicit reference + calculate workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"manual",iso:"auto",shutter:"auto",nd:"auto"};
@@ -884,6 +884,28 @@ function simpleStopFor(key,value){
   return 0;
 }
 function simplePhysicalValues(){return {aperture:num(inputs.newAperture.value),iso:simpleCurrentIsoPhysical(),shutter:num(inputs.newShutter.value),nd:num(inputs.newNd.value)};}
+function simpleReferenceValues(){
+  const rawIso=num(inputs.refIso.value);
+  const physicalIso=sensitivityMode==="gain"?(gainBaseIso>0?gainDbToIso(rawIso):NaN):rawIso;
+  return {aperture:num(inputs.refAperture.value),iso:physicalIso,shutter:num(inputs.refShutter.value),nd:num(inputs.refNd.value)};
+}
+function simpleSetReferenceFromValues(v){
+  if(v.aperture>0)inputs.refAperture.value=String(v.aperture);
+  if(v.iso>0){
+    if(sensitivityMode==="gain"&&gainBaseIso>0)inputs.refIso.value=fmt(isoToGainDb(v.iso),1);
+    else inputs.refIso.value=String(snapIso(v.iso));
+  }
+  if(v.shutter>0)inputs.refShutter.value=String(v.shutter);
+  if(v.nd>=0)inputs.refNd.value=String(v.nd);
+}
+function simpleRenderReference(){
+  const v=simpleReferenceValues(),unit=currentSensitivityUnit();
+  const set=(id,label,value)=>{const el=$(id);if(!el)return;el.querySelector("span").textContent=label;el.querySelector("strong").textContent=value;};
+  set("simpleRefAperture","Diaph",simpleValueText("aperture",v.aperture));
+  set("simpleRefIso",unit,simpleValueText("iso",v.iso));
+  set("simpleRefShutter","Shutter",simpleValueText("shutter",v.shutter));
+  set("simpleRefNd","ND",simpleValueText("nd",v.nd));
+}
 function simpleTotal(v=simplePhysicalValues()){return simpleStopFor("aperture",v.aperture)+simpleStopFor("iso",v.iso)+simpleStopFor("shutter",v.shutter)+simpleStopFor("nd",v.nd);}
 function simpleCandidates(key){
   if(key==="aperture")return APERTURE_THIRDS.slice();
@@ -977,28 +999,26 @@ function simpleSetCalcSummary(text,state=""){
   el.textContent=text;el.classList.toggle("is-ok",state==="ok");el.classList.toggle("is-warning",state==="warning");
 }
 function simpleCalculateNow(){
+  const reference=simpleReferenceValues();
   const current=simplePhysicalValues();
-  if(!simpleBaselineValues){
-    simpleBaselineValues={...current};
-    simpleSetCalcSummary("Référence mémorisée. Modifie un réglage puis relance CALCULER.","ok");
+  if(!(reference.aperture>0&&reference.iso>0&&reference.shutter>0&&reference.nd>=0)){
+    simpleSetCalcSummary("Référence incomplète ou invalide.","warning");
     return;
   }
-  const before={...current};
-  const targetTotal=simpleTotal(simpleBaselineValues);
-  const result=simpleApplyCompensation(targetTotal,null,simpleBaselineValues);
+  const targetTotal=simpleTotal(reference);
+  const result=simpleApplyCompensation(targetTotal,null,reference);
   const after=simplePhysicalValues();
-  const parts=simpleNetChangeParts(simpleBaselineValues,after);
+  const parts=simpleNetChangeParts(reference,after);
   const residual=result?.residual??(targetTotal-simpleTotal(after));
   if(!parts.length){
-    simpleSetCalcSummary("Aucun changement à compenser.");
+    simpleSetCalcSummary("Nouveau réglage identique à la référence.");
   }else if(Math.abs(residual)<.08){
     simpleSetCalcSummary(`${parts.join(" · ")} · EXPOSITION CONSERVÉE`,"ok");
-    simpleBaselineValues={...after};
   }else{
     simpleSetCalcSummary(`${parts.join(" · ")} · ${fmtStop(residual)} restant`,"warning");
   }
-  simpleLastRecap={before,after,result};
-  simpleRenderRows();updateBaseIsoNote();renderScenes();
+  simpleLastRecap={reference,current,after,result};
+  simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
 }
 function simpleSceneSolve(offset){
   const base=simplePhysicalValues();
@@ -1035,10 +1055,15 @@ updateUI=function(){
   let phys=simpleCurrentIsoPhysical();
   if(phys<simpleIsoMin)simpleSetIsoPhysical(simpleIsoMin);
   if(phys>simpleIsoMax)simpleSetIsoPhysical(simpleIsoMax);
-  simpleRenderRows();updateBaseIsoNote();renderScenes();
-  if(methodChanged||!simpleBaselineValues){
-    simpleBaselineValues={...simplePhysicalValues()};
-    simpleSetCalcSummary("Régle tout librement puis appuie sur CALCULER.");
+  simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
+  if(methodChanged){
+    // Sur changement caméra/profil, garde une référence valide et lisible.
+    const r=simpleReferenceValues();
+    if(!(r.iso>0)){
+      const v=simplePhysicalValues();simpleSetReferenceFromValues(v);
+    }
+    simpleRenderReference();
+    simpleSetCalcSummary("Modifie le nouveau réglage puis appuie sur CALCULER.");
   }
 };
 
@@ -1047,11 +1072,17 @@ $("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.va
 $("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();updateUI();});
 document.querySelectorAll("[data-simple-role]").forEach(btn=>btn.addEventListener("click",()=>{const k=btn.dataset.simpleRole;simpleRoles[k]=simpleRoles[k]==="auto"?"manual":"auto";simpleSave();simpleRenderRows();simpleSetCalcSummary("Rôles M / A modifiés · appuie sur CALCULER pour appliquer la compensation.");}));
 $("simpleCalculateBtn")?.addEventListener("click",simpleCalculateNow);
+$("simpleReferenceFromCurrentBtn")?.addEventListener("click",()=>{
+  simpleSetReferenceFromValues(simplePhysicalValues());
+  simpleRenderReference();
+  simpleSetCalcSummary("Réglage actuel mémorisé comme référence.","ok");
+});
 $("simpleResetBtn")?.addEventListener("click",()=>{
   simpleRoles={aperture:"manual",iso:"auto",shutter:"auto",nd:"auto"};
   simpleLimitsLoadedFor="";simpleLoadLimits(true);
   inputs.newAperture.value="2.8";simpleSetIsoPhysical(simpleDefaultMin());inputs.newShutter.value=shutterMode==="speed"?"50":"180";inputs.newNd.value="0";
-  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();updateUI();
+  simpleSetReferenceFromValues(simplePhysicalValues());
+  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();simpleSetCalcSummary("Référence et nouveau réglage réinitialisés.");updateUI();
 });
 
 // Initial current values for the simplified workflow.
@@ -1059,4 +1090,6 @@ inputs.newAperture.value=inputs.newAperture.value||"2.8";
 if(!(simpleCurrentIsoPhysical()>0))simpleSetIsoPhysical(simpleDefaultMin());
 if(!(num(inputs.newShutter.value)>0))inputs.newShutter.value=shutterMode==="speed"?"50":"180";
 if(!(num(inputs.newNd.value)>=0))inputs.newNd.value="0";
+const initialRef=simpleReferenceValues();
+if(!(initialRef.aperture>0&&initialRef.iso>0&&initialRef.shutter>0&&initialRef.nd>=0))simpleSetReferenceFromValues(simplePhysicalValues());
 simpleLastMethodSig="";simpleBaselineValues=null;updateUI();
