@@ -435,7 +435,7 @@ V3.45 — ISO NATIF / SÉLECTION
 - Ajout en haut du sélecteur ISO de la légende « ISO natif : » suivie d'un vrai rond bleu.
 
 
-V3.47 — SITUATIONS / CONTINUITÉ D’EXPO
+V3.48 — SITUATIONS / CONTINUITÉ D’EXPO
 - SCÈNES devient SITUATIONS pour un usage tournage plus concret.
 - Les situations sont désormais calculées depuis la RÉFÉRENCE, afin que leurs propositions restent stables même lorsque CALCUL change.
 - Bilan CONTINUITÉ D’EXPO : nombre de situations réalisables avec les limites caméra et cadenas actuels.

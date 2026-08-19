@@ -577,13 +577,35 @@ function renderScenes(){
   empty.hidden=scenes.length>0;
   host.innerHTML="";
   const all=allSituations();
+
+  // Situation 1 is always shown here as a read-only recap.
+  // Its name and settings are edited only in the main Situation 1 block above.
+  const base=all[0];
+  const baseV=base.settings;
+  const baseCard=document.createElement("div");
+  baseCard.className="scene-card situation-card situation-settings-card situation-base-recap";
+  baseCard.innerHTML=`
+    <div class="scene-card-head situation-card-head-v2">
+      <div class="situation-number-block">
+        <div class="situation-recap-kicker"><span>SITUATION 1</span><span class="situation-base-badge">BASE</span></div>
+        <strong class="situation-recap-name">${escapeHtml(base.name||"Situation 1")}</strong>
+      </div>
+    </div>
+    <div class="simple-section-note situation-setting-note">Réglage de référence · modifiable dans Situation 1 plus haut.</div>
+    <div class="simple-reference-grid situation-setting-grid">
+      <div class="simple-reference-value situation-readonly-value"><span>Diaph</span><strong>${situationSettingText("aperture",baseV.aperture)}</strong></div>
+      <div class="simple-reference-value situation-readonly-value"><span>${currentSensitivityUnit()}</span><strong>${situationSettingText("iso",baseV.iso)}</strong></div>
+      <div class="simple-reference-value situation-readonly-value"><span>Shutter</span><strong>${situationSettingText("shutter",baseV.shutter)}</strong></div>
+      <div class="simple-reference-value situation-readonly-value"><span>ND</span><strong>${situationSettingText("nd",baseV.nd)}</strong></div>
+    </div>`;
+  host.appendChild(baseCard);
+
   scenes.forEach((scene,index)=>{
     scene.settings=normalizeSituationSettings(scene.settings);
     const number=index+2;
     const safeName=escapeHtml(scene.name||`Situation ${number}`);
     const v=scene.settings;
     const previous=all[index]; // situation immediately before this one
-    const base=all[0];
     const to={...scene,name:scene.name||`Situation ${number}`};
     const directNeeded=number>2;
     const card=document.createElement("div");
@@ -926,7 +948,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.47 — situations & transition alternatives workflow
+// BOS EXPO V3.48 — Situation 1 recap + transition alternatives workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
