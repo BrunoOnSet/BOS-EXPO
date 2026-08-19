@@ -759,7 +759,7 @@ body.dark .chips button.native-iso:not(.active){
 .simple-value-select{width:100%;height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:13px;background:var(--field-bg);color:var(--text);padding:0 12px;font:inherit;font-size:18px;font-weight:850;text-align:left;cursor:pointer}
 .simple-value-select i{font-style:normal;color:var(--muted);font-size:13px}
 .simple-value-select:disabled{opacity:.68;cursor:default}
-.simple-expo-row.is-auto .simple-value-select{opacity:.72}
+.simple-expo-row.is-auto .simple-value-select{opacity:1}
 .simple-priority-note{margin-top:11px;color:var(--muted);font-size:9px;line-height:1.45}
 .simple-recap{margin-top:13px;padding:11px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
 .simple-recap-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.09em}
@@ -771,4 +771,37 @@ body.dark .chips button.native-iso:not(.active){
   .simple-role-pill,.simple-value-select{height:46px}
   .simple-value-select{font-size:17px}
   .iso-limit-field select{font-size:13px}
+}
+
+
+/* V3.34 — CALCULER explicite */
+.simple-calculate-btn{
+  width:100%;
+  min-height:44px;
+  margin:12px 0 12px;
+  border:1px solid var(--accent);
+  border-radius:14px;
+  background:var(--accent);
+  color:#fff;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.13em;
+  cursor:pointer;
+}
+.simple-calculate-btn:active{transform:translateY(1px)}
+.simple-calc-summary{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:750;
+  line-height:1.45;
+  text-align:center;
+}
+.simple-calc-summary.is-ok{color:var(--accent)}
+.simple-calc-summary.is-warning{color:#A85B43}
+/* L'ancien cadre de récap n'est plus utilisé. */
+.simple-recap{display:none!important}
+@media(max-width:430px){
+  .simple-calculate-btn{min-height:42px;margin:10px 0 11px}
+  .simple-calc-summary{font-size:8.5px}
 }

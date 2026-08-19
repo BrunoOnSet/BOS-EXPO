@@ -383,3 +383,13 @@ V3.33 — COMPENSATION SIMPLE M/A + LIMITES ISO
 - Un réglage en MANUEL est toujours ignoré par la compensation automatique.
 - Récapitulatif direct des stops appliqués.
 - SCÈNES utilise la même logique de priorité.
+
+
+V3.34 — CALCULER + ND CLAIR
+- La compensation n’est plus appliquée au fil des changements.
+- Tous les réglages restent modifiables, y compris ceux marqués AUTO.
+- Nouveau bouton CALCULER : les paramètres AUTO compensent uniquement au clic.
+- Suppression du cadre « RÉCAP COMPENSATION / PRÊT ».
+- Résumé de calcul affiché en une ligne sans bulle.
+- Nomenclature ND clarifiée : ex. 1 stop · ND2 · 0,3.
+- ISO MIN / ISO MAX et ordre de priorité AUTO conservés.

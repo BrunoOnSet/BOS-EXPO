@@ -73,6 +73,13 @@ function formatSensitivity(v){
 function formatThousands(v){
   return Number(v).toLocaleString("fr-FR").replace(/\u202f/g," ");
 }
+function ndDisplay(v){
+  const stops=Number(v);
+  if(!Number.isFinite(stops))return "—";
+  const factor=Math.pow(2,stops);
+  const density=(stops*0.3).toFixed(1).replace(".",",");
+  return `${fmt(stops,0)} ${Math.abs(stops-1)<1e-9?"stop":"stops"} · ND${fmt(factor,0)} · ${density}`;
+}
 
 function nearestIndex(list,value,logarithmic=true){
   let best=0,dist=Infinity;
@@ -415,8 +422,8 @@ function updateSelectDisplays(){
     ?`1/${fmt(nSh,1)} s <span>⌄</span>`:`${fmt(nSh,1)}° <span>⌄</span>`;
 
   const rNd=num(inputs.refNd.value),nNd=num(inputs.newNd.value);
-  $("refNdSelect").innerHTML=`${fmt(rNd,0)} ${rNd===1?"stop":"stops"} <span>⌄</span>`;
-  $("newNdSelect").innerHTML=`${fmt(nNd,0)} ${nNd===1?"stop":"stops"} <span>⌄</span>`;
+  $("refNdSelect").innerHTML=`${ndDisplay(rNd)} <span>⌄</span>`;
+  $("newNdSelect").innerHTML=`${ndDisplay(nNd)} <span>⌄</span>`;
 
   $("fpsSelect").innerHTML=`${fmt(currentFps,2)} fps <span>⌄</span>`;
 }
@@ -561,7 +568,7 @@ function pickerConfig(target){
       :{title:"Shutter — angle",values:SHUTTER_ANGLES,label:v=>`${fmt(v,1)}°`};
   }
   if(target==="refNd"||target==="newNd"){
-    return {title:"ND",values:ND_STOPS,label:v=>`${v} ${v===1?"stop":"stops"}`};
+    return {title:"ND",values:ND_STOPS,label:v=>ndDisplay(v)};
   }
   if(target==="fps"){
     return {title:"Cadence",values:FPS_VALUES,label:v=>`${fmt(v,2)} fps`};
@@ -806,13 +813,13 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.33 — simple M/A compensation with ISO limits
+// BOS EXPO V3.34 — explicit calculate + clear ND labels
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"manual",iso:"auto",shutter:"auto",nd:"auto"};
 let simpleIsoMin=null;
 let simpleIsoMax=null;
-let simpleLastValues=null;
+let simpleBaselineValues=null;
 let simpleLastMethodSig="";
 let simpleLastRecap=null;
 let simpleLimitsLoadedFor="";
@@ -924,7 +931,7 @@ function simpleValueText(key,v){
   if(key==="aperture")return `f/${fmtAperture(v)}`;
   if(key==="iso")return `${currentSensitivityUnit()} ${fmtIso(v)}`;
   if(key==="shutter")return shutterMode==="speed"?`1/${fmt(v,1)}`:`${fmt(v,1)}°`;
-  if(key==="nd")return `ND ${fmt(v,0)}`;
+  if(key==="nd")return ndDisplay(v);
   return String(v);
 }
 function simpleDeltaText(change){return `${simpleValueText(change.key,change.before)} → ${simpleValueText(change.key,change.after)} : ${fmtStop(change.stops)}`;}
@@ -948,7 +955,7 @@ function simpleRenderRows(){
   const ids={aperture:"simpleApertureSelect",iso:"simpleIsoSelect",shutter:"simpleShutterSelect",nd:"simpleNdSelect"};
   document.querySelectorAll("[data-simple-role]").forEach(btn=>{
     const k=btn.dataset.simpleRole,auto=simpleRoles[k]==="auto";btn.textContent=auto?"A":"M";btn.classList.toggle("auto",auto);btn.classList.toggle("manual",!auto);
-    const row=btn.closest(".simple-expo-row");row?.classList.toggle("is-auto",auto);const target=$(ids[k]);if(target)target.disabled=auto;
+    const row=btn.closest(".simple-expo-row");row?.classList.toggle("is-auto",auto);const target=$(ids[k]);if(target)target.disabled=false;
   });
 }
 function simpleChangedKey(prev,now){
@@ -956,16 +963,42 @@ function simpleChangedKey(prev,now){
   for(const k of ["aperture","iso","shutter","nd"]){if(Math.abs((prev[k]||0)-(now[k]||0))>1e-7)return k;}
   return null;
 }
-function simpleUpdateRecap(changedKey,before,after,autoResult){
-  if(!changedKey||!before||!after)return;
-  const manualMove={key:changedKey,before:before[changedKey],after:after[changedKey],stops:simpleStopFor(changedKey,after[changedKey])-simpleStopFor(changedKey,before[changedKey])};
-  const parts=[simpleDeltaText(manualMove),...(autoResult?.changes||[]).map(simpleDeltaText)];
-  const residual=autoResult?.residual??0;
-  $("simpleRecapState").textContent=Math.abs(residual)<.08?"EXPO CONSERVÉE":`${fmtStop(residual)} RESTANT`;
-  $("simpleRecapMain").textContent=parts.join(" · ");
-  const dir=manualMove.stops<0?"Éclaircir la compensation":"Assombrir la compensation";
-  $("simpleRecapDetail").textContent=(autoResult?.changes?.length?`Compensation AUTO appliquée dans l’ordre prévu.`:`Aucun réglage AUTO disponible pour compenser.`);
-  simpleLastRecap={changedKey,before,after,autoResult};
+function simpleNetChangeParts(before,after){
+  if(!before||!after)return [];
+  return ["aperture","iso","shutter","nd"].flatMap(key=>{
+    const a=Number(before[key]),b=Number(after[key]);
+    if(!Number.isFinite(a)||!Number.isFinite(b)||Math.abs(a-b)<1e-7)return [];
+    const stops=simpleStopFor(key,b)-simpleStopFor(key,a);
+    return [`${simpleValueText(key,a)} → ${simpleValueText(key,b)} : ${fmtStop(stops)}`];
+  });
+}
+function simpleSetCalcSummary(text,state=""){
+  const el=$("simpleCalcSummary");if(!el)return;
+  el.textContent=text;el.classList.toggle("is-ok",state==="ok");el.classList.toggle("is-warning",state==="warning");
+}
+function simpleCalculateNow(){
+  const current=simplePhysicalValues();
+  if(!simpleBaselineValues){
+    simpleBaselineValues={...current};
+    simpleSetCalcSummary("Référence mémorisée. Modifie un réglage puis relance CALCULER.","ok");
+    return;
+  }
+  const before={...current};
+  const targetTotal=simpleTotal(simpleBaselineValues);
+  const result=simpleApplyCompensation(targetTotal,null,simpleBaselineValues);
+  const after=simplePhysicalValues();
+  const parts=simpleNetChangeParts(simpleBaselineValues,after);
+  const residual=result?.residual??(targetTotal-simpleTotal(after));
+  if(!parts.length){
+    simpleSetCalcSummary("Aucun changement à compenser.");
+  }else if(Math.abs(residual)<.08){
+    simpleSetCalcSummary(`${parts.join(" · ")} · EXPOSITION CONSERVÉE`,"ok");
+    simpleBaselineValues={...after};
+  }else{
+    simpleSetCalcSummary(`${parts.join(" · ")} · ${fmtStop(residual)} restant`,"warning");
+  }
+  simpleLastRecap={before,after,result};
+  simpleRenderRows();updateBaseIsoNote();renderScenes();
 }
 function simpleSceneSolve(offset){
   const base=simplePhysicalValues();
@@ -991,37 +1024,34 @@ sceneSuggestion=function(lightOffset){
 };
 
 // Replace the legacy updater once the original app has initialised.
+// V3.34 : les changements restent libres tant que CALCULER n'est pas pressé.
 updateUI=function(){
   ensureProfileValid();ensureGainBaseValid();
   const methodSig=simpleMethodSig();
-  if(methodSig!==simpleLastMethodSig){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);simpleLastValues=null;}
+  const methodChanged=methodSig!==simpleLastMethodSig;
+  if(methodChanged){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);}
   simpleRenderLimits();
-  // Keep current sensitivity inside the selected limits.
+  // Garde la valeur courante dans les limites choisies, sans lancer de compensation.
   let phys=simpleCurrentIsoPhysical();
   if(phys<simpleIsoMin)simpleSetIsoPhysical(simpleIsoMin);
   if(phys>simpleIsoMax)simpleSetIsoPhysical(simpleIsoMax);
-  const now=simplePhysicalValues();
-  const changed=simpleChangedKey(simpleLastValues,now);
-  if(changed&&simpleRoles[changed]==="manual"){
-    const before={...simpleLastValues};
-    const target=simpleTotal(before);
-    const result=simpleApplyCompensation(target,changed,before);
-    const after=simplePhysicalValues();
-    simpleUpdateRecap(changed,before,after,result);
-  }
   simpleRenderRows();updateBaseIsoNote();renderScenes();
-  simpleLastValues=simplePhysicalValues();
+  if(methodChanged||!simpleBaselineValues){
+    simpleBaselineValues={...simplePhysicalValues()};
+    simpleSetCalcSummary("Régle tout librement puis appuie sur CALCULER.");
+  }
 };
 
 simpleLoadRoles();
-$("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.value);if(simpleIsoMin>simpleIsoMax)simpleIsoMax=simpleIsoMin;simpleSave();simpleLastValues=null;updateUI();});
-$("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();simpleLastValues=null;updateUI();});
-document.querySelectorAll("[data-simple-role]").forEach(btn=>btn.addEventListener("click",()=>{const k=btn.dataset.simpleRole;simpleRoles[k]=simpleRoles[k]==="auto"?"manual":"auto";simpleSave();simpleLastValues=simplePhysicalValues();simpleRenderRows();}));
+$("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.value);if(simpleIsoMin>simpleIsoMax)simpleIsoMax=simpleIsoMin;simpleSave();updateUI();});
+$("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();updateUI();});
+document.querySelectorAll("[data-simple-role]").forEach(btn=>btn.addEventListener("click",()=>{const k=btn.dataset.simpleRole;simpleRoles[k]=simpleRoles[k]==="auto"?"manual":"auto";simpleSave();simpleRenderRows();simpleSetCalcSummary("Rôles M / A modifiés · appuie sur CALCULER pour appliquer la compensation.");}));
+$("simpleCalculateBtn")?.addEventListener("click",simpleCalculateNow);
 $("simpleResetBtn")?.addEventListener("click",()=>{
   simpleRoles={aperture:"manual",iso:"auto",shutter:"auto",nd:"auto"};
   simpleLimitsLoadedFor="";simpleLoadLimits(true);
   inputs.newAperture.value="2.8";simpleSetIsoPhysical(simpleDefaultMin());inputs.newShutter.value=shutterMode==="speed"?"50":"180";inputs.newNd.value="0";
-  simpleLastValues=null;simpleLastRecap=null;simpleSave();$("simpleRecapState").textContent="PRÊT";$("simpleRecapMain").textContent="Modifie un réglage en M pour calculer la compensation.";$("simpleRecapDetail").textContent="—";updateUI();
+  simpleBaselineValues=null;simpleLastRecap=null;simpleSave();updateUI();
 });
 
 // Initial current values for the simplified workflow.
@@ -1029,4 +1059,4 @@ inputs.newAperture.value=inputs.newAperture.value||"2.8";
 if(!(simpleCurrentIsoPhysical()>0))simpleSetIsoPhysical(simpleDefaultMin());
 if(!(num(inputs.newShutter.value)>0))inputs.newShutter.value=shutterMode==="speed"?"50":"180";
 if(!(num(inputs.newNd.value)>=0))inputs.newNd.value="0";
-simpleLastMethodSig="";simpleLastValues=null;updateUI();
+simpleLastMethodSig="";simpleBaselineValues=null;updateUI();
