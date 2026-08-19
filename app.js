@@ -509,38 +509,84 @@ function sceneSuggestion(lightOffset){
     note:offset===0?"Même lumière que la référence":`${offset<0?"Scène plus sombre":"Scène plus lumineuse"} de ${fmtStop(Math.abs(offset)).replace(/^\+/,"")}`
   };
 }
+function sceneStatusText(suggestion){
+  if(!suggestion)return {label:"INCOMPLET",kind:"warning",detail:"Réglages incomplets"};
+  const r=Math.abs(Number(suggestion.residual)||0);
+  if(r<0.08)return {label:"OK",kind:"ok",detail:"Réalisable avec les limites actuelles"};
+  return {label:"LIMITE",kind:"warning",detail:`Il manque ${fmtStop(r).replace(/^\+/,"")} pour compenser complètement`};
+}
+function sceneOffsetDescription(offset){
+  const n=Number(offset)||0;
+  if(Math.abs(n)<0.01)return "Même niveau de lumière que la référence";
+  return `${Math.abs(n).toLocaleString("fr-FR",{maximumFractionDigits:2})} stop${Math.abs(n)>=2?"s":""} ${n<0?"plus sombre":"plus lumineux"} que la référence`;
+}
+function continuityReferenceText(){
+  const r=simpleReferenceValues();
+  if(!(r.aperture>0&&r.iso>0&&r.shutter>0&&r.nd>=0))return "Référence : —";
+  return `Référence : ${simpleValueText("aperture",r.aperture)} · ${simpleValueText("iso",r.iso)} · ${simpleValueText("shutter",r.shutter)} · ${simpleValueText("nd",r.nd)}`;
+}
+function renderContinuityOverview(results=[]){
+  const status=$("continuityStatus"),ref=$("continuityReference"),note=$("continuityNote");
+  if(ref)ref.textContent=continuityReferenceText();
+  if(!status||!note)return;
+  if(!results.length){
+    status.textContent="Aucune situation";
+    status.className="";
+    note.textContent="Ajoute une situation puis indique son écart de lumière mesuré ou estimé.";
+    return;
+  }
+  const ok=results.filter(x=>x?.suggestion&&Math.abs(Number(x.suggestion.residual)||0)<0.08).length;
+  const limited=results.length-ok;
+  status.textContent=limited?`${ok}/${results.length} réalisables`:`${ok}/${results.length} réalisables`;
+  status.className=limited?"is-warning":"is-ok";
+  note.textContent=limited
+    ? `${limited} situation${limited>1?"s":""} atteint${limited>1?"ent":""} une limite avec les réglages actuels.`
+    : "Toutes les situations sont couvertes avec les limites et cadenas actuels.";
+}
 function renderScenes(){
   const host=$("scenesList"),empty=$("sceneEmpty");if(!host||!empty)return;
   empty.hidden=scenes.length>0;
   host.innerHTML="";
+  const results=[];
   scenes.forEach((scene,index)=>{
     const suggestion=sceneSuggestion(scene.offset);
-    const card=document.createElement("div");card.className="scene-card";card.dataset.sceneId=scene.id;
+    const status=sceneStatusText(suggestion);
+    results.push({scene,suggestion,status});
+    const safeName=String(scene.name||`Situation ${index+1}`).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+    const offset=Number(scene.offset)||0;
+    const card=document.createElement("div");card.className="scene-card situation-card";card.dataset.sceneId=scene.id;
     card.innerHTML=`
       <div class="scene-card-head">
-        <input class="scene-name" data-scene-name value="${String(scene.name||`Scène ${index+1}`).replace(/&/g,"&amp;").replace(/"/g,"&quot;")}" aria-label="Nom de la scène" />
-        <button class="scene-remove" data-scene-remove type="button" aria-label="Supprimer la scène">×</button>
+        <input class="scene-name" data-scene-name value="${safeName}" aria-label="Nom de la situation" />
+        <span class="situation-status ${status.kind}">${status.label}</span>
+        <button class="scene-remove" data-scene-remove type="button" aria-label="Supprimer la situation">×</button>
       </div>
-      <div class="scene-row">
-        <div class="scene-offset-wrap">
-          <label>Écart lumière</label>
-          <div class="scene-offset-control">
-            <input class="scene-offset" data-scene-offset inputmode="decimal" type="text" value="${String(Number(scene.offset)||0).replace(".",",")}" />
-            <span class="scene-offset-unit">stop</span>
-          </div>
+      <div class="situation-offset-label">ÉCART LUMIÈRE · <span>${sceneOffsetDescription(offset)}</span></div>
+      <div class="situation-offset-tools">
+        <button type="button" class="scene-nudge" data-scene-nudge="-1">−1</button>
+        <button type="button" class="scene-nudge" data-scene-nudge="-0.333333">−⅓</button>
+        <div class="scene-offset-control">
+          <input class="scene-offset" data-scene-offset inputmode="decimal" type="text" value="${String(offset).replace(".",",")}" aria-label="Écart de lumière en stops" />
+          <span class="scene-offset-unit">stop</span>
         </div>
-        <div class="scene-proposal">
-          <span class="scene-proposal-label">Réglage proposé</span>
-          <strong class="scene-proposal-main">${suggestion?suggestion.main:"—"}</strong>
-          <span class="scene-proposal-note">${suggestion?suggestion.note:"Réglages incomplets"}</span>
+        <button type="button" class="scene-nudge" data-scene-nudge="0.333333">+⅓</button>
+        <button type="button" class="scene-nudge" data-scene-nudge="1">+1</button>
+      </div>
+      <div class="situation-result">
+        <div class="situation-result-top">
+          <span>RÉGLAGE PROPOSÉ</span>
+          ${suggestion?'<button type="button" class="situation-apply" data-scene-apply>APPLIQUER</button>':''}
         </div>
+        <strong class="scene-proposal-main">${suggestion?suggestion.main:"—"}</strong>
+        <span class="scene-proposal-note ${status.kind}">${suggestion?status.detail:"Réglages incomplets"}</span>
       </div>`;
     host.appendChild(card);
   });
+  renderContinuityOverview(results);
 }
 function addScene(){
   const next=scenes.length+1;
-  scenes.push({id:`scene-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,name:`Scène ${next}`,offset:0});
+  scenes.push({id:`scene-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,name:`Situation ${next}`,offset:0});
   saveScenes();renderScenes();
 }
 
@@ -772,9 +818,37 @@ $("scenesList")?.addEventListener("change",e=>{
   saveScenes();renderScenes();
 });
 $("scenesList")?.addEventListener("click",e=>{
-  const remove=e.target.closest("[data-scene-remove]");if(!remove)return;
-  const card=remove.closest(".scene-card");
-  scenes=scenes.filter(s=>s.id!==card.dataset.sceneId);saveScenes();renderScenes();
+  const card=e.target.closest(".scene-card");if(!card)return;
+  const scene=scenes.find(s=>s.id===card.dataset.sceneId);if(!scene)return;
+
+  const remove=e.target.closest("[data-scene-remove]");
+  if(remove){
+    scenes=scenes.filter(s=>s.id!==card.dataset.sceneId);saveScenes();renderScenes();return;
+  }
+
+  const nudge=e.target.closest("[data-scene-nudge]");
+  if(nudge){
+    const delta=Number(nudge.dataset.sceneNudge)||0;
+    scene.offset=Math.max(-12,Math.min(12,(Number(scene.offset)||0)+delta));
+    scene.offset=Math.round(scene.offset*100)/100;
+    saveScenes();renderScenes();return;
+  }
+
+  const apply=e.target.closest("[data-scene-apply]");
+  if(apply){
+    const suggestion=sceneSuggestion(scene.offset);
+    if(!suggestion?.values)return;
+    simpleSetCurrentFromValues(suggestion.values);
+    simpleLastRecap=null;
+    updateUI();
+    const residual=Math.abs(Number(suggestion.residual)||0);
+    simpleSetCalcSummary(
+      residual<0.08
+        ? `Situation “${scene.name||"Situation"}” appliquée dans CALCUL.`
+        : `Situation appliquée, mais il reste ${fmtStop(residual).replace(/^\+/,"")} non compensé.`,
+      residual<0.08?"ok":"warning"
+    );
+  }
 });
 
 // Collapsible "Réglages caméra"
@@ -831,7 +905,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.45 — lock-based compensation workflow
+// BOS EXPO V3.46 — situations / continuity workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
@@ -1104,18 +1178,25 @@ function simpleCalculateNow(changedKey=null){
   simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
 }
 function simpleSceneSolve(offset){
-  const base=simplePhysicalValues();
+  const base=simpleReferenceValues();
   const target=simpleTotal(base)-Number(offset||0);
   const temp={...base};
-  // local candidate solver without mutating UI
   let remaining=target-simpleTotal(temp);
   const order=simplePriorityOrders(remaining);
   for(const key of order){
-    if(Math.abs(remaining)<.015)break;if(simpleLocks[key])continue;
+    if(Math.abs(remaining)<.015)break;
+    if(simpleLocks[key])continue;
     const current=temp[key],currentStop=simpleStopFor(key,current),targetStop=currentStop+remaining;
     const vals=simpleCandidates(key);let best=current,diff=Infinity;
-    vals.forEach(v=>{const s=simpleStopFor(key,v),move=s-currentStop;if(remaining>0&&move<0)return;if(remaining<0&&move>0)return;const d=Math.abs(s-targetStop);if(d<diff){diff=d;best=v;}});
-    temp[key]=best;remaining-=simpleStopFor(key,best)-currentStop;
+    vals.forEach(v=>{
+      const s=simpleStopFor(key,v),move=s-currentStop;
+      if(remaining>0&&move<0)return;
+      if(remaining<0&&move>0)return;
+      const d=Math.abs(s-targetStop);
+      if(d<diff){diff=d;best=v;}
+    });
+    temp[key]=best;
+    remaining-=simpleStopFor(key,best)-currentStop;
   }
   return {values:temp,residual:remaining};
 }
@@ -1123,7 +1204,7 @@ sceneSuggestion=function(lightOffset){
   const solved=simpleSceneSolve(lightOffset),v=solved.values;
   const main=`${simpleValueText("aperture",v.aperture)} · ${simpleValueText("iso",v.iso)} · ${simpleValueText("shutter",v.shutter)} · ${simpleValueText("nd",v.nd)}`;
   const off=Number(lightOffset)||0;
-  return {main,note:off===0?"Même lumière que le réglage actuel":`${off<0?"Scène plus sombre":"Scène plus lumineuse"} de ${fmtStop(Math.abs(off)).replace(/^\+/,"")} · résiduel ${fmtStop(solved.residual)}`};
+  return {values:v,residual:solved.residual,main,note:sceneOffsetDescription(off)};
 };
 
 // Replace the legacy updater once the original app has initialised.

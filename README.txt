@@ -433,3 +433,13 @@ V3.45 — ISO NATIF / SÉLECTION
 - L'ISO sélectionné est indiqué par un contour, sans remplacer le code couleur natif.
 - Si l'ISO sélectionné est lui-même natif, il reste bleu et reçoit aussi le contour de sélection.
 - Ajout en haut du sélecteur ISO de la légende « ISO natif : » suivie d'un vrai rond bleu.
+
+
+V3.46 — SITUATIONS / CONTINUITÉ D’EXPO
+- SCÈNES devient SITUATIONS pour un usage tournage plus concret.
+- Les situations sont désormais calculées depuis la RÉFÉRENCE, afin que leurs propositions restent stables même lorsque CALCUL change.
+- Bilan CONTINUITÉ D’EXPO : nombre de situations réalisables avec les limites caméra et cadenas actuels.
+- Chaque situation affiche un statut OK / LIMITE et le résiduel quand la compensation complète est impossible.
+- Boutons rapides -1 / -1/3 / +1/3 / +1 stop pour ajuster l’écart lumière.
+- Bouton APPLIQUER pour envoyer directement le réglage proposé dans la bulle CALCUL.
+- Les anciennes scènes locales sont conservées et affichées comme situations.

@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.45" />
+  <link rel="stylesheet" href="style.css?v=3.46" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -281,17 +281,27 @@
       </div>
     </section>
 
-    <section class="panel scenes-panel">
+    <section class="panel scenes-panel situations-panel">
       <div class="compact-section-head scenes-head">
         <div>
-          <div class="panel-kicker">SCÈNES</div>
-          <div class="panel-subtitle">Indique l’écart de lumière par rapport à la référence. EXPO propose le réglage nécessaire.</div>
+          <div class="panel-kicker">SITUATIONS</div>
+          <div class="panel-subtitle">Prépare plusieurs niveaux de lumière à partir de la RÉFÉRENCE et vérifie immédiatement s’ils sont réalisables.</div>
         </div>
-        <button class="small-action scene-add-btn" id="addSceneBtn" type="button">+ SCÈNE</button>
+        <button class="small-action scene-add-btn" id="addSceneBtn" type="button">+ SITUATION</button>
       </div>
-      <div class="scene-rule">Une valeur négative = scène plus sombre · positive = scène plus lumineuse.</div>
+
+      <div class="continuity-overview" id="continuityOverview">
+        <div class="continuity-overview-head">
+          <span>CONTINUITÉ D’EXPO</span>
+          <strong id="continuityStatus">Aucune situation</strong>
+        </div>
+        <div class="continuity-reference" id="continuityReference">Référence : —</div>
+        <div class="continuity-note" id="continuityNote">Ajoute une situation puis indique son écart de lumière mesuré ou estimé.</div>
+      </div>
+
+      <div class="scene-rule"><strong>Écart lumière</strong> : négatif = plus sombre que la référence · positif = plus lumineux. Les propositions respectent les limites caméra et les cadenas du CALCUL.</div>
       <div class="scenes-list" id="scenesList"></div>
-      <div class="scene-empty" id="sceneEmpty">Ajoute une scène pour préparer plusieurs situations d’exposition.</div>
+      <div class="scene-empty" id="sceneEmpty">Exemple : “Intérieur” −2 stops, “Fenêtre” +2 stops, “Extérieur” +4 stops.</div>
     </section>
 
     <footer>
@@ -301,7 +311,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v3.45</span>
+        <span class="app-version">v3.46</span>
       </div>
     </footer>
   </main>
@@ -439,6 +449,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.45"></script>
+  <script src="app.js?v=3.46"></script>
 </body>
 </html>
