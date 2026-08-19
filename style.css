@@ -803,7 +803,7 @@ body.dark .chips button.native-iso:not(.active){
 }
 
 
-/* V3.39 — référence explicite + nouveau réglage */
+/* V3.40 — référence explicite + nouveau réglage */
 .simple-reference-block{
   margin:12px 0 12px;
   padding:12px;
@@ -879,7 +879,7 @@ body.dark .chips button.native-iso:not(.active){
 }
 
 
-/* V3.39 simple switch workflow */
+/* V3.40 simple switch workflow */
 .simple-workflow-panel .simple-reference-head{align-items:flex-start;gap:12px}
 .simple-workflow-panel .simple-reference-grid{margin-top:12px}
 .simple-workflow-panel .simple-priority-note{margin-top:12px}
@@ -892,3 +892,11 @@ body.dark .chips button.native-iso:not(.active){
 
 .camera-limits-grid{margin:12px 0 6px;grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(min-width:560px){.camera-limits-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+
+/* V3.40 — préférence de compensation ISO / ND */
+.simple-calc-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.simple-pref-toggle{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+.simple-pref-toggle button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:7px 10px;font-size:9px;font-weight:900;letter-spacing:.08em;cursor:pointer}
+.simple-pref-toggle button.active{background:var(--chip-active-bg);color:var(--chip-active-text)}
+@media(max-width:560px){.simple-calc-actions{width:100%;justify-content:space-between}.simple-pref-toggle button{padding:7px 9px;font-size:8.5px}}

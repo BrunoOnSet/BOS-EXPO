@@ -827,7 +827,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.39 — explicit reference + calculate workflow
+// BOS EXPO V3.40 — explicit reference + calculate workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
@@ -838,6 +838,7 @@ let simpleApertureMax=null;
 let simpleBaselineValues=null;
 let simpleLastMethodSig="";
 let simpleLastRecap=null;
+let simpleCompPreference="iso";
 let simpleLimitsLoadedFor="";
 
 function simpleMethodSig(){return `${cameraMode}|${gammaMode}|${sensitivityMode}|${shutterMode}|${currentFps}`;}
@@ -892,13 +893,18 @@ function simpleSave(){
   try{
     const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"{}");
     saved.roles=simpleRoles;
+    saved.preference=simpleCompPreference;
     saved.limits=saved.limits||{};
     saved.limits[simpleLimitKey()]={min:simpleIsoMin,max:simpleIsoMax,apMin:simpleApertureMin,apMax:simpleApertureMax};
     localStorage.setItem(SIMPLE_EXPO_STORAGE_KEY,JSON.stringify(saved));
   }catch(_){ }
 }
 function simpleLoadRoles(){
-  try{const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"null");if(saved?.roles)Object.keys(simpleRoles).forEach(k=>{if(["manual","auto"].includes(saved.roles[k]))simpleRoles[k]=saved.roles[k];});}catch(_){ }
+  try{
+    const saved=JSON.parse(localStorage.getItem(SIMPLE_EXPO_STORAGE_KEY)||"null");
+    if(saved?.roles)Object.keys(simpleRoles).forEach(k=>{if(["manual","auto"].includes(saved.roles[k]))simpleRoles[k]=saved.roles[k];});
+    if(saved?.preference==="nd")simpleCompPreference="nd"; else simpleCompPreference="iso";
+  }catch(_){ }
 }
 function simpleStopFor(key,value){
   if(key==="aperture")return -2*log2(Number(value));
@@ -964,9 +970,27 @@ function simpleBestCandidate(key,current,remaining){
   });
   return best;
 }
+function simplePriorityOrders(delta){
+  const preferNd=simpleCompPreference==="nd";
+  if(delta<0){
+    return preferNd?["nd","iso","shutter","aperture"]:["iso","nd","shutter","aperture"];
+  }
+  return preferNd?["iso","nd","shutter","aperture"]:["nd","iso","shutter","aperture"];
+}
+function simplePriorityNoteText(){
+  const sens=(currentSensitivityUnit()||"ISO").toUpperCase();
+  if(simpleCompPreference==="nd")return `Assombrir : ND ↑ → ${sens} ↓ → Shutter · Éclaircir : ${sens} ↑ → ND ↓ → Shutter.`;
+  return `Assombrir : ${sens} ↓ → ND ↑ → Shutter · Éclaircir : ND ↓ → ${sens} ↑ → Shutter.`;
+}
+function simpleRenderPreferenceToggle(){
+  const isoBtn=$("simplePrefIsoBtn"), ndBtn=$("simplePrefNdBtn"), note=$("simplePriorityNote");
+  if(isoBtn){isoBtn.textContent=`PRÉF. ${(currentSensitivityUnit()||"ISO").toUpperCase()}`;isoBtn.classList.toggle("active",simpleCompPreference!=="nd");}
+  if(ndBtn)ndBtn.classList.toggle("active",simpleCompPreference==="nd");
+  if(note)note.textContent=simplePriorityNoteText();
+}
 function simpleApplyCompensation(targetTotal,changedKey,baseBefore){
   let remaining=targetTotal-simpleTotal();
-  const order=remaining<0?["iso","nd","shutter","aperture"]:["nd","iso","shutter","aperture"];
+  const order=simplePriorityOrders(remaining);
   const changes=[];
   for(const key of order){
     if(Math.abs(remaining)<0.015)break;
@@ -1075,7 +1099,7 @@ function simpleSceneSolve(offset){
   const temp={...base};
   // local candidate solver without mutating UI
   let remaining=target-simpleTotal(temp);
-  const order=remaining<0?["iso","nd","shutter","aperture"]:["nd","iso","shutter","aperture"];
+  const order=simplePriorityOrders(remaining);
   for(const key of order){
     if(Math.abs(remaining)<.015)break;if(simpleRoles[key]!=="auto")continue;
     const current=temp[key],currentStop=simpleStopFor(key,current),targetStop=currentStop+remaining;
@@ -1100,6 +1124,7 @@ updateUI=function(){
   const methodChanged=methodSig!==simpleLastMethodSig;
   if(methodChanged){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);}
   simpleRenderLimits();
+  simpleRenderPreferenceToggle();
   // Garde les valeurs de référence et de calcul dans les limites choisies, sans lancer de compensation.
   simpleClampReferenceToLimits();
   simpleClampCurrentToLimits();
@@ -1120,6 +1145,8 @@ $("isoMinSelect")?.addEventListener("change",e=>{simpleIsoMin=Number(e.target.va
 $("isoMaxSelect")?.addEventListener("change",e=>{simpleIsoMax=Number(e.target.value);if(simpleIsoMax<simpleIsoMin)simpleIsoMin=simpleIsoMax;simpleSave();updateUI();});
 $("apertureMinSelect")?.addEventListener("change",e=>{simpleApertureMin=Number(e.target.value);if(simpleApertureMin>simpleApertureMax)simpleApertureMax=simpleApertureMin;simpleSave();updateUI();});
 $("apertureMaxSelect")?.addEventListener("change",e=>{simpleApertureMax=Number(e.target.value);if(simpleApertureMax<simpleApertureMin)simpleApertureMin=simpleApertureMax;simpleSave();updateUI();});
+$("simplePrefIsoBtn")?.addEventListener("click",()=>{simpleCompPreference="iso";simpleSave();updateUI();simpleSetCalcSummary(`Préférence de compensation : ${(currentSensitivityUnit()||"ISO").toUpperCase()} d’abord.`,"ok");});
+$("simplePrefNdBtn")?.addEventListener("click",()=>{simpleCompPreference="nd";simpleSave();updateUI();simpleSetCalcSummary("Préférence de compensation : ND d’abord.","ok");});
 $("simpleResetBtn")?.addEventListener("click",()=>{
   simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
   simpleLimitsLoadedFor="";simpleLoadLimits(true);
