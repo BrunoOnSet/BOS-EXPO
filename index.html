@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.49" />
+  <link rel="stylesheet" href="style.css?v=3.50" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -76,7 +76,7 @@
           <span>ISO natifs / Lo-Hi : 800 / 2 500</span>
         </div>
 
-        <div class="iso-limits camera-limits-grid" id="cameraLimitsBlock">
+        <div class="iso-limits camera-limits-grid hidden" id="cameraLimitsBlock" aria-hidden="true">
           <label class="iso-limit-field">
             <span id="isoMinLabel">ISO MIN</span>
             <select id="isoMinSelect" aria-label="ISO minimum"></select>
@@ -94,7 +94,7 @@
             <select id="apertureMaxSelect" aria-label="Diaphragme maximum"></select>
           </label>
         </div>
-        <div class="iso-limit-help" id="isoLimitHelp">ISO MIN reprend la base native de la caméra. Les limites ISO et diaph restent modifiables.</div>
+        <div class="iso-limit-help hidden" id="isoLimitHelp" aria-hidden="true">ISO MIN reprend la base native de la caméra. Les limites ISO et diaph restent modifiables.</div>
 
         <div class="method-compact-grid method-exposure-grid single-method-row">
           <div class="method-compact-item">
@@ -120,42 +120,61 @@
       <div class="compact-section-head expose-head">
         <div>
           <div class="panel-kicker">EXPOSER</div>
-          <div class="panel-subtitle">Repères de signal adaptés à la caméra et au profil sélectionnés.</div>
+          <div class="panel-subtitle">Lis ton waveform selon la courbe sélectionnée : où se trouve le signal, dans quelle zone de la courbe, et ce que ça implique.</div>
         </div>
-        <span class="expose-status" id="exposeStatus">S-LOG3</span>
+        <span class="expose-status" id="exposeStatus">—</span>
       </div>
 
       <div class="expose-profile-line" id="exposeProfileLine">—</div>
 
       <div id="exposeSupported">
-        <div class="expose-main-grid">
-          <div class="expose-main-card">
-            <span>GRIS 18 %</span>
-            <strong id="exposeGreyIre">41 IRE</strong>
-            <small>signal S-Log3 · sans LUT</small>
+        <div class="waveform-read-head">
+          <div>
+            <span>JE LIS SUR LE WAVEFORM</span>
+            <strong id="exposeReadValue">41 %</strong>
           </div>
-          <div class="expose-main-card accent-card">
-            <span id="exposeTargetLabel">CIBLE · 0 STOP</span>
-            <strong id="exposeTargetIre">41 IRE</strong>
-            <small id="exposeZebraText">Zebra cible : 41 %</small>
+          <div class="waveform-zone-badge" id="exposeZoneBadge">MÉDIUMS</div>
+        </div>
+
+        <div class="waveform-scale-shell">
+          <div class="waveform-scale" id="exposeWaveformScale">
+            <div class="waveform-segments" id="exposeWaveformSegments"></div>
+            <div class="waveform-markers" id="exposeWaveformMarkers"></div>
+            <div class="waveform-cursor" id="exposeWaveformCursor"><span></span></div>
+          </div>
+          <div class="waveform-axis"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 %</span></div>
+        </div>
+
+        <input class="waveform-slider" id="exposeWaveformSlider" type="range" min="0" max="100" step="0.1" value="41" aria-label="Valeur lue sur le waveform en pourcentage">
+
+        <div class="waveform-interpret-grid">
+          <div class="waveform-interpret-card accent-card">
+            <span>POSITION DANS LA COURBE</span>
+            <strong id="exposeZoneTitle">Médiums</strong>
+            <small id="exposeZoneText">—</small>
+          </div>
+          <div class="waveform-interpret-card">
+            <span id="exposeDeltaLabel">ÉCART AU GRIS MOYEN</span>
+            <strong id="exposeDeltaValue">0 stop</strong>
+            <small id="exposeDeltaText">—</small>
           </div>
         </div>
 
-        <div class="expose-stop-title">PLACEMENT PAR RAPPORT AU GRIS 18 %</div>
-        <div class="expose-stop-grid" id="exposeStopGrid"></div>
+        <div class="expose-stop-title">REPÈRES CLÉS SUR LE WAVEFORM</div>
+        <div class="waveform-key-grid" id="exposeKeyGrid"></div>
 
         <div class="cine-ei-card" id="cineEiCard">
           <div>
             <span>CINE EI</span>
-            <strong id="cineEiTitle">Exposer à la cible sélectionnée</strong>
+            <strong id="cineEiTitle">Base nominale</strong>
           </div>
           <div id="cineEiValues" class="cine-ei-values"></div>
         </div>
 
-        <div class="expose-note">Les valeurs IRE correspondent au signal S-Log3 mesuré sans LUT. Elles indiquent où placer le signal, pas si ton choix artistique d’exposition est « correct ».</div>
+        <div class="expose-note" id="exposeNote">—</div>
       </div>
 
-      <div id="exposeUnsupported" class="expose-unsupported hidden">Les repères IRE précis de ce profil ne sont pas encore renseignés dans BOS-CAMERA-DB. La compensation reste disponible normalement.</div>
+      <div id="exposeUnsupported" class="expose-unsupported hidden">Les repères de cette courbe ne sont pas encore renseignés de façon suffisamment fiable. EXPO préfère ne rien afficher plutôt que d’inventer une zone ou un seuil.</div>
     </section>
 
     <section class="panel simple-expo-panel" id="simpleExpoPanel">
@@ -346,7 +365,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v3.49</span>
+        <span class="app-version">v3.50</span>
       </div>
     </footer>
   </main>
@@ -484,6 +503,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.49"></script>
+  <script src="app.js?v=3.50"></script>
 </body>
 </html>

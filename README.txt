@@ -443,3 +443,14 @@ V3.49 — SITUATIONS / CONTINUITÉ D’EXPO
 - Boutons rapides -1 / -1/3 / +1/3 / +1 stop pour ajuster l’écart lumière.
 - Bouton APPLIQUER pour envoyer directement le réglage proposé dans la bulle CALCUL.
 - Les anciennes scènes locales sont conservées et affichées comme situations.
+
+
+V3.50 — WAVEFORM / ZONES DE COURBE
+- Refonte du bloc EXPOSER autour d'une lecture directe du waveform.
+- Curseur 0–100 % : interprétation de la zone de courbe et écart en stops quand la courbe le permet.
+- S-Log3 : pied ≈12 %, gris ≈41 %, blanc 90 % ≈61 %, repère +6 stops ≈94 %.
+- S-Cinetone : noir 1,5 %, début documenté du roll-off hautes lumières à 70 %.
+- ARRI LogC3 : table / fonction EI 800, gris 39,1 %, repères stops et latitude haute EI800.
+- Blackmagic Film Gen 5 : gris ≈38,4 %, transition portion basse/log ≈13,4 %, repères stops.
+- Les limites ISO MIN/MAX et DIAPH MIN/MAX sont retirées de l'interface Réglages caméra (elles restent internes pour la compatibilité du solveur de compensation).
+- Distinction explicite entre position dans la courbe et latitude réelle du capteur.

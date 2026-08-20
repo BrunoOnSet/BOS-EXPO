@@ -1107,3 +1107,43 @@ body.dark .iso-picker .picker-option.native-choice.selected{border-color:#F3F3F0
   .cine-ei-card{align-items:flex-start;flex-direction:column}
   .cine-ei-values{justify-content:flex-start}
 }
+
+
+/* V3.50 — EXPOSER / lecture waveform par courbe */
+.waveform-read-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:6px 0 9px}
+.waveform-read-head>div:first-child span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.1em}
+.waveform-read-head>div:first-child strong{display:block;margin-top:3px;font-size:27px;line-height:1;font-weight:950;letter-spacing:-.04em}
+.waveform-zone-badge{padding:6px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:8px;font-weight:950;letter-spacing:.08em;text-align:center}
+.waveform-scale-shell{margin-top:4px;padding:10px 10px 6px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+.waveform-scale{height:48px;position:relative;border-radius:10px;background:var(--field-bg);overflow:visible;border:1px solid var(--line)}
+.waveform-segments{position:absolute;inset:0;overflow:hidden;border-radius:9px}
+.wave-seg{position:absolute;top:0;bottom:0;border-right:1px solid rgba(255,255,255,.3)}
+.wave-seg-1{background:rgba(25,28,30,.16)}
+.wave-seg-2{background:rgba(46,127,142,.10)}
+.wave-seg-3{background:rgba(46,127,142,.17)}
+.wave-seg-4{background:rgba(46,127,142,.25)}
+.wave-seg-5{background:rgba(46,127,142,.34)}
+body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
+.waveform-markers{position:absolute;inset:0;pointer-events:none}
+.wave-marker{position:absolute;top:0;bottom:0;width:1px;background:color-mix(in srgb,var(--text) 28%,transparent)}
+.wave-marker i{position:absolute;top:5px;left:-2px;width:5px;height:5px;border-radius:50%;background:var(--text)}
+.wave-marker b{position:absolute;left:4px;top:3px;font-size:6.5px;line-height:1;font-weight:950;white-space:nowrap;color:var(--text);opacity:.75}
+.waveform-cursor{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--accent);transform:translateX(-1px);z-index:3;pointer-events:none}
+.waveform-cursor span{position:absolute;left:50%;top:-3px;transform:translate(-50%,-100%);width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--panel)}
+.waveform-axis{display:flex;justify-content:space-between;margin-top:6px;color:var(--muted);font-size:7px;font-weight:800}
+.waveform-slider{width:100%;margin:10px 0 8px;accent-color:var(--accent)}
+.waveform-interpret-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.waveform-interpret-card{padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--field-bg)}
+.waveform-interpret-card.accent-card{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.waveform-interpret-card span{display:block;color:var(--muted);font-size:7.5px;font-weight:900;letter-spacing:.09em}
+.waveform-interpret-card strong{display:block;margin-top:5px;font-size:16px;line-height:1.05;font-weight:950}
+.waveform-interpret-card small{display:block;margin-top:6px;color:var(--muted);font-size:8.5px;line-height:1.4}
+.waveform-key-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.wave-key{padding:8px 6px;border:1px solid var(--line);border-radius:11px;background:var(--panel);text-align:center;min-width:0}
+.wave-key b{display:block;font-size:9px;font-weight:950;white-space:nowrap}
+.wave-key span{display:block;margin-top:3px;color:var(--muted);font-size:7px;line-height:1.25}
+@media(max-width:480px){
+  .waveform-interpret-grid{grid-template-columns:1fr}
+  .waveform-key-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wave-marker b{display:none}
+}
