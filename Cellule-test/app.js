@@ -1,785 +1,351 @@
-const STORAGE_KEY = 'bos-cockpit-v23';
-const LEGACY_STORAGE_KEYS = ['bos-cockpit-v14','bos-cockpit-v13','bos-cockpit-v12','bos-cockpit-v11','bos-cockpit-v10'];
-const CAMERA_DB_URL = 'https://raw.githubusercontent.com/BrunoOnSet/BOS-CAMERA-DB/main/cameras.json';
-const CAMERA_DB_FALLBACK_URL = 'data/cameras.json';
-const LIGHT_DB_URL = 'https://raw.githubusercontent.com/BrunoOnSet/BOS-PROJECTEURS-DB/main/lights.json';
-const LIGHT_DB_FALLBACK_URL = 'data/lights.json';
-const LAST_CAMERA_BY_BRAND_KEY = 'bos-onset-last-camera-by-brand';
-const FOCAL_PRESETS = [18,24,28,35,50,85,105,135];
-const PLAN_LIBRARY_KEY = 'bos-plan-feu-library-v06';
-const PLAN_CURRENT_KEY = 'bos-plan-feu-v06-current';
-const ONSET_PLAN_IMPORT_KEY = 'bos-onset-plan-imports-v01';
-
-const apertures = ['1.0','1.2','1.4','1.8','2.0','2.8','4','5.6','8','11','16','22'];
-const isos = ['100','125','160','200','250','320','400','500','640','800','1000','1250','1600','2000','2500','3200','4000','5000','6400','8000','10000','12800','16000','20000','25600','32000','40000','51200'];
-const shutters = ['1/24','1/25','1/30','1/40','1/48','1/50','1/60','1/80','1/100','1/120','1/125','1/160','1/200','1/250','1/320','1/400','1/500','1/640','1/800'];
-const nds = ['0','0.3','0.6','0.9','1.2','1.5','1.8','2.1','2.4','2.7','3.0','3.3','3.6'];
-
-const defaultState = {
-  theme: 'light',
-  cameraId: 'fx6',
-  focal: 35,
-  aperture: 2.8,
-  cameraShutter: '1/50',
-  cameraIso: '800',
-  distanceCm: 250,
-  layout: ['frame', 'dof', 'light', 'media', 'plan', 'expo'],
-  visible: { frame: true, dof: true, light: true, media: true, plan: true, expo: true },
-  open: { frame: true, dof: true, light: false, media: false, plan: true, expo: false },
-  media: { bitrate: 250, unit: 'Mb/s', card: 256 },
-  light: { fixture: 'cob200xs' },
-  plan: { selectedId: null },
-  cameraLimits: { isoMin: '800', isoMax: '51200', apertureMin: '1.0', apertureMax: '22' },
-  expo: {
-    values: { aperture: '2.8', iso: '800', shutter: '1/50', nd: '0' },
-    locks: { aperture: false, iso: false, shutter: false, nd: false },
-    limitWarning: null
-  }
+const $ = id => document.getElementById(id);
+const els = {
+  themeBtn: $('themeBtn'), startBtn: $('startBtn'), cameraState: $('cameraState'),
+  video: $('video'), viewer: $('viewer'), lockBadge: $('lockBadge'), sampleCanvas: $('sampleCanvas'),
+  referenceBtn: $('referenceBtn'), resetRefBtn: $('resetRefBtn'), stopValue: $('stopValue'), ratioValue: $('ratioValue'),
+  cameraSelectWrap: $('cameraSelectWrap'), cameraSelect: $('cameraSelect'), liveModeNote: $('liveModeNote'),
+  photoRefBtn: $('photoRefBtn'), photoMeasureBtn: $('photoMeasureBtn'), photoAInfo: $('photoAInfo'), photoBInfo: $('photoBInfo'), photoDelta: $('photoDelta'),
+  diagManual: $('diagManual'), diagIso: $('diagIso'), diagTime: $('diagTime'), diagWb: $('diagWb'), diagPhoto: $('diagPhoto'), diagSettings: $('diagSettings'), diagRaw: $('diagRaw')
 };
 
-const moduleMeta = {
-  frame: ['FRAME', "Director's Viewfinder"],
-  dof: ['DOF', 'Profondeur de champ'],
-  light: ['LIGHT', 'Projecteurs et Lux'],
-  media: ['MEDIA', 'Temps d’enregistrement'],
-  plan: ['PLAN', 'Plans de feu'],
-  expo: ['EXPO', 'BIENTÔT DISPONIBLE']
-};
-const APP_LINKS = { frame: '#', dof: '#', light: '#', media: '#', plan: '#', expo: '#' };
+let stream = null;
+let track = null;
+let imageCapture = null;
+let capabilities = {};
+let referenceLuma = null;
+let lockVerified = false;
+let liveLoop = null;
+let recentStops = [];
+let photoA = null;
+let photoB = null;
+let currentDeviceId = '';
 
-let cameras = [];
-let cameraDatabaseSource = 'none';
-let lightDatabase = null;
-let lightFixtures = [];
-let lightDatabaseSource = 'none';
-let state = loadState();
-normalizeState();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const log2 = v => Math.log(v)/Math.LN2;
+const fmt = (v,n=1) => Number(v).toLocaleString('fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
+const supported = v => Array.isArray(v) ? v.length > 0 : !!v;
+const rangeHas = (r,v) => r && Number.isFinite(r.min) && Number.isFinite(r.max) && Number.isFinite(v) && v >= r.min && v <= r.max;
 
-function clone(x){ return JSON.parse(JSON.stringify(x)); }
-function mergeDeep(base, extra){
-  const out = clone(base);
-  for(const k in extra){
-    if(extra[k] && typeof extra[k] === 'object' && !Array.isArray(extra[k]) && out[k]) out[k] = mergeDeep(out[k], extra[k]);
-    else out[k] = extra[k];
-  }
-  return out;
+function setTheme(dark){
+  document.body.classList.toggle('dark', dark);
+  els.themeBtn.textContent = dark ? 'LIGHT' : 'DARK';
+  localStorage.setItem('bos-cellule-theme', dark ? 'dark' : 'light');
 }
-function loadState(){
-  try {
-    let raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw){
-      for(const key of LEGACY_STORAGE_KEYS){
-        raw = localStorage.getItem(key);
-        if(raw) break;
+setTheme(localStorage.getItem('bos-cellule-theme') === 'dark');
+els.themeBtn.addEventListener('click',()=>setTheme(!document.body.classList.contains('dark')));
+
+function setBadge(text,state=''){
+  els.lockBadge.textContent = text;
+  els.lockBadge.className = 'viewer-badge' + (state ? ` ${state}` : '');
+}
+
+async function stopCamera(){
+  if(liveLoop) cancelAnimationFrame(liveLoop);
+  liveLoop = null;
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  stream = null; track = null; imageCapture = null; referenceLuma = null; lockVerified = false;
+  els.video.srcObject = null;
+}
+
+async function listCameras(){
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d=>d.kind==='videoinput');
+    if(cams.length>1){
+      els.cameraSelect.innerHTML = cams.map((d,i)=>`<option value="${d.deviceId}">${d.label || `Caméra ${i+1}`}</option>`).join('');
+      if(currentDeviceId && cams.some(c=>c.deviceId===currentDeviceId)) els.cameraSelect.value=currentDeviceId;
+      els.cameraSelectWrap.classList.remove('hidden');
+    } else {
+      els.cameraSelectWrap.classList.add('hidden');
+    }
+  }catch(_){ }
+}
+
+async function startCamera(deviceId=''){
+  if(!navigator.mediaDevices?.getUserMedia){
+    els.cameraState.textContent='getUserMedia indisponible dans ce navigateur.';
+    return;
+  }
+  await stopCamera();
+  try{
+    const videoConstraints = deviceId ? {deviceId:{exact:deviceId}} : {facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:960}};
+    stream = await navigator.mediaDevices.getUserMedia({video:videoConstraints,audio:false});
+    track = stream.getVideoTracks()[0];
+    currentDeviceId = track.getSettings?.().deviceId || deviceId || '';
+    els.video.srcObject = stream;
+    await els.video.play();
+    await sleep(500);
+    capabilities = track.getCapabilities ? track.getCapabilities() : {};
+    imageCapture = ('ImageCapture' in window) ? new ImageCapture(track) : null;
+    els.cameraState.textContent = track.label || 'Caméra active';
+    els.startBtn.textContent = 'REDÉMARRER';
+    els.referenceBtn.disabled = false;
+    els.photoRefBtn.disabled = !imageCapture;
+    els.photoMeasureBtn.disabled = !imageCapture;
+    setBadge('AUTO · PRÊT POUR RÉF.');
+    updateDiagnostics();
+    await listCameras();
+    startLiveSampling();
+  } catch(err){
+    els.cameraState.textContent = `Caméra inaccessible : ${err.name || 'erreur'}`;
+    setBadge('CAMÉRA INDISPONIBLE','warn');
+    els.diagRaw.textContent = String(err?.stack || err);
+  }
+}
+
+els.startBtn.addEventListener('click',()=>startCamera(currentDeviceId));
+els.cameraSelect.addEventListener('change',()=>startCamera(els.cameraSelect.value));
+
+function updateDiagnostics(){
+  const modes = capabilities.exposureMode || [];
+  const canManual = modes.includes?.('manual') || false;
+  const canIso = !!capabilities.iso;
+  const canTime = !!capabilities.exposureTime;
+  const wbModes = capabilities.whiteBalanceMode || [];
+  const canWb = wbModes.includes?.('manual') || false;
+  const s = track?.getSettings?.() || {};
+  els.diagManual.textContent = canManual ? 'OUI' : 'NON / NON EXPOSÉ';
+  els.diagIso.textContent = canIso ? 'OUI' : 'NON / NON EXPOSÉ';
+  els.diagTime.textContent = canTime ? 'OUI' : 'NON / NON EXPOSÉ';
+  els.diagWb.textContent = canWb ? 'OUI' : 'NON / NON EXPOSÉ';
+  els.diagPhoto.textContent = imageCapture ? 'OUI' : 'NON';
+  const bits=[];
+  if(Number.isFinite(s.iso)) bits.push(`ISO ${s.iso}`);
+  if(Number.isFinite(s.exposureTime)) bits.push(`t ${s.exposureTime}`);
+  if(s.exposureMode) bits.push(s.exposureMode);
+  els.diagSettings.textContent = bits.length?bits.join(' · '):'Non exposés';
+  els.diagRaw.textContent = JSON.stringify({settings:s,capabilities:{
+    exposureMode:capabilities.exposureMode,iso:capabilities.iso,exposureTime:capabilities.exposureTime,
+    exposureCompensation:capabilities.exposureCompensation,whiteBalanceMode:capabilities.whiteBalanceMode,colorTemperature:capabilities.colorTemperature,
+    focusMode:capabilities.focusMode,torch:capabilities.torch,zoom:capabilities.zoom
+  }},null,2);
+}
+
+function srgbToLinear(x){
+  x/=255;
+  return x<=0.04045 ? x/12.92 : Math.pow((x+0.055)/1.055,2.4);
+}
+
+function sampleCenterLuma(){
+  if(!track || els.video.readyState < 2) return NaN;
+  const c=els.sampleCanvas, ctx=c.getContext('2d',{willReadFrequently:true});
+  const vw=els.video.videoWidth, vh=els.video.videoHeight;
+  if(!vw||!vh) return NaN;
+  ctx.drawImage(els.video,0,0,c.width,c.height);
+  const size=Math.floor(Math.min(c.width,c.height)*0.22);
+  const x=Math.floor((c.width-size)/2), y=Math.floor((c.height-size)/2);
+  const data=ctx.getImageData(x,y,size,size).data;
+  let sum=0,n=0;
+  for(let i=0;i<data.length;i+=16){ // 1 pixel sur 4 environ
+    const r=srgbToLinear(data[i]), g=srgbToLinear(data[i+1]), b=srgbToLinear(data[i+2]);
+    sum += 0.2126*r + 0.7152*g + 0.0722*b; n++;
+  }
+  return n?sum/n:NaN;
+}
+
+async function sampleMedian(count=12,spacing=45){
+  const vals=[];
+  for(let i=0;i<count;i++){
+    const v=sampleCenterLuma();
+    if(Number.isFinite(v)&&v>0) vals.push(v);
+    await sleep(spacing);
+  }
+  vals.sort((a,b)=>a-b);
+  return vals.length ? vals[Math.floor(vals.length/2)] : NaN;
+}
+
+async function tryLockExposure(){
+  if(!track?.applyConstraints || !track?.getSettings || !track?.getCapabilities) return {ok:false,reason:'API contraintes indisponible'};
+  const caps=track.getCapabilities();
+  const before=track.getSettings();
+  const modes=caps.exposureMode || [];
+  if(!modes.includes?.('manual')) return {ok:false,reason:'exposureMode manual non exposé'};
+
+  const advanced={exposureMode:'manual'};
+  if(rangeHas(caps.iso,before.iso)) advanced.iso=before.iso;
+  if(rangeHas(caps.exposureTime,before.exposureTime)) advanced.exposureTime=before.exposureTime;
+  if((caps.whiteBalanceMode||[]).includes?.('manual')){
+    advanced.whiteBalanceMode='manual';
+    if(rangeHas(caps.colorTemperature,before.colorTemperature)) advanced.colorTemperature=before.colorTemperature;
+  }
+  try{
+    await track.applyConstraints({advanced:[advanced]});
+    await sleep(250);
+    const after=track.getSettings();
+    const modeLocked = after.exposureMode === 'manual';
+    const valuesVerifiable = Number.isFinite(before.iso)&&Number.isFinite(after.iso)&&Number.isFinite(before.exposureTime)&&Number.isFinite(after.exposureTime);
+    const valuesStable = !valuesVerifiable || (Math.abs(after.iso-before.iso) < Math.max(1,before.iso*0.03) && Math.abs(after.exposureTime-before.exposureTime) < Math.max(0.001,Math.abs(before.exposureTime)*0.05));
+    updateDiagnostics();
+    return {ok:!!modeLocked&&valuesStable, reason:modeLocked?'manual confirmé par getSettings()':'manual non confirmé par getSettings()', before, after, valuesVerifiable};
+  }catch(err){
+    return {ok:false,reason:`applyConstraints: ${err.name||err.message}`};
+  }
+}
+
+async function setReference(){
+  if(!track) return;
+  els.referenceBtn.disabled=true;
+  els.referenceBtn.textContent='VERROUILLAGE…';
+  setBadge('VERROUILLAGE EXPO…');
+  // Laisser l'AE se stabiliser avant de figer ses réglages.
+  await sleep(700);
+  const lock=await tryLockExposure();
+  lockVerified=lock.ok;
+  if(!lockVerified){
+    referenceLuma=null;
+    setBadge('VERROU NON FIABLE','warn');
+    els.stopValue.textContent='—';
+    els.ratioValue.textContent='Mesure live désactivée : essaie le mode 2 PHOTOS.';
+    els.liveModeNote.textContent=`Impossible de confirmer le verrouillage d’exposition (${lock.reason}). Aucun chiffre live n’est affiché pour éviter une fausse mesure.`;
+  } else {
+    const lum=await sampleMedian();
+    if(!Number.isFinite(lum)||lum<=0.0001){
+      referenceLuma=null;lockVerified=false;
+      setBadge('RÉF. TROP SOMBRE','warn');
+      els.ratioValue.textContent='La zone de référence est trop sombre pour une mesure stable.';
+    } else {
+      referenceLuma=lum;
+      recentStops=[];
+      setBadge('EXPO VERROUILLÉE · RÉF. 0,0','ok');
+      els.stopValue.textContent='0,0';
+      els.ratioValue.textContent='Référence mémorisée. Déplace le téléphone vers une autre zone.';
+      els.resetRefBtn.disabled=false;
+      els.liveModeNote.textContent='Exposition téléphone verrouillée et vérifiée. La valeur live est un écart relatif de luminance après traitement caméra : à valider par répétabilité.';
+    }
+  }
+  els.referenceBtn.disabled=false;
+  els.referenceBtn.textContent='REDÉFINIR LA RÉF.';
+}
+els.referenceBtn.addEventListener('click',setReference);
+
+async function resetReference(){
+  referenceLuma=null; lockVerified=false; recentStops=[];
+  els.stopValue.textContent='—'; els.ratioValue.textContent='Définis d’abord une référence.';
+  els.resetRefBtn.disabled=true; els.referenceBtn.textContent='DÉFINIR COMME RÉF.';
+  try{ await track?.applyConstraints?.({}); }catch(_){ }
+  setBadge('AUTO · PRÊT POUR RÉF.');
+  els.liveModeNote.textContent="Au moment de la référence, l'app tentera de figer l'exposition du téléphone. Si ce verrouillage n'est pas vérifiable, la mesure live sera désactivée.";
+  updateDiagnostics();
+}
+els.resetRefBtn.addEventListener('click',resetReference);
+
+function startLiveSampling(){
+  let last=0;
+  const tick=(ts)=>{
+    if(ts-last>180){
+      last=ts;
+      if(referenceLuma && lockVerified){
+        const lum=sampleCenterLuma();
+        if(Number.isFinite(lum)&&lum>0){
+          let stops=log2(lum/referenceLuma);
+          recentStops.push(stops); if(recentStops.length>7) recentStops.shift();
+          const sorted=[...recentStops].sort((a,b)=>a-b);
+          stops=sorted[Math.floor(sorted.length/2)];
+          const sign=stops>0.04?'+':'';
+          els.stopValue.textContent=`${sign}${fmt(stops,1)} stop${Math.abs(stops)>=1.5?'s':''}`;
+          const ratio=Math.pow(2,Math.abs(stops));
+          if(Math.abs(stops)<0.08) els.ratioValue.textContent='≈ même luminance que la référence';
+          else els.ratioValue.textContent=`≈ ${fmt(ratio,1)}× ${stops>0?'plus lumineuse':'moins lumineuse'} que la référence`;
+        }
       }
     }
-    return mergeDeep(defaultState, JSON.parse(raw || '{}'));
-  }
-  catch { return clone(defaultState); }
-}
-function normalizeState(){
-  state.focal = Math.max(1, Number(state.focal) || 35);
-  state.aperture = Number(state.aperture) || 2.8;
-  if(!state.cameraShutter) state.cameraShutter = '1/50';
-  if(!state.cameraIso) state.cameraIso = '800';
-  if(typeof state.cameraOpen !== 'boolean') state.cameraOpen = true;
-  state.distanceCm = Math.max(10, Number(state.distanceCm) || 250);
-  if(!state.media.unit) state.media.unit = 'Mb/s';
-  if(!state.expo) state.expo = clone(defaultState.expo);
-  if(!state.expo.values) state.expo.values = clone(defaultState.expo.values);
-  if(!state.expo.values.aperture) state.expo.values.aperture = String(state.aperture);
-  if(!state.expo.values.iso) state.expo.values.iso = '800';
-  if(!state.expo.values.shutter) state.expo.values.shutter = '1/50';
-  if(state.expo.values.nd === undefined) state.expo.values.nd = '0';
-  if(!state.cameraLimits) state.cameraLimits = clone(defaultState.cameraLimits);
-  if(!state.cameraLimits.isoMin) state.cameraLimits.isoMin = '800';
-  if(!state.cameraLimits.isoMax) state.cameraLimits.isoMax = '51200';
-  if(!state.cameraLimits.apertureMin) state.cameraLimits.apertureMin = '1.0';
-  if(!state.cameraLimits.apertureMax) state.cameraLimits.apertureMax = '22';
-  if(!state.expo.locks) state.expo.locks = clone(defaultState.expo.locks);
-  for(const k of ['aperture','iso','shutter','nd']) state.expo.locks[k] = !!state.expo.locks[k];
-  if(state.expo.limitWarning === undefined) state.expo.limitWarning = null;
-  if(!state.plan || typeof state.plan !== 'object') state.plan = clone(defaultState.plan);
-  if(state.plan.selectedId === undefined) state.plan.selectedId = null;
-  const validModules = defaultState.layout;
-  if(!Array.isArray(state.layout)) state.layout = clone(validModules);
-  state.layout = state.layout.filter(id => validModules.includes(id));
-  for(const id of validModules) if(!state.layout.includes(id)) state.layout.push(id);
-  if(!state.visible || typeof state.visible !== 'object') state.visible = clone(defaultState.visible);
-  if(!state.open || typeof state.open !== 'object') state.open = clone(defaultState.open);
-  for(const id of validModules){
-    if(state.visible[id] === undefined) state.visible[id] = defaultState.visible[id];
-    if(state.open[id] === undefined) state.open[id] = defaultState.open[id];
-  }
-}
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function esc(s){ return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-function currentCamera(){ return cameras.find(c => c.id === state.cameraId) || cameras[0]; }
-function fmtM(m){ if(!isFinite(m)) return '∞'; if(m < 1) return `${Math.round(m*100)} cm`; if(m < 10) return `${m.toFixed(2).replace('.',',')} m`; return `${m.toFixed(1).replace('.',',')} m`; }
-function fmtDuration(sec){ if(!isFinite(sec) || sec < 0) return '—'; const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=Math.floor(sec%60); return h ? `${h} h ${String(m).padStart(2,'0')} min` : `${m} min ${String(s).padStart(2,'0')} s`; }
-function optionList(arr,val,prefix=''){ return arr.map(x => `<option value="${x}" ${String(x)===String(val)?'selected':''}>${prefix}${x}</option>`).join(''); }
-function appLink(id){ const ready = APP_LINKS[id] && APP_LINKS[id] !== '#'; return `<div class="app-link"><button class="${ready?'ready':''}" data-applink="${id}" ${ready?'':'disabled'}>${ready?'Ouvrir l’app complète ↗':'App complète · lien à connecter'}</button></div>`; }
-function bitrateToMbPerSec(){ return state.media.unit === 'Mb/s' ? Number(state.media.bitrate) : Number(state.media.bitrate) * 8; }
-
-function bare5600Data(fixture){
-  const bare = fixture?.calculator?.accessories?.bare;
-  const data = bare?.data?.['5600'] || bare?.data?.[5600];
-  return Array.isArray(data) && data.length ? data : null;
-}
-function isCockpitLightUsable(fixture){ return !!(fixture?.capabilities?.lightCalculator && fixture?.calculator && bare5600Data(fixture)); }
-function currentLight(){ return lightFixtures.find(f => f.id === state.light.fixture) || lightFixtures[0] || null; }
-function lightOptionsHtml(){
-  if(!lightFixtures.length) return '<option value="">Aucune donnée disponible</option>';
-  const groups = new Map();
-  for(const f of lightFixtures){
-    const brand = f.brand || 'Autres';
-    if(!groups.has(brand)) groups.set(brand, []);
-    groups.get(brand).push(f);
-  }
-  return [...groups.entries()].map(([brand, items]) => `<optgroup label="${esc(brand)}">${items.map(f => `<option value="${esc(f.id)}" ${f.id===state.light.fixture?'selected':''}>${esc(f.name)}</option>`).join('')}</optgroup>`).join('');
-}
-function prepareLightState(){
-  const legacy = {'Amaran 200x S':'cob200xs','Aputure 300d II':'ls300d2','Nanlite Forza 300B II':'nanForza300b2','Godox LA200Bi':'godoxLa200bi'};
-  if(legacy[state.light.fixture]) state.light.fixture = legacy[state.light.fixture];
-  if(!lightFixtures.some(f => f.id === state.light.fixture)) state.light.fixture = lightFixtures.some(f => f.id === 'cob200xs') ? 'cob200xs' : (lightFixtures[0]?.id || '');
-}
-function luxAtDistance(fixture, targetM){
-  const data = bare5600Data(fixture);
-  if(!data) return null;
-  const points = data.map(([distance,lux]) => ({distance:Number(distance),lux:Number(lux)})).filter(p => p.distance > 0 && p.lux > 0);
-  if(!points.length) return null;
-  const exact = points.find(p => Math.abs(p.distance-targetM) < 1e-9);
-  if(exact) return {lux:exact.lux, exact:true, sourceDistance:exact.distance};
-  const nearest = points.reduce((a,b) => Math.abs(Math.log(b.distance/targetM)) < Math.abs(Math.log(a.distance/targetM)) ? b : a);
-  return {lux:nearest.lux*Math.pow(nearest.distance/targetM,2), exact:false, sourceDistance:nearest.distance};
+    liveLoop=requestAnimationFrame(tick);
+  };
+  liveLoop=requestAnimationFrame(tick);
 }
 
-
-function readImportedPlans(){
-  try{
-    const raw=JSON.parse(localStorage.getItem(ONSET_PLAN_IMPORT_KEY)||'[]');
-    return Array.isArray(raw)?raw:[];
-  }catch(_){ return []; }
-}
-function writeImportedPlans(plans){
-  try{ localStorage.setItem(ONSET_PLAN_IMPORT_KEY,JSON.stringify(plans)); }catch(e){ console.warn('BOS PLAN imports',e); }
-}
-function readPlanRecords(){
-  const out=[];
-  try{
-    const lib=JSON.parse(localStorage.getItem(PLAN_LIBRARY_KEY)||'null');
-    if(lib&&Array.isArray(lib.plans)){
-      lib.plans.forEach((rec,i)=>{
-        if(rec?.state&&Array.isArray(rec.state.objects)) out.push({
-          key:`plan:${rec.id||i}`,id:rec.id||`plan_${i}`,name:rec.name||rec.state.planName||`Plan ${i+1}`,
-          folderId:rec.folderId||'',updatedAt:Number(rec.updatedAt)||0,state:rec.state,source:'PLAN'
-        });
-      });
+// ---------- EXIF minimal JPEG parser ----------
+function parseExif(buffer){
+  const dv=new DataView(buffer);
+  if(dv.byteLength<4 || dv.getUint16(0,false)!==0xFFD8) return null;
+  let off=2;
+  while(off+4<dv.byteLength){
+    if(dv.getUint8(off)!==0xFF){off++;continue;}
+    const marker=dv.getUint8(off+1); off+=2;
+    if(marker===0xDA || marker===0xD9) break;
+    if(off+2>dv.byteLength) break;
+    const len=dv.getUint16(off,false);
+    if(marker===0xE1 && len>=8 && off+len<=dv.byteLength){
+      const sig=String.fromCharCode(...new Uint8Array(buffer,off+2,4));
+      if(sig==='Exif') return parseTiff(dv,off+8);
     }
-  }catch(e){ console.warn('Bibliothèque PLAN illisible',e); }
-  if(!out.length){
-    try{
-      const cur=JSON.parse(localStorage.getItem(PLAN_CURRENT_KEY)||'null');
-      if(cur&&Array.isArray(cur.objects)) out.push({key:`current:${cur.planId||'current'}`,id:cur.planId||'current',name:cur.planName||'Plan actuel',folderId:cur.folderId||'',updatedAt:0,state:cur,source:'PLAN · actuel'});
-    }catch(_){ }
+    off+=len;
   }
-  readImportedPlans().forEach((rec,i)=>{
-    if(rec?.state&&Array.isArray(rec.state.objects)) out.push({
-      key:`import:${rec.id||i}`,id:rec.id||`import_${i}`,name:rec.name||rec.state.planName||`Plan importé ${i+1}`,
-      folderId:rec.folderId||'',updatedAt:Number(rec.updatedAt)||0,state:rec.state,source:'Import'
-    });
-  });
-  const seen=new Set();
-  return out.filter(rec=>{const sig=`${rec.source}:${rec.id}`;if(seen.has(sig))return false;seen.add(sig);return true;})
-    .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)||String(a.name).localeCompare(String(b.name),'fr'));
+  return null;
 }
-function selectedPlanRecord(records=readPlanRecords()){
-  if(!records.length) return null;
-  let rec=records.find(r=>r.key===state.plan.selectedId);
-  if(!rec){ rec=records[0]; state.plan.selectedId=rec.key; save(); }
-  return rec;
-}
-function planModuleSubtitle(){
-  const rec=selectedPlanRecord();
-  return rec?rec.name:'Plans de feu';
-}
-function n(v,fallback=0){ const x=Number(v); return Number.isFinite(x)?x:fallback; }
-function planPreviewSvg(rec){
-  const ps=rec?.state||{}, objects=Array.isArray(ps.objects)?ps.objects:[];
-  const w=Math.max(400,Math.round(Math.max(4,Math.min(30,n(ps.planLength,10)))*100)), h=Math.round(w*.62);
-  const parts=[`<svg class="plan-mini-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Aperçu du plan ${esc(rec?.name||'')}">`,
-    `<defs><pattern id="planGrid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" class="plan-grid-small" fill="none"/></pattern><pattern id="planGridBig" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#planGrid)"/><path d="M 100 0 L 0 0 0 100" class="plan-grid-big" fill="none"/></pattern></defs>`,
-    `<rect width="${w}" height="${h}" class="plan-stage-bg"/><rect width="${w}" height="${h}" fill="url(#planGridBig)"/>`];
-  const beams=ps.beamsVisible!==false;
-  for(const o of objects){
-    const x=n(o.x,w/2),y=n(o.y,h/2),rot=n(o.rot,0);
-    if(o.kind==='camera'){
-      const focal=Math.max(12,n(o.focal,50)),angle=Math.max(12,Math.min(95,2*Math.atan(36/(2*focal))*180/Math.PI)),len=Math.min(h*.65,300),half=Math.tan(angle*Math.PI/360)*len;
-      parts.push(`<polygon points="0,0 ${len},${-half} ${len},${half}" class="plan-camera-fov" transform="translate(${x} ${y}) rotate(${rot})"/>`);
-    }
-    if(o.kind==='light'&&beams&&o.beamVisible!==false){
-      const angle=Math.max(8,Math.min(120,n(o.beam,55))),len=Math.min(h*.62,290),half=Math.tan(angle*Math.PI/360)*len;
-      parts.push(`<polygon points="0,0 ${len},${-half} ${len},${half}" class="plan-light-beam" transform="translate(${x} ${y}) rotate(${rot})"/>`);
+function parseTiff(dv,base){
+  if(base+8>dv.byteLength)return null;
+  const le=dv.getUint16(base,false)===0x4949;
+  const u16=o=>dv.getUint16(base+o,le), u32=o=>dv.getUint32(base+o,le);
+  const first=u32(4); const out={};
+  function rational(abs){ if(abs+8>dv.byteLength)return NaN; const n=dv.getUint32(abs,le),d=dv.getUint32(abs+4,le); return d?n/d:NaN; }
+  function readIFD(rel){
+    const p=base+rel;if(p+2>dv.byteLength)return;
+    const count=dv.getUint16(p,le);
+    for(let i=0;i<count;i++){
+      const e=p+2+i*12;if(e+12>dv.byteLength)break;
+      const tag=dv.getUint16(e,le),type=dv.getUint16(e+2,le),num=dv.getUint32(e+4,le),valOff=dv.getUint32(e+8,le);
+      const valueAbs=e+8;
+      const pointed=base+valOff;
+      let value;
+      if(type===3 && num===1)value=dv.getUint16(valueAbs,le);
+      else if(type===4 && num===1)value=dv.getUint32(valueAbs,le);
+      else if(type===5 && num===1)value=rational(pointed);
+      else if(type===10 && num===1){const n=dv.getInt32(pointed,le),d=dv.getInt32(pointed+4,le);value=d?n/d:NaN;}
+      if(tag===0x8769 && Number.isFinite(value)) readIFD(value);
+      if(tag===0x829A) out.exposureTime=value;
+      if(tag===0x829D) out.fNumber=value;
+      if(tag===0x8827) out.iso=value;
+      if(tag===0x9204) out.exposureBias=value;
     }
   }
-  for(const o of objects){
-    const x=n(o.x,w/2),y=n(o.y,h/2),rot=n(o.rot,0),name=esc(o.name||o.short||'');
-    if(o.kind==='subject'){
-      parts.push(`<g transform="translate(${x} ${y}) rotate(${rot})" class="plan-object plan-subject"><circle r="14"/><path d="M-18,8 Q0,-2 18,8 L15,29 L-15,29 Z"/></g>`);
-    }else if(o.kind==='camera'){
-      parts.push(`<g transform="translate(${x} ${y}) rotate(${rot})" class="plan-object plan-camera"><rect x="-16" y="-11" width="27" height="22" rx="5"/><polygon points="11,-7 25,0 11,7"/></g>`);
-    }else if(o.kind==='light'){
-      parts.push(`<g transform="translate(${x} ${y}) rotate(${rot})" class="plan-object plan-light"><circle r="13"/><line x1="13" y1="0" x2="24" y2="0"/></g>`);
-    }else if(o.kind==='decor'){
-      const ww=Math.max(10,n(o.width,1)*100),hh=Math.max(8,n(o.height,.15)*100);
-      const cls=o.type==='wall'?'plan-wall':(o.type==='window'?'plan-window':(o.type==='door'?'plan-door':'plan-decor'));
-      parts.push(`<rect x="${-ww/2}" y="${-hh/2}" width="${ww}" height="${hh}" rx="${o.type==='table'?8:2}" class="plan-object ${cls}" transform="translate(${x} ${y}) rotate(${rot})"/>`);
-    }else if(o.kind==='accessory'){
-      const ww=Math.max(12,n(o.width,1)*70),hh=Math.max(8,n(o.height,1)*30);
-      parts.push(`<rect x="${-ww/2}" y="${-hh/2}" width="${ww}" height="${hh}" rx="3" class="plan-object plan-accessory" transform="translate(${x} ${y}) rotate(${rot})"/>`);
-    }
-    if(name && o.kind!=='decor') parts.push(`<text x="${x}" y="${y+43}" class="plan-mini-label" text-anchor="middle">${name}</text>`);
-  }
-  parts.push('</svg>');
-  return parts.join('');
+  readIFD(first);
+  if(!out.exposureTime || !out.iso) return Object.keys(out).length?out:null;
+  return out;
 }
-function planStats(rec){
-  const objs=Array.isArray(rec?.state?.objects)?rec.state.objects:[];
-  const count=k=>objs.filter(o=>o.kind===k).length;
-  const bits=[];
-  if(count('camera')) bits.push(`${count('camera')} caméra${count('camera')>1?'s':''}`);
-  if(count('subject')) bits.push(`${count('subject')} sujet${count('subject')>1?'s':''}`);
-  if(count('light')) bits.push(`${count('light')} projecteur${count('light')>1?'s':''}`);
-  return bits.join(' · ')||`${objs.length} élément${objs.length>1?'s':''}`;
+function photoInfoText(x){
+  if(!x)return 'EXIF non lus';
+  const p=[];
+  if(x.iso)p.push(`ISO ${Math.round(x.iso)}`);
+  if(x.exposureTime){const inv=1/x.exposureTime;p.push(inv>=2?`1/${Math.round(inv)} s`:`${fmt(x.exposureTime,3)} s`);}
+  if(x.fNumber)p.push(`f/${fmt(x.fNumber,1)}`);
+  return p.length?p.join(' · '):'Métadonnées insuffisantes';
 }
-function renderPlanBody(){
-  const records=readPlanRecords(),rec=selectedPlanRecord(records);
-  if(!rec) return `<div class="plan-empty"><strong>Aucun plan disponible</strong><span>Sauvegarde un plan dans PLAN, puis reviens ici et touche ACTUALISER.</span></div>
-    <div class="plan-actions"><button type="button" class="secondary plan-action-btn" id="planRefreshBtn">ACTUALISER</button><button type="button" class="secondary plan-action-btn" id="planImportBtn">IMPORTER</button><input id="planImportInput" type="file" accept=".json,.bosplan.json,application/json" multiple hidden></div>
-    <div class="demo">Lecture automatique de la bibliothèque PLAN quand les deux apps partagent le même stockage. IMPORTER reste disponible comme solution de secours.</div>`;
-  const idx=records.findIndex(r=>r.key===rec.key);
-  return `<div class="plan-nav-row"><button type="button" class="plan-nav-btn" id="planPrevBtn" aria-label="Plan précédent">‹</button>
-    <label class="plan-select-label"><span>Plan</span><select id="planSelect">${records.map(r=>`<option value="${esc(r.key)}" ${r.key===rec.key?'selected':''}>${esc(r.name)}</option>`).join('')}</select></label>
-    <button type="button" class="plan-nav-btn" id="planNextBtn" aria-label="Plan suivant">›</button></div>
-    <div class="plan-meta"><span>${idx+1} / ${records.length}</span><span>${esc(rec.source)}</span></div>
-    <div class="plan-preview-wrap">${planPreviewSvg(rec)}</div>
-    <div class="plan-caption"><strong>${esc(rec.name)}</strong><span>${esc(planStats(rec))}</span></div>
-    <div class="plan-actions"><button type="button" class="secondary plan-action-btn" id="planRefreshBtn">ACTUALISER</button><button type="button" class="secondary plan-action-btn" id="planImportBtn">IMPORTER</button><input id="planImportInput" type="file" accept=".json,.bosplan.json,application/json" multiple hidden></div>
-    <div class="demo">Tu peux passer d’un plan à l’autre directement ici. Les plans enregistrés dans PLAN sont relus à chaque actualisation.</div>`;
+function ev100(x){
+  if(!x?.exposureTime || !x?.iso)return NaN;
+  const n=x.fNumber || 1;
+  return log2((n*n)/x.exposureTime) - log2(x.iso/100);
 }
-function stepPlan(delta){
-  const records=readPlanRecords(); if(!records.length)return;
-  const rec=selectedPlanRecord(records),idx=Math.max(0,records.findIndex(r=>r.key===rec?.key)),next=(idx+delta+records.length)%records.length;
-  state.plan.selectedId=records[next].key; save(); renderModules();
+async function takeExif(){
+  if(!imageCapture)throw new Error('ImageCapture indisponible');
+  const blob=await imageCapture.takePhoto();
+  const buffer=await blob.arrayBuffer();
+  return parseExif(buffer);
 }
-async function importPlanFiles(files){
-  const imported=readImportedPlans(); let lastId=null;
-  for(const file of Array.from(files||[])){
-    try{
-      const raw=JSON.parse(await file.text()),ps=raw?.format==='BOS_PLAN_FEU'?raw.plan:raw;
-      if(!ps||!Array.isArray(ps.objects)) throw new Error('Format invalide');
-      const id=`imp_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-      const name=ps.planName||String(file.name||'Plan importé').replace(/\.bosplan\.json$|\.json$/i,'');
-      imported.push({id,name,folderId:ps.folderId||'',updatedAt:Date.now(),state:ps}); lastId=id;
-    }catch(e){ console.warn('Import PLAN impossible',file?.name,e); }
-  }
-  writeImportedPlans(imported);
-  if(lastId) state.plan.selectedId=`import:${lastId}`;
-  save(); renderModules();
+async function captureA(){
+  els.photoRefBtn.disabled=true;els.photoRefBtn.textContent='CAPTURE…';
+  try{photoA=await takeExif();els.photoAInfo.textContent=photoInfoText(photoA);els.photoDelta.textContent=photoA?'Photo A mémorisée. Prends maintenant la photo B.':'EXIF absents : mode 2 photos non exploitable sur ce téléphone.';}
+  catch(err){els.photoAInfo.textContent='Erreur';els.photoDelta.textContent=String(err.message||err);}
+  els.photoRefBtn.disabled=false;els.photoRefBtn.textContent='PHOTO A · RÉF.';
 }
-function bindPlanModule(){
-  const select=document.getElementById('planSelect'); if(select)select.addEventListener('change',e=>{state.plan.selectedId=e.target.value;save();renderModules();});
-  const prev=document.getElementById('planPrevBtn'); if(prev)prev.addEventListener('click',()=>stepPlan(-1));
-  const next=document.getElementById('planNextBtn'); if(next)next.addEventListener('click',()=>stepPlan(1));
-  const refresh=document.getElementById('planRefreshBtn'); if(refresh)refresh.addEventListener('click',()=>renderModules());
-  const input=document.getElementById('planImportInput'),importBtn=document.getElementById('planImportBtn');
-  if(importBtn&&input)importBtn.addEventListener('click',()=>input.click());
-  if(input)input.addEventListener('change',async()=>{const files=input.files;input.value='';await importPlanFiles(files);});
-}
-
-function currentExposureInfo(){
-  const exp = currentCamera()?.exposure;
-  if(!exp) return {kind:'none',label:'ISO natif',display:'—',floor:100,values:[]};
-  const values = Array.isArray(exp.baseValues) ? exp.baseValues.filter(v => Number.isFinite(Number(v))).map(Number) : [];
-  const displayValues = values.length ? values : (Number.isFinite(Number(exp.defaultValue)) ? [Number(exp.defaultValue)] : []);
-  let kind = 'native';
-  if(exp.unit === 'EI') kind = 'ei';
-  if(exp.type === 'red_metadata_iso') kind = 'reference';
-  const label = kind === 'ei' ? 'EI de base' : (kind === 'reference' ? 'ISO de réf.' : 'ISO natif');
-  const floor = values.length ? Math.min(...values) : (Number.isFinite(Number(exp.defaultValue)) ? Number(exp.defaultValue) : 100);
-  return {kind,label,display:displayValues.length?displayValues.join(' / '):'—',floor,values:displayValues};
-}
-function defaultIsoMinForCamera(){
-  const floor = currentExposureInfo().floor || 100;
-  return String(isos.find(v => Number(v) >= floor) || isos[0]);
-}
-function isoRangeValues(){
-  const lo = Number(state.cameraLimits.isoMin), hi = Number(state.cameraLimits.isoMax);
-  return isos.filter(v => Number(v) >= lo && Number(v) <= hi);
-}
-function clampIsoToRange(){
-  const vals = isoRangeValues();
-  if(!vals.length){ state.expo.values.iso = state.cameraLimits.isoMin; return; }
-  const cur = Number(state.expo.values.iso);
-  const best = vals.reduce((a,b) => Math.abs(Number(b)-cur) < Math.abs(Number(a)-cur) ? b : a, vals[0]);
-  state.expo.values.iso = String(best);
-}
-function resetIsoRangeForCamera(){
-  state.cameraLimits.isoMin = defaultIsoMinForCamera();
-  state.cameraLimits.isoMax = '51200';
-  if(Number(state.cameraLimits.isoMin) > Number(state.cameraLimits.isoMax)) state.cameraLimits.isoMax = state.cameraLimits.isoMin;
-  if(!state.expo.locks.iso) clampIsoToRange();
-  state.expo.limitWarning = null;
-}
-
-async function loadSharedCameraDatabase(){
+async function captureB(){
+  els.photoMeasureBtn.disabled=true;els.photoMeasureBtn.textContent='CAPTURE…';
   try{
-    const remote = await fetch(CAMERA_DB_URL,{cache:'no-store'});
-    if(!remote.ok) throw new Error(`BOS-CAMERA-DB HTTP ${remote.status}`);
-    const data = await remote.json();
-    if(!data || !Array.isArray(data.cameras)) throw new Error('BOS-CAMERA-DB invalide');
-    cameraDatabaseSource='remote'; return data;
-  }catch(remoteError){
-    console.warn('BOS-CAMERA-DB distante indisponible, utilisation du fallback local.',remoteError);
-    try{
-      const fallback = await fetch(CAMERA_DB_FALLBACK_URL,{cache:'no-store'});
-      if(!fallback.ok) throw new Error(`Fallback CAMERA HTTP ${fallback.status}`);
-      const data = await fallback.json();
-      if(!data || !Array.isArray(data.cameras)) throw new Error('Fallback CAMERA invalide');
-      cameraDatabaseSource='fallback'; return data;
-    }catch(fallbackError){ console.error('Aucune base caméra disponible.',fallbackError); cameraDatabaseSource='none'; return null; }
-  }
-}
-async function loadSharedLightDatabase(){
-  try{
-    const remote = await fetch(LIGHT_DB_URL,{cache:'no-store'});
-    if(!remote.ok) throw new Error(`BOS-PROJECTEURS-DB HTTP ${remote.status}`);
-    const data = await remote.json();
-    if(!data || !Array.isArray(data.fixtures)) throw new Error('BOS-PROJECTEURS-DB invalide');
-    lightDatabaseSource='remote'; return data;
-  }catch(remoteError){
-    console.warn('BOS-PROJECTEURS-DB distant indisponible, utilisation du fallback local.',remoteError);
-    try{
-      const fallback = await fetch(LIGHT_DB_FALLBACK_URL,{cache:'no-store'});
-      if(!fallback.ok) throw new Error(`Fallback LIGHT HTTP ${fallback.status}`);
-      const data = await fallback.json();
-      if(!data || !Array.isArray(data.fixtures)) throw new Error('Fallback LIGHT invalide');
-      lightDatabaseSource='fallback'; return data;
-    }catch(fallbackError){ console.error('Aucune base projecteurs disponible.',fallbackError); lightDatabaseSource='none'; return null; }
-  }
-}
-
-async function init(){
-  const [cameraResult,lightResult] = await Promise.allSettled([loadSharedCameraDatabase(),loadSharedLightDatabase()]);
-  if(cameraResult.status==='fulfilled' && cameraResult.value) cameras = cameraResult.value.cameras || [];
-  else { cameras=[{id:'ff',name:'Full Frame 36 mm',sensorWidthMm:36,dof:{label:'Full Frame',cocMm:.029,cropToFF:1}}]; cameraDatabaseSource='none'; }
-  if(lightResult.status==='fulfilled' && lightResult.value){ lightDatabase=lightResult.value; lightFixtures=(lightDatabase.fixtures||[]).filter(isCockpitLightUsable); }
-  else { lightDatabase=null; lightFixtures=[]; lightDatabaseSource='none'; }
-  prepareLightState();
-  if(!cameras.some(c=>c.id===state.cameraId)) state.cameraId=cameras[0]?.id || 'ff';
-  if(Number(state.cameraLimits.isoMin) > Number(state.cameraLimits.isoMax)) state.cameraLimits.isoMax=state.cameraLimits.isoMin;
-  if(Number(state.cameraLimits.apertureMin) > Number(state.cameraLimits.apertureMax)) state.cameraLimits.apertureMax=state.cameraLimits.apertureMin;
-  const baseApertureVals=apertureRangeValues();
-  if(baseApertureVals.length && !baseApertureVals.includes(String(state.aperture))) state.aperture=Number(baseApertureVals[0]);
-  clampApertureToRange(false);
-  clampIsoToRange();
-  clampCameraIsoToRange();
-  setupTheme(); renderCameraSelect(); renderTopFocal(); renderGlobalCameraControls(); renderModules(); bindGlobal(); renderCustomize();
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
-function setupTheme(){ document.documentElement.dataset.theme=state.theme; document.querySelector('meta[name="theme-color"]').content=state.theme==='dark'?'#0B0C0E':'#F3F1EC'; const btn=document.getElementById('themeBtn'); if(btn) btn.textContent=state.theme==='dark'?'LIGHT':'DARK'; }
-function cameraBrand(c){ return String(c?.brand || c?.group || 'Autre').trim() || 'Autre'; }
-function cameraShortLabel(c){ const name=String(c?.name||c?.id||''),brand=String(c?.brand||'').trim(); return brand && name.toLowerCase().startsWith((brand+' ').toLowerCase()) ? name.slice(brand.length+1) : name; }
-function cameraBrands(){ const seen=new Set(),brands=[]; cameras.forEach(c=>{const brand=cameraBrand(c); if(!seen.has(brand)){seen.add(brand);brands.push(brand);}}); return brands; }
-function camerasForBrand(brand){ return cameras.filter(c=>cameraBrand(c)===brand); }
-function getLastCameraForBrand(brand){ try{const saved=JSON.parse(localStorage.getItem(LAST_CAMERA_BY_BRAND_KEY)||'{}'); const id=saved?.[brand]; return camerasForBrand(brand).some(c=>c.id===id)?id:null;}catch(_){return null;} }
-function rememberCameraForBrand(camera){ if(!camera)return; try{const saved=JSON.parse(localStorage.getItem(LAST_CAMERA_BY_BRAND_KEY)||'{}'); saved[cameraBrand(camera)]=camera.id; localStorage.setItem(LAST_CAMERA_BY_BRAND_KEY,JSON.stringify(saved));}catch(_){} }
-function renderCameraBrandButtons(){ const host=document.getElementById('cameraBrandMode'); if(!host)return; const activeBrand=cameraBrand(currentCamera()); host.innerHTML=cameraBrands().map(brand=>`<button type="button" data-camerabrand="${esc(brand)}" class="${brand===activeBrand?'active':''}">${esc(brand)}</button>`).join(''); }
-function renderCameraSelect(){
-  const s=document.getElementById('cameraSelect'); if(!s)return;
-  const activeBrand=cameraBrand(currentCamera()),list=camerasForBrand(activeBrand);
-  s.innerHTML=list.map(c=>`<option value="${esc(c.id)}" ${c.id===state.cameraId?'selected':''}>${esc(cameraShortLabel(c))}</option>`).join('');
-  s.value=state.cameraId; s.title=s.options[s.selectedIndex]?.textContent||''; renderCameraBrandButtons();
-}
-function applyCameraSelection(nextCameraId){
-  const next=cameras.find(c=>c.id===nextCameraId); if(!next)return;
-  const changed=next.id!==state.cameraId;
-  state.cameraId=next.id; rememberCameraForBrand(next);
-  if(changed) resetIsoRangeForCamera();
-  save(); renderCameraSelect(); renderGlobalCameraControls(); renderModules();
-}
-function renderTopFocal(){ const root=document.getElementById('focalPresets'); if(!root)return; root.innerHTML=FOCAL_PRESETS.map(v=>`<button type="button" class="preset-btn ${Number(state.focal)===v?'active':''}" data-focalpreset="${v}">${v}</button>`).join(''); }
-function apertureRangeValues(){
-  const lo=Number(state.cameraLimits.apertureMin),hi=Number(state.cameraLimits.apertureMax);
-  return apertures.filter(v=>Number(v)>=lo && Number(v)<=hi);
-}
-function isoRangeValues(){
-  const lo=Number(state.cameraLimits.isoMin),hi=Number(state.cameraLimits.isoMax);
-  return isos.filter(v=>Number(v)>=lo && Number(v)<=hi);
-}
-function clampCameraIsoToRange(){
-  const vals=isoRangeValues();
-  if(!vals.length) return;
-  const cur=Number(state.cameraIso);
-  const best=vals.reduce((a,b)=>Math.abs(Number(b)-cur)<Math.abs(Number(a)-cur)?b:a,vals[0]);
-  state.cameraIso=String(best);
-}
-function renderCameraSummary(){
-  const el=document.getElementById('cameraSummary'); if(!el) return;
-  const cam=currentCamera();
-  el.textContent=`${cam?.name||'—'} · ${state.focal} mm · f/${state.aperture} · ISO ${state.cameraIso} · ${state.cameraShutter} · ${state.distanceCm} cm`;
-}
-function clampApertureToRange(compensate=true){
-  const vals=apertureRangeValues();
-  if(!vals.length) return;
-  const cur=Number(state.expo.values.aperture);
-  const best=vals.reduce((a,b)=>Math.abs(Number(b)-cur)<Math.abs(Number(a)-cur)?b:a,vals[0]);
-  if(String(state.expo.values.aperture)===String(best)) return;
-  if(compensate){
-    const before=expoTotal();
-    state.expo.values.aperture=String(best);
-    applyLinkedCompensation(before,'aperture');
-  }else state.expo.values.aperture=String(best);
-}
-function renderGlobalCameraControls(){
-  const card=document.getElementById('cameraCard'); if(card) card.classList.toggle('open',!!state.cameraOpen);
-  const f=document.getElementById('focalInput'); if(f) f.value=state.focal;
-  const a=document.getElementById('globalAperture'); if(a){ a.innerHTML=optionList(apertureRangeValues(),state.aperture,'f/'); a.value=String(state.aperture); }
-  const gi=document.getElementById('globalIso'); if(gi){ gi.innerHTML=optionList(isoRangeValues(),state.cameraIso,'ISO '); gi.value=String(state.cameraIso); }
-  const sh=document.getElementById('globalShutter'); if(sh){ sh.innerHTML=optionList(shutters,state.cameraShutter); sh.value=String(state.cameraShutter); }
-  const d=document.getElementById('globalDistance'); if(d) d.value=state.distanceCm;
-  const imin=document.getElementById('globalIsoMin'); if(imin){imin.innerHTML=optionList(isos,state.cameraLimits.isoMin,'ISO ');imin.value=state.cameraLimits.isoMin;}
-  const imax=document.getElementById('globalIsoMax'); if(imax){imax.innerHTML=optionList(isos,state.cameraLimits.isoMax,'ISO ');imax.value=state.cameraLimits.isoMax;}
-  const amin=document.getElementById('globalApertureMin'); if(amin){amin.innerHTML=optionList(apertures,state.cameraLimits.apertureMin,'f/');amin.value=state.cameraLimits.apertureMin;}
-  const amax=document.getElementById('globalApertureMax'); if(amax){amax.innerHTML=optionList(apertures,state.cameraLimits.apertureMax,'f/');amax.value=state.cameraLimits.apertureMax;}
-  renderCameraSummary();
-  syncGlobalLimitState();
-}
-function syncGlobalLimitState(){
-  /* Les alertes de limite appartiennent uniquement au module EXPO. */
-}
-function bindGlobal(){
-  document.getElementById('cameraToggle').addEventListener('click',()=>{state.cameraOpen=!state.cameraOpen; save(); renderGlobalCameraControls();});
-  document.getElementById('cameraBrandMode').addEventListener('click',e=>{const btn=e.target.closest('[data-camerabrand]'); if(!btn)return; const brand=btn.dataset.camerabrand,remembered=getLastCameraForBrand(brand),first=camerasForBrand(brand)[0]; if(remembered)applyCameraSelection(remembered); else if(first)applyCameraSelection(first.id);});
-  document.getElementById('cameraSelect').addEventListener('change',e=>applyCameraSelection(e.target.value));
-  document.getElementById('focalInput').addEventListener('input',e=>{state.focal=Math.max(1,Number(e.target.value)||35); save(); renderTopFocal(); renderCameraSummary(); updateLive();});
-  document.getElementById('focalPresets').addEventListener('click',e=>{const btn=e.target.closest('[data-focalpreset]'); if(!btn)return; state.focal=Number(btn.dataset.focalpreset); document.getElementById('focalInput').value=state.focal; save(); renderTopFocal(); renderCameraSummary(); updateLive();});
-  document.getElementById('globalAperture').addEventListener('change',e=>globalApertureChanged(e.target.value));
-  document.getElementById('globalIso').addEventListener('change',e=>globalIsoChanged(e.target.value));
-  document.getElementById('globalShutter').addEventListener('change',e=>globalShutterChanged(e.target.value));
-  document.getElementById('globalDistance').addEventListener('input',e=>{state.distanceCm=Math.max(10,Number(e.target.value)||10); save(); renderCameraSummary(); updateDOF();});
-  document.getElementById('globalIsoMin').addEventListener('change',e=>changeIsoBound('min',e.target.value));
-  document.getElementById('globalIsoMax').addEventListener('change',e=>changeIsoBound('max',e.target.value));
-  document.getElementById('globalApertureMin').addEventListener('change',e=>changeApertureBound('min',e.target.value));
-  document.getElementById('globalApertureMax').addEventListener('change',e=>changeApertureBound('max',e.target.value));
-  document.getElementById('themeBtn').addEventListener('click',()=>{state.theme=state.theme==='dark'?'light':'dark'; save(); setupTheme();});
-  const dlg=document.getElementById('customizeDialog'); document.getElementById('customizeBtn').addEventListener('click',()=>{renderCustomize();dlg.showModal();});
-  document.getElementById('resetLayout').addEventListener('click',()=>{state.layout=clone(defaultState.layout);state.visible=clone(defaultState.visible);state.open=clone(defaultState.open);save();renderCustomize();renderModules();});
-}
-function renderModules(){ const root=document.getElementById('modules'); root.innerHTML=state.layout.filter(id=>state.visible[id]).map(renderModule).join(''); bindModules(); updateLive(); syncGlobalLimitState(); }
-function renderModule(id){ const [title,baseSub]=moduleMeta[id],sub=id==='plan'?planModuleSubtitle():baseSub; return `<article class="module ${state.open[id]?'open':''}" data-module="${id}"><button class="module-head" data-toggle="${id}"><span class="module-title"><i class="module-dot"></i><span><strong>${title}</strong><small>${esc(sub)}</small></span></span><span class="chev">⌄</span></button><div class="module-body">${renderBody(id)}</div></article>`; }
-
-function renderBody(id){
-  if(id==='plan') return renderPlanBody();
-  if(id==='dof') return `<div class="resultbox dof-only"><div class="result-main" id="dofMain">—</div><div class="result-sub" id="dofSub">—</div></div>${appLink(id)}`;
-
-  if(id==='media') return `<div class="grid2 media-grid"><label><span>Débit</span><div class="unit-input"><input id="mediaBitrate" type="number" inputmode="decimal" min="1" step="1" value="${state.media.bitrate}"><b id="mediaBitrateUnit">${state.media.unit}</b></div><div class="segmented compact"><button type="button" class="seg ${state.media.unit==='Mb/s'?'active':''}" data-mediaunit="Mb/s">Mb/s</button><button type="button" class="seg ${state.media.unit==='MB/s'?'active':''}" data-mediaunit="MB/s">MB/s</button></div></label><label><span>Carte</span><select id="mediaCard">${['64','128','256','512','1000','2000','4000'].map(v=>`<option value="${v}" ${String(state.media.card)===String(v)?'selected':''}>${v} Go</option>`).join('')}</select></label></div><div class="resultbox"><div class="result-main" id="mediaMain">—</div><div class="result-sub" id="mediaSub">temps d’enregistrement · réserve 0 %</div></div>${appLink(id)}`;
-
-  if(id==='frame') return `<div class="frame-preview"><div class="frame-safe"></div><div class="subject" id="frameSubject"></div><div class="frame-meta" id="frameMeta"></div></div><div class="warning">Aperçu relatif V15 · la récupération du calibrage réel de FRAME sera branchée ensuite.</div>${appLink(id)}`;
-
-  if(id==='light') return `<label><span>Ma lumière</span><select id="lightFixture" ${lightFixtures.length?'':'disabled'}>${lightOptionsHtml()}</select></label><div class="light-status"><span class="pill">100 %</span><span class="pill">5600 K</span><span class="pill">Nu</span></div><div class="luxgrid"><div class="luxbox"><small>à 1 m</small><strong id="lux1">—</strong><div class="iso-mini" id="iso1">ISO min —</div></div><div class="luxbox"><small>à 3 m</small><strong id="lux3">—</strong><div class="iso-mini" id="iso3">ISO min —</div></div></div><div class="demo" id="lightSourceNote">BOS-PROJECTEURS-DB · 100 % · 5600 K · Nu</div>${appLink(id)}`;
-
-  if(id==='expo') return `<div class="coming-soon"><strong>BIENTÔT DISPONIBLE</strong><span>La compensation EXPO est encore en cours de finalisation.</span></div>`;
-  return '';
-}
-function expoLabel(k){ return {aperture:'Diaph',iso:'ISO',shutter:'Shutter',nd:'ND'}[k]; }
-function currentExpoValue(k){ return String(state.expo.values[k]); }
-function formatThousandsFr(v){ return Number(v).toLocaleString('fr-FR').replace(/\u202f/g,' '); }
-function ndCalcDisplay(v){
-  const density=Number(v)||0,stops=density/0.3,factor=Math.pow(2,stops);
-  const stopText=`${Number(stops.toFixed(1)).toLocaleString('fr-FR')} ${Math.abs(stops-1)<1e-9?'stop':'stops'}`;
-  return `${stopText} · ND${Math.round(factor)} · ${density.toFixed(1).replace('.',',')}`;
-}
-function formatExpoValue(k,v){
-  if(k==='aperture') return `f/${String(v).replace('.',',')}`;
-  if(k==='iso') return `ISO ${formatThousandsFr(v)}`;
-  if(k==='shutter') return String(v);
-  if(k==='nd') return ndCalcDisplay(v);
-  return String(v);
-}
-function expoReferenceValues(){ return {aperture:String(state.aperture),iso:String(state.cameraIso),shutter:String(state.cameraShutter),nd:'0'}; }
-function exposureTotalFor(values){ return exposureStop('aperture',values.aperture)+exposureStop('iso',values.iso)+exposureStop('shutter',values.shutter)+exposureStop('nd',values.nd); }
-function expoCalcResidual(){ return exposureTotalFor(expoReferenceValues())-expoTotal(); }
-function expoCalcResidualClass(){ return Math.abs(expoCalcResidual())<=0.20?'is-ok':'is-warning'; }
-function expoCalcSummary(){
-  const ref=expoReferenceValues();
-  const parts=['aperture','iso','shutter','nd'].flatMap(k=>String(ref[k])===String(state.expo.values[k])?[]:[`${formatExpoValue(k,ref[k])} → ${formatExpoValue(k,state.expo.values[k])}`]);
-  const residual=expoCalcResidual();
-  if(!parts.length) return 'CALCUL aligné sur la référence Caméra.';
-  if(Math.abs(residual)<=0.20) return `${parts.join(' · ')} · EXPOSITION CONSERVÉE`;
-  return `${parts.join(' · ')} · ${Math.abs(residual).toFixed(1).replace('.',',')} stop restant`;
-}
-function valuesForKey(k){
-  if(k==='aperture'){
-    const vals=apertureRangeValues();
-    const cur=String(state.expo.values.aperture);
-    return state.expo.locks.aperture && !vals.includes(cur) ? [...vals,cur].sort((a,b)=>Number(a)-Number(b)) : vals;
-  }
-  if(k==='iso'){
-    const vals=isoRangeValues();
-    const cur=String(state.expo.values.iso);
-    return state.expo.locks.iso && !vals.includes(cur) ? [...vals,cur].sort((a,b)=>Number(a)-Number(b)) : vals;
-  }
-  if(k==='shutter')return shutters;
-  return nds;
-}
-function expoOptionsHtml(k){
-  return valuesForKey(k).map(v=>`<option value="${v}" ${String(v)===currentExpoValue(k)?'selected':''}>${formatExpoValue(k,v)}</option>`).join('');
-}
-function lockSvg(locked=false){
-  return locked
-    ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>`
-    : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 9.2-2.7"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>`;
-}
-function renderExpoCalcItem(k){
-  const limitError=state.expo.limitWarning?.key===k,locked=!!state.expo.locks[k];
-  return `<div class="expo-calc-item ${limitError?'limit-error':''} ${locked?'locked':''}">
-    <button type="button" class="expo-calc-lock ${locked?'active':''}" data-expolock="${k}" aria-pressed="${locked?'true':'false'}" title="${locked?'Déverrouiller':'Verrouiller'} ${expoLabel(k)}">${lockSvg(locked)}</button>
-    <label class="expo-calc-value ${limitError?'limit-error-value':''}">
-      <span>${expoLabel(k)}</span>
-      <select data-expokey="${k}" ${locked?'disabled':''}>${expoOptionsHtml(k)}</select>
-    </label>
-  </div>`;
-}
-
-function bindModules(){
-  bindPlanModule();
-  document.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.toggle;state.open[id]=!state.open[id];save();b.closest('.module').classList.toggle('open',state.open[id]);}));
-  const mb=document.getElementById('mediaBitrate'); if(mb)mb.addEventListener('input',e=>{state.media.bitrate=Math.max(1,Number(e.target.value)||1);save();updateMedia();});
-  const mc=document.getElementById('mediaCard'); if(mc)mc.addEventListener('change',e=>{state.media.card=Number(e.target.value);save();updateMedia();});
-  document.querySelectorAll('[data-mediaunit]').forEach(btn=>btn.addEventListener('click',()=>switchMediaUnit(btn.dataset.mediaunit)));
-  const lf=document.getElementById('lightFixture'); if(lf)lf.addEventListener('change',e=>{state.light.fixture=e.target.value;save();updateLight();});
-  const expoResetBtn=document.getElementById('expoResetBtn'); if(expoResetBtn) expoResetBtn.addEventListener('click',resetExpoToCameraBase);
-  document.querySelectorAll('[data-expolock]').forEach(b=>b.addEventListener('click',()=>toggleExpoLock(b.dataset.expolock)));
-  document.querySelectorAll('[data-expokey]').forEach(s=>s.addEventListener('change',e=>expoChanged(e.target.dataset.expokey,e.target.value)));
-  document.querySelectorAll('[data-applink]').forEach(b=>b.addEventListener('click',()=>{const u=APP_LINKS[b.dataset.applink];if(u&&u!=='#')location.href=u;}));
-}
-function switchMediaUnit(nextUnit){ if(nextUnit===state.media.unit)return; const oldMb=bitrateToMbPerSec(); state.media.unit=nextUnit; state.media.bitrate=nextUnit==='Mb/s'?Math.round(oldMb):Math.round((oldMb/8)*100)/100; save(); renderModules(); }
-
-function exposureStop(k,v){
-  if(k==='aperture') return -2*Math.log2(Number(v));
-  if(k==='iso') return Math.log2(Number(v));
-  if(k==='shutter'){ const [a,b]=String(v).split('/').map(Number); return Math.log2(a/b); }
-  if(k==='nd') return -Number(v)/0.3;
-  return 0;
-}
-function expoTotal(){ return exposureStop('aperture',state.expo.values.aperture)+exposureStop('iso',state.expo.values.iso)+exposureStop('shutter',state.expo.values.shutter)+exposureStop('nd',state.expo.values.nd); }
-function setExpoValue(k,v){ state.expo.values[k]=String(v); }
-function priorityForRemaining(remaining,changedKey){
-  const order=remaining<0?['aperture','iso','nd','shutter']:['aperture','nd','iso','shutter'];
-  return order.filter(k=>k!==changedKey && !state.expo.locks[k]);
-}
-
-function directionalCandidates(key,remaining){
-  const vals=valuesForKey(key);
-  const cur=currentExpoValue(key),curStop=exposureStop(key,cur);
-  const wantUp=remaining>0;
-  return vals.filter(v=>{
-    const d=exposureStop(key,v)-curStop;
-    return wantUp ? d>1e-9 : d< -1e-9;
-  });
-}
-function bestDirectionalValue(key,remaining){
-  const cur=currentExpoValue(key),curStop=exposureStop(key,cur);
-  const candidates=directionalCandidates(key,remaining);
-  if(!candidates.length) return {value:cur,delta:0,saturated:true};
-  let best=candidates[0],bestDelta=exposureStop(key,best)-curStop,bestErr=Math.abs(remaining-bestDelta);
-  for(const v of candidates.slice(1)){
-    const delta=exposureStop(key,v)-curStop,err=Math.abs(remaining-delta);
-    if(err<bestErr){best=v;bestDelta=delta;bestErr=err;}
-  }
-  const stops=candidates.map(v=>exposureStop(key,v));
-  const extremeStop=remaining>0?Math.max(...stops):Math.min(...stops);
-  const chosenStop=exposureStop(key,best);
-  const saturated=Math.abs(chosenStop-extremeStop)<1e-9 && Math.abs(remaining-bestDelta)>0.20;
-  return {value:String(best),delta:bestDelta,saturated};
-}
-function applyLinkedCompensation(targetTotal,changedKey){
-  let remaining=targetTotal-expoTotal();
-  state.expo.limitWarning=null;
-  let lastKey=null,lastSaturated=null;
-  const available=priorityForRemaining(remaining,changedKey);
-  for(const key of available){
-    if(Math.abs(remaining)<=0.20) break;
-    lastKey=key;
-    const step=bestDirectionalValue(key,remaining);
-    if(step.delta!==0){ setExpoValue(key,step.value); remaining-=step.delta; }
-    if(step.saturated || step.delta===0) lastSaturated=key;
-    if(Math.abs(remaining)<=0.20) break;
-  }
-  if(Math.abs(remaining)>0.20){
-    if(!available.length){
-      state.expo.limitWarning={key:null,reason:'locked',remaining,direction:remaining<0?'darken':'brighten'};
+    photoB=await takeExif();els.photoBInfo.textContent=photoInfoText(photoB);
+    const a=ev100(photoA),b=ev100(photoB);
+    if(Number.isFinite(a)&&Number.isFinite(b)){
+      const d=b-a,sign=d>0.04?'+':'';const ratio=Math.pow(2,Math.abs(d));
+      els.photoDelta.textContent=`${sign}${fmt(d,1)} stop${Math.abs(d)>=1.5?'s':''} · ≈ ${fmt(ratio,1)}× ${d>=0?'plus lumineux':'moins lumineux'}`;
+      els.photoDelta.classList.add('ok');
     }else{
-      const key=lastSaturated||lastKey;
-      state.expo.limitWarning={key,reason:'limit',remaining,direction:remaining<0?'darken':'brighten'};
+      els.photoDelta.textContent='Métadonnées insuffisantes pour calculer l’écart.';els.photoDelta.classList.remove('ok');
     }
-  }
-  return remaining;
+  }catch(err){els.photoBInfo.textContent='Erreur';els.photoDelta.textContent=String(err.message||err);}
+  els.photoMeasureBtn.disabled=false;els.photoMeasureBtn.textContent='PHOTO B · MESURE';
 }
-function toggleExpoLock(key){
-  const wasLocked=!!state.expo.locks[key];
-  const before=expoTotal();
-  state.expo.locks[key]=!wasLocked;
-  state.expo.limitWarning=null;
-  if(wasLocked && !state.expo.locks[key]){
-    if(key==='iso'){
-      const old=state.expo.values.iso;
-      clampIsoToRange();
-      if(state.expo.values.iso!==old) applyLinkedCompensation(before,'iso');
-    }else if(key==='aperture'){
-      const old=String(state.expo.values.aperture);
-      clampApertureToRange(false);
-      if(String(state.expo.values.aperture)!==old) applyLinkedCompensation(before,'aperture');
-    }
-  }
-  save();
-  renderGlobalCameraControls();
-  renderModules();
-}
-function alignExpoToCameraReference(){
-  state.expo.values.aperture=String(state.aperture);
-  state.expo.values.iso=String(state.cameraIso);
-  state.expo.values.shutter=String(state.cameraShutter);
-  state.expo.values.nd='0';
-  state.expo.limitWarning=null;
-}
-function globalApertureChanged(newVal){
-  state.aperture=Number(newVal);
-  alignExpoToCameraReference();
-  save(); renderGlobalCameraControls(); renderModules();
-}
-function globalIsoChanged(newVal){
-  state.cameraIso=String(newVal);
-  alignExpoToCameraReference();
-  save(); renderGlobalCameraControls(); renderModules();
-}
-function globalShutterChanged(newVal){
-  state.cameraShutter=String(newVal);
-  alignExpoToCameraReference();
-  save(); renderGlobalCameraControls(); renderModules();
-}
-function resetExpoToCameraBase(){
-  alignExpoToCameraReference();
-  save(); renderModules();
-}
-function expoChanged(key,newVal){
-  if(state.expo.locks[key]) return;
-  const before=expoTotal();
-  setExpoValue(key,newVal);
-  state.expo.limitWarning=null;
-  applyLinkedCompensation(before,key);
-  save(); renderGlobalCameraControls(); renderModules();
-}
-function changeIsoBound(which,newVal){
-  const before=expoTotal();
-  if(which==='min'){
-    state.cameraLimits.isoMin=String(newVal);
-    if(Number(state.cameraLimits.isoMin)>Number(state.cameraLimits.isoMax)) state.cameraLimits.isoMax=state.cameraLimits.isoMin;
-  }else{
-    state.cameraLimits.isoMax=String(newVal);
-    if(Number(state.cameraLimits.isoMax)<Number(state.cameraLimits.isoMin)) state.cameraLimits.isoMin=state.cameraLimits.isoMax;
-  }
-  const oldIso=state.expo.values.iso;
-  clampIsoToRange();
-  clampCameraIsoToRange();
-  state.expo.limitWarning=null;
-  if(state.expo.values.iso!==oldIso) applyLinkedCompensation(before,'iso');
-  save(); renderGlobalCameraControls(); renderModules();
-}
-function changeApertureBound(which,newVal){
-  const before=expoTotal();
-  if(which==='min'){
-    state.cameraLimits.apertureMin=String(newVal);
-    if(Number(state.cameraLimits.apertureMin)>Number(state.cameraLimits.apertureMax)) state.cameraLimits.apertureMax=state.cameraLimits.apertureMin;
-  }else{
-    state.cameraLimits.apertureMax=String(newVal);
-    if(Number(state.cameraLimits.apertureMax)<Number(state.cameraLimits.apertureMin)) state.cameraLimits.apertureMin=state.cameraLimits.apertureMax;
-  }
-  const vals=apertureRangeValues();
-  if(vals.length && !vals.includes(String(state.aperture))){
-    const cur=Number(state.aperture);
-    state.aperture=Number(vals.reduce((a,b)=>Math.abs(Number(b)-cur)<Math.abs(Number(a)-cur)?b:a,vals[0]));
-  }
-  const oldExpo=String(state.expo.values.aperture);
-  clampApertureToRange(false);
-  state.expo.limitWarning=null;
-  if(String(state.expo.values.aperture)!==oldExpo) applyLinkedCompensation(before,'aperture');
-  save(); renderGlobalCameraControls(); renderModules();
-}
+els.photoRefBtn.addEventListener('click',captureA);
+els.photoMeasureBtn.addEventListener('click',captureB);
 
-function updateLive(){ updateDOF();updateMedia();updateFrame();updateLight(); }
-function updateDOF(){
-  const out=document.getElementById('dofMain'); if(!out)return;
-  const cam=currentCamera(),f=Number(state.focal),N=Number(state.aperture),c=cam?.dof?.cocMm||.029,s=Number(state.distanceCm)*10;
-  const H=(f*f)/(N*c)+f,near=(H*s)/(H+(s-f)),far=(H<=s-f)?Infinity:(H*s)/(H-(s-f)),dof=far===Infinity?Infinity:(far-near)/1000;
-  out.textContent=`PDC ${fmtM(dof)}`;
-  document.getElementById('dofSub').textContent=`${fmtM(near/1000)} — ${fmtM(far/1000)} · ${state.focal} mm · f/${state.aperture} · ${state.distanceCm} cm`;
-}
-function updateMedia(){ const el=document.getElementById('mediaMain'),sub=document.getElementById('mediaSub'); if(!el)return; const bitrateMb=bitrateToMbPerSec(),sec=(Number(state.media.card)*1000*8)/bitrateMb; el.textContent=fmtDuration(sec); if(sub)sub.textContent=`temps d’enregistrement · ${bitrateMb.toLocaleString('fr-FR')} Mb/s · réserve 0 %`; }
-function updateFrame(){ const sub=document.getElementById('frameSubject'),meta=document.getElementById('frameMeta'); if(!sub||!meta)return; const cam=currentCamera(),crop=36/(cam?.sensorWidthMm||36),eq=state.focal*crop,w=Math.max(30,Math.min(220,42+eq*1.35)); sub.style.width=`${w}px`; meta.textContent=`${cam?.name||''} · ≈ ${Math.round(eq)} mm FF`; }
-function idealIsoFromLux(lux,aperture,shutterFraction){
-  if(!lux||lux<=0)return null;
-  const [a,b]=String(shutterFraction||'1/50').split('/').map(Number),t=a/b,N=Number(aperture);
-  if(!t||!N)return null;
-  return (250*N*N)/(lux*t);
-}
-function nearestIsoValue(target,minIso,maxIso){
-  const allowed=isos.map(Number).filter(v=>v>=minIso&&v<=maxIso);
-  if(!allowed.length)return Math.max(minIso,Math.min(maxIso,Math.round(target||minIso)));
-  let best=allowed[0],diff=Math.abs(best-target);
-  for(const v of allowed){const d=Math.abs(v-target);if(d<diff){diff=d;best=v;}}
-  return best;
-}
-function nearestNdForStops(stops){
-  const target=Math.max(0,Number(stops)||0);
-  const values=nds.map(Number);
-  let best=values[0],diff=Math.abs(best/0.3-target);
-  for(const v of values){const d=Math.abs(v/0.3-target);if(d<diff){diff=d;best=v;}}
-  return best;
-}
-function lightExposureAdvice(lux){
-  const shutter=state.cameraShutter||'1/50',aperture=state.aperture;
-  const minIso=Number(state.cameraLimits.isoMin)||100,maxIso=Number(state.cameraLimits.isoMax)||51200;
-  const ideal=idealIsoFromLux(lux,aperture,shutter);
-  if(!ideal)return {text:'Réglage —',status:'normal'};
-  if(ideal<minIso){
-    const excessStops=Math.log2(minIso/ideal);
-    const nd=nearestNdForStops(excessStops);
-    return {text:`ISO ${minIso.toLocaleString('fr-FR')} (min) · ND ${nd.toFixed(1)} · f/${aperture} · ${shutter}`,status:'bright'};
-  }
-  if(ideal>maxIso){
-    const missingStops=Math.log2(ideal/maxIso);
-    return {text:`ISO ${maxIso.toLocaleString('fr-FR')} (max) · manque ${missingStops.toFixed(1).replace('.',',')} stop · f/${aperture} · ${shutter}`,status:'dark'};
-  }
-  const iso=nearestIsoValue(ideal,minIso,maxIso);
-  return {text:`ISO ${iso.toLocaleString('fr-FR')} · f/${aperture} · ${shutter}`,status:'normal'};
-}
-function updateLight(){
-  const a=document.getElementById('lux1'),b=document.getElementById('lux3'),i1=document.getElementById('iso1'),i3=document.getElementById('iso3'),note=document.getElementById('lightSourceNote'); if(!a||!b||!i1||!i3)return;
-  const fixture=currentLight();
-  if(!fixture){a.textContent='—';b.textContent='—';i1.textContent='Réglage —';i3.textContent='Réglage —';if(note)note.textContent=`${lightDatabaseSource==='remote'?'BOS-PROJECTEURS-DB · en ligne':(lightDatabaseSource==='fallback'?'BOS-PROJECTEURS-DB · secours local':'Base projecteurs indisponible')} · aucune photométrie Nu / 5600 K disponible.`;return;}
-  const at1=luxAtDistance(fixture,1),at3=luxAtDistance(fixture,3),renderLux=r=>r?`${r.exact?'':'≈ '}${Math.round(r.lux).toLocaleString('fr-FR')} lx`:'—';
-  a.textContent=renderLux(at1);b.textContent=renderLux(at3);
-  const advice1=at1?lightExposureAdvice(at1.lux):null,advice3=at3?lightExposureAdvice(at3.lux):null;
-  i1.textContent=advice1?advice1.text:'Réglage —';
-  i3.textContent=advice3?advice3.text:'Réglage —';
-  i1.dataset.status=advice1?.status||'normal';
-  i3.dataset.status=advice3?.status||'normal';
-  const calculated=[at1,at3].some(r=>r&&!r.exact),bare=fixture?.calculator?.accessories?.bare,quality=bare?.quality==='measured'?'mesure constructeur':(bare?.quality==='single'?'mesure de référence':(bare?.quality||'donnée DB'));
-  if(note){const src=lightDatabaseSource==='remote'?'en ligne':(lightDatabaseSource==='fallback'?'secours local':'indisponible');note.textContent=`BOS-PROJECTEURS-DB ${lightDatabase?.databaseVersion||''} · ${src} · ${quality}${calculated?' · ≈ = calcul de distance depuis une mesure DB':''}`;}
-}
-function renderCustomize(){ const root=document.getElementById('customizeList'); if(!root)return; root.innerHTML=state.layout.map((id,i)=>`<div class="custom-item"><input type="checkbox" data-vis="${id}" ${state.visible[id]?'checked':''}><span class="custom-name">${moduleMeta[id][0]}</span><button type="button" class="movebtn" data-up="${id}" ${i===0?'disabled':''}>↑</button><button type="button" class="movebtn" data-down="${id}" ${i===state.layout.length-1?'disabled':''}>↓</button></div>`).join(''); root.querySelectorAll('[data-vis]').forEach(x=>x.addEventListener('change',()=>{state.visible[x.dataset.vis]=x.checked;save();renderModules();})); root.querySelectorAll('[data-up]').forEach(b=>b.addEventListener('click',()=>moveModule(b.dataset.up,-1))); root.querySelectorAll('[data-down]').forEach(b=>b.addEventListener('click',()=>moveModule(b.dataset.down,1))); }
-function moveModule(id,dir){ const i=state.layout.indexOf(id),j=i+dir;if(j<0||j>=state.layout.length)return;[state.layout[i],state.layout[j]]=[state.layout[j],state.layout[i]];save();renderCustomize();renderModules(); }
-
-document.addEventListener('DOMContentLoaded',init);
+window.addEventListener('pagehide',()=>{if(stream)stream.getTracks().forEach(t=>t.stop())});
+if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));

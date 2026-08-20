@@ -3,86 +3,116 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#EBE7DE" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>BOS — Bruno OnSet</title>
+  <meta name="apple-mobile-web-app-title" content="CELLULE - BOS" />
+  <title>BRUNO ONSET / EXPO — Cellule relative</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css?v=0.1" />
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar cardlike">
-      <div class="top-inner bos-top-inner">
-        <div class="top-title bos-top-title">
-          <div class="tool-eyebrow bos-tool-eyebrow" aria-label="Bruno OnSet">
-            <span class="eyebrow-logo" aria-hidden="true">BOS</span>
-            <span class="eyebrow-brand" aria-label="Bruno OnSet"><span class="bos-letter">B</span>RUNO <span class="bos-letter">O</span>N<span class="bos-letter">S</span>ET</span>
-          </div>
+  <main class="app">
+    <header class="brand-card">
+      <div class="brand-top">
+        <div>
+          <div class="tool-eyebrow"><span class="eyebrow-logo">BOS</span><span class="eyebrow-brand"><span class="bos-letter">B</span>RUNO <span class="bos-letter">O</span>N<span class="bos-letter">S</span>ET</span></div>
+          <h1>EXPO · CELLULE</h1>
+          <p>Prototype de mesure relative avec la caméra du téléphone.</p>
         </div>
-        <div class="top-actions bos-top-actions">
-          <button class="mode-btn" id="themeBtn" aria-label="Changer de thème" title="Thème">DARK</button>
-          
-        </div>
+        <button id="themeBtn" class="ghost-btn" type="button">DARK</button>
       </div>
     </header>
 
-
-
-    <div class="utility-row bos-utility-row">
-      <button class="utility-link" id="customizeBtn" type="button">PERSONNALISER</button>
-    </div>
-    <section class="context cardlike open" id="cameraCard">
-      <button class="module-head context-head" id="cameraToggle" type="button">
-        <span class="module-title"><i class="module-dot"></i><span><strong>CAMÉRA</strong><small id="cameraSummary">—</small></span></span>
-        <span class="chev">⌄</span>
-      </button>
-      <div class="context-body">
-        <div class="camera-choice">
-          <span class="field-label">Marque</span>
-          <div class="brand-chips" id="cameraBrandMode" aria-label="Choisir la marque"></div>
-
-          <span class="field-label camera-model-label">Caméra</span>
-          <div class="camera-select-wrap">
-            <select class="camera-select" id="cameraSelect" aria-label="Choisir la caméra"></select>
-          </div>
-        </div>
-
-        <div class="focal-block">
-          <label><span>Focale</span><div class="unit-input"><input id="focalInput" type="number" inputmode="decimal" min="1" max="1000" step="1" value="35"><b>mm</b></div></label>
-          <div class="preset-row" id="focalPresets" aria-label="Raccourcis focale"></div>
-        </div>
-
-        <div class="camera-settings-grid camera-settings-grid-4">
-          <label><span>Diaph</span><select id="globalAperture"></select></label>
-          <label><span>ISO</span><select id="globalIso"></select></label>
-          <label><span>Shutter</span><select id="globalShutter"></select></label>
-          <label><span>Distance</span><div class="unit-input"><input id="globalDistance" type="number" inputmode="decimal" min="10" step="10" value="250"><b>cm</b></div></label>
-        </div>
-
-        <div class="camera-limits-grid">
-          <label><span>ISO MIN</span><select id="globalIsoMin"></select></label>
-          <label><span>ISO MAX</span><select id="globalIsoMax"></select></label>
-          <label><span>DIAPH MIN</span><select id="globalApertureMin"></select></label>
-          <label><span>DIAPH MAX</span><select id="globalApertureMax"></select></label>
-        </div>
-      </div>
+    <section class="panel intro-panel">
+      <div class="kicker">PRINCIPE</div>
+      <p class="lead">Choisis une zone comme <b>référence 0,0 stop</b>, puis pointe le téléphone vers une autre zone. Le prototype mesure seulement l'écart relatif — jamais une exposition « correcte ».</p>
+      <div class="warning">BÊTA · Ne pas utiliser comme posemètre absolu. Le but du test est d'abord de vérifier la répétabilité du téléphone.</div>
     </section>
 
-    <section id="modules" class="modules" aria-live="polite"></section>
+    <section class="panel camera-panel">
+      <div class="section-head">
+        <div>
+          <div class="kicker">CAMÉRA TÉLÉPHONE</div>
+          <div id="cameraState" class="subtitle">Caméra arrêtée</div>
+        </div>
+        <button id="startBtn" class="primary-btn" type="button">DÉMARRER</button>
+      </div>
 
-    <footer class="footer">BOS — Bruno OnSet · V23</footer>
+      <label class="camera-select-wrap hidden" id="cameraSelectWrap">
+        <span>OBJECTIF / CAMÉRA</span>
+        <select id="cameraSelect"></select>
+      </label>
+
+      <div class="viewer" id="viewer">
+        <video id="video" autoplay muted playsinline></video>
+        <div class="spot" aria-hidden="true"><span></span></div>
+        <div class="viewer-badge" id="lockBadge">EXPO NON VERROUILLÉE</div>
+        <div class="viewer-hint">Mesure au centre</div>
+      </div>
+      <canvas id="sampleCanvas" width="160" height="120" hidden></canvas>
+
+      <div class="live-readout">
+        <div class="live-label">ÉCART À LA RÉFÉRENCE</div>
+        <div id="stopValue" class="stop-value">—</div>
+        <div id="ratioValue" class="ratio-value">Définis d'abord une référence.</div>
+      </div>
+
+      <div class="action-grid">
+        <button id="referenceBtn" class="primary-btn large" type="button" disabled>DÉFINIR COMME RÉF.</button>
+        <button id="resetRefBtn" class="secondary-btn large" type="button" disabled>EFFACER RÉF.</button>
+      </div>
+
+      <div id="liveModeNote" class="mode-note">Au moment de la référence, l'app tentera de figer l'exposition du téléphone. Si ce verrouillage n'est pas vérifiable, la mesure live sera désactivée.</div>
+    </section>
+
+    <section class="panel photo-panel">
+      <div class="section-head compact">
+        <div>
+          <div class="kicker">PLAN B · 2 PHOTOS</div>
+          <div class="subtitle">Comparaison par métadonnées d'exposition</div>
+        </div>
+        <span class="beta-pill">TEST</span>
+      </div>
+      <p class="small-copy">Si le verrouillage live n'est pas disponible, prends deux photos. Le prototype essaie de lire ISO, temps de pose et ouverture dans les EXIF et calcule l'écart d'EV entre les deux captures.</p>
+      <div class="photo-grid">
+        <button id="photoRefBtn" class="secondary-btn" type="button" disabled>PHOTO A · RÉF.</button>
+        <button id="photoMeasureBtn" class="secondary-btn" type="button" disabled>PHOTO B · MESURE</button>
+      </div>
+      <div class="photo-results">
+        <div><span>PHOTO A</span><strong id="photoAInfo">—</strong></div>
+        <div><span>PHOTO B</span><strong id="photoBInfo">—</strong></div>
+      </div>
+      <div id="photoDelta" class="photo-delta">Aucune comparaison.</div>
+    </section>
+
+    <details class="panel diagnostics-panel">
+      <summary>COMPATIBILITÉ / DIAGNOSTIC</summary>
+      <div class="diag-grid">
+        <div><span>Mode exposition manuel</span><strong id="diagManual">—</strong></div>
+        <div><span>ISO contrôlable</span><strong id="diagIso">—</strong></div>
+        <div><span>Temps d'exposition contrôlable</span><strong id="diagTime">—</strong></div>
+        <div><span>Balance des blancs verrouillable</span><strong id="diagWb">—</strong></div>
+        <div><span>ImageCapture / photo</span><strong id="diagPhoto">—</strong></div>
+        <div><span>Réglages lus</span><strong id="diagSettings">—</strong></div>
+      </div>
+      <pre id="diagRaw"></pre>
+    </details>
+
+    <details class="panel test-panel">
+      <summary>PROTOCOLE DE TEST CONSEILLÉ</summary>
+      <ol>
+        <li>Déploie le prototype en HTTPS et ouvre-le sur le téléphone.</li>
+        <li>Pointe une surface uniforme, attends environ 1 seconde, puis fais <b>DÉFINIR COMME RÉF.</b></li>
+        <li>Sans changer de caméra du téléphone, pointe une seconde zone et note l'écart.</li>
+        <li>Pour vérifier la précision, mesure idéalement la même surface sous deux niveaux de lumière connus, ou compare avec une cellule / une caméra de référence.</li>
+        <li>Refais la mesure plusieurs fois : la répétabilité est plus importante que d'obtenir immédiatement le « bon » chiffre.</li>
+      </ol>
+    </details>
+
+    <footer>BOS · EXPO CELLULE · PROTO V0.1</footer>
   </main>
-
-  <dialog id="customizeDialog" class="sheet">
-    <form method="dialog" class="sheet-inner">
-      <div class="sheet-head"><div><strong>Personnaliser</strong></div><button value="cancel" class="iconbtn" aria-label="Fermer">×</button></div>
-      <div id="customizeList" class="custom-list"></div>
-      <div class="sheet-actions"><button type="button" id="resetLayout" class="secondary">Réinitialiser</button><button value="ok" class="primary">Terminé</button></div>
-    </form>
-  </dialog>
-
-  <script src="app.js" defer></script>
+  <script src="app.js?v=0.1"></script>
 </body>
 </html>
