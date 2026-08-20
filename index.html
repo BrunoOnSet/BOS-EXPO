@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.51" />
+  <link rel="stylesheet" href="style.css?v=3.53" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -116,110 +116,63 @@
       </div>
     </section>
 
-    <section class="panel expose-panel" id="exposePanel">
-      <div class="compact-section-head expose-head">
-        <div>
-          <div class="panel-kicker">ANALYSE WAVEFORM</div>
-          <div class="panel-subtitle">Entre 3 valeurs que tu lis sur le waveform, puis simule un déplacement d’exposition avant de toucher à la caméra.</div>
-        </div>
-        <span class="expose-status" id="exposeStatus">—</span>
-      </div>
-
-      <div class="expose-profile-line" id="exposeProfileLine">—</div>
-
-      <div id="exposeSupported">
-        <div class="scene-entry-head">
-          <span>VALEURS LUES SUR LE WAVEFORM</span>
-          <small>Choisis trois zones importantes de ton image.</small>
-        </div>
-
-        <div class="scene-points-grid">
-          <label class="scene-point-card" data-scene-point="skin">
-            <span class="scene-point-kicker">SUJET / PEAU</span>
-            <div class="scene-point-input"><input id="scenePointSkin" type="number" min="0" max="100" step="0.1" value="52" inputmode="decimal"><b>%</b></div>
-            <strong id="scenePointSkinNow">—</strong>
-            <small id="scenePointSkinAfter">—</small>
-          </label>
-          <label class="scene-point-card" data-scene-point="high">
-            <span class="scene-point-kicker">HAUTE LUMIÈRE</span>
-            <div class="scene-point-input"><input id="scenePointHigh" type="number" min="0" max="100" step="0.1" value="88" inputmode="decimal"><b>%</b></div>
-            <strong id="scenePointHighNow">—</strong>
-            <small id="scenePointHighAfter">—</small>
-          </label>
-          <label class="scene-point-card" data-scene-point="shadow">
-            <span class="scene-point-kicker">OMBRE À CONSERVER</span>
-            <div class="scene-point-input"><input id="scenePointShadow" type="number" min="0" max="100" step="0.1" value="19" inputmode="decimal"><b>%</b></div>
-            <strong id="scenePointShadowNow">—</strong>
-            <small id="scenePointShadowAfter">—</small>
-          </label>
-        </div>
-
-        <div class="waveform-scale-shell scene-waveform-shell">
-          <div class="waveform-scale" id="exposeWaveformScale">
-            <div class="waveform-segments" id="exposeWaveformSegments"></div>
-            <div class="waveform-markers" id="exposeWaveformMarkers"></div>
-            <div class="scene-point-pins" id="scenePointPins"></div>
-          </div>
-          <div class="waveform-axis"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 %</span></div>
-        </div>
-
-        <div class="scene-summary-grid">
-          <div class="scene-summary-card accent-card">
-            <span>CONTRASTE MESURÉ</span>
-            <strong id="sceneContrast">—</strong>
-            <small id="sceneContrastText">Entre l’ombre et la haute valeur saisies.</small>
-          </div>
-          <div class="scene-summary-card">
-            <span>POINT LE PLUS HAUT</span>
-            <strong id="sceneHighPoint">—</strong>
-            <small id="sceneHighText">—</small>
-          </div>
-          <div class="scene-summary-card">
-            <span>MARGE AU REPÈRE HAUT</span>
-            <strong id="sceneHighMargin">—</strong>
-            <small id="sceneHighMarginText">Repère de courbe, pas clipping capteur garanti.</small>
-          </div>
-        </div>
-
-        <div class="scene-shift-card" id="sceneShiftCard">
-          <div class="scene-shift-head">
-            <div>
-              <span>SIMULER UN DÉPLACEMENT D’EXPOSITION</span>
-              <strong id="sceneShiftIntent">0,0 stop</strong>
-            </div>
-            <button class="small-action" id="sceneShiftReset" type="button">0</button>
-          </div>
-          <input class="waveform-slider scene-shift-slider" id="sceneShiftSlider" type="range" min="-2.5" max="2.5" step="0.1" value="0" aria-label="Déplacement d'exposition simulé en stops">
-          <div class="scene-shift-axis"><span>−2,5</span><span>ASSOMBRIR</span><span>0</span><span>ÉCLAIRCIR</span><span>+2,5</span></div>
-          <div class="scene-shift-presets" id="sceneShiftPresets">
-            <button type="button" data-shift="-1">−1</button><button type="button" data-shift="-0.5">−0,5</button><button type="button" data-shift="0">0</button><button type="button" data-shift="0.5">+0,5</button><button type="button" data-shift="1">+1</button>
-          </div>
-          <div class="scene-shift-copy" id="sceneShiftCopy">Déplace le curseur pour voir où arriveraient les trois zones sur le waveform.</div>
-        </div>
-
-        <div class="scene-sim-list" id="sceneSimList"></div>
-
-        <div class="cine-ei-card hidden" id="cineEiCard">
+    <div id="exposeSupported" class="expo-quick-stack">
+      <section class="panel quick-tool-panel margin-tool-panel" id="marginToolPanel">
+        <div class="compact-section-head quick-tool-head">
           <div>
-            <span>CINE EI</span>
-            <strong id="cineEiTitle">Base nominale</strong>
+            <div class="panel-kicker">MARGE</div>
+            <div class="panel-subtitle">Entre seulement le haut et le bas que tu veux conserver.</div>
           </div>
-          <div id="cineEiValues" class="cine-ei-values"></div>
+          <span class="expose-status" id="exposeStatus">—</span>
+        </div>
+        <div class="expose-profile-line compact-profile-line" id="exposeProfileLine">—</div>
+
+        <div class="margin-input-grid">
+          <label class="quick-number-field"><span>HAUTE LUMIÈRE</span><div><input id="quickHighInput" type="number" min="0" max="100" step="0.1" value="90" inputmode="decimal"><b>%</b></div></label>
+          <label class="quick-number-field"><span>OMBRE À CONSERVER</span><div><input id="quickShadowInput" type="number" min="0" max="100" step="0.1" value="20" inputmode="decimal"><b>%</b></div></label>
         </div>
 
-        <div class="expose-stop-title">REPÈRES DE LA COURBE</div>
-        <div class="waveform-key-grid" id="exposeKeyGrid"></div>
-        <div class="expose-note" id="exposeNote">—</div>
-      </div>
+        <div class="margin-answer-grid">
+          <div class="quick-answer accent-card"><span>MARGE POUR OUVRIR</span><strong id="quickOpenMargin">—</strong><small id="quickOpenText">—</small></div>
+          <div class="quick-answer"><span>CONTRASTE LU</span><strong id="quickContrast">—</strong><small id="quickContrastText">—</small></div>
+        </div>
 
-      <div id="exposeUnsupported" class="expose-unsupported hidden">Cette courbe n’est pas encore renseignée de façon suffisamment fiable pour simuler son signal. EXPO préfère ne rien extrapoler.</div>
-    </section>
+        <div class="quick-sim-row">
+          <span>SIMULER</span>
+          <div class="quick-shift-presets" id="quickShiftPresets">
+            <button type="button" data-shift="-1">−1</button><button type="button" data-shift="-0.5">−0,5</button><button type="button" data-shift="0" class="active">0</button><button type="button" data-shift="0.5">+0,5</button><button type="button" data-shift="1">+1</button>
+          </div>
+        </div>
+        <div class="quick-sim-result"><strong id="quickSimValues">90 % → 90 % · 20 % → 20 %</strong><span id="quickSimStatus">Réglage actuel.</span></div>
+      </section>
+
+      <section class="panel quick-tool-panel read-tool-panel" id="readToolPanel">
+        <div class="quick-inline-head">
+          <div><div class="panel-kicker">LIRE LE WAVEFORM</div><div class="panel-subtitle">Que signifie une valeur que tu vois à l’écran ?</div></div>
+          <label class="read-value-field"><input id="quickReadInput" type="number" min="0" max="100" step="0.1" value="70" inputmode="decimal"><b>%</b></label>
+        </div>
+        <div class="read-answer"><strong id="quickReadAnswer">—</strong><span id="quickReadText">—</span></div>
+      </section>
+
+      <section class="panel quick-tool-panel place-tool-panel" id="placeToolPanel">
+        <div class="quick-inline-head place-head">
+          <div><div class="panel-kicker">PLACER UN NIVEAU</div><div class="panel-subtitle">Choisis son écart par rapport au gris de la courbe.</div></div>
+          <div class="place-value"><strong id="quickPlaceSignal">—</strong><span>WAVEFORM / ZEBRA</span></div>
+        </div>
+        <div class="place-stop-presets" id="placeStopPresets">
+          <button type="button" data-stop="-2">−2</button><button type="button" data-stop="-1">−1</button><button type="button" data-stop="0">0</button><button type="button" data-stop="1" class="active">+1</button><button type="button" data-stop="2">+2</button><button type="button" data-stop="3">+3</button>
+        </div>
+        <div class="place-foot"><span id="quickPlaceText">—</span><strong id="quickPlaceEi"></strong></div>
+      </section>
+    </div>
+
+    <section class="panel expose-unsupported hidden" id="exposeUnsupported">Cette courbe n’est pas encore renseignée de façon suffisamment fiable pour ces outils. EXPO préfère ne rien extrapoler.</section>
 
     <section class="panel simple-expo-panel" id="simpleExpoPanel">
       <div class="compact-section-head simple-expo-head">
         <div>
           <div class="panel-kicker">COMPENSER</div>
-          <div class="panel-subtitle">Pars d’une exposition validée, puis teste un changement de réglage.</div>
+          <div class="panel-subtitle">Change un réglage ; EXPO conserve la même exposition avec les paramètres déverrouillés.</div>
         </div>
         <button class="small-action" id="simpleResetBtn" type="button">RESET</button>
       </div>
@@ -403,7 +356,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v3.51</span>
+        <span class="app-version">v3.53</span>
       </div>
     </footer>
   </main>
@@ -541,6 +494,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.51"></script>
+  <script src="app.js?v=3.53"></script>
 </body>
 </html>

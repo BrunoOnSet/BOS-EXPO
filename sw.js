@@ -1,5 +1,5 @@
-const CACHE = "bos-expo-v3.51";
-const ASSETS=["./","./index.html","./style.css?v=3.51","./app.js?v=3.51","./manifest.webmanifest","./icon-192.png","./icon-512.png","./logo-bruno-guillard.png"];
+const CACHE = "bos-expo-v3.53";
+const ASSETS=["./","./index.html","./style.css?v=3.53","./app.js?v=3.53","./manifest.webmanifest","./icon-192.png","./icon-512.png","./logo-bruno-guillard.png"];
 const CAMERA_DB_HOST="raw.githubusercontent.com";
 const CAMERA_DB_PATH="/BrunoSetTools/BOS-CAMERA-DB/main/cameras.json";
 

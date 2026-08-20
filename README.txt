@@ -445,7 +445,7 @@ V3.49 — SITUATIONS / CONTINUITÉ D’EXPO
 - Les anciennes scènes locales sont conservées et affichées comme situations.
 
 
-V3.51 — WAVEFORM / ZONES DE COURBE
+V3.53 — WAVEFORM / ZONES DE COURBE
 - Refonte du bloc EXPOSER autour d'une lecture directe du waveform.
 - Curseur 0–100 % : interprétation de la zone de courbe et écart en stops quand la courbe le permet.
 - S-Log3 : pied ≈12 %, gris ≈41 %, blanc 90 % ≈61 %, repère +6 stops ≈94 %.
@@ -456,4 +456,22 @@ V3.51 — WAVEFORM / ZONES DE COURBE
 - Distinction explicite entre position dans la courbe et latitude réelle du capteur.
 
 
-V3.51 : remplacement du bloc EXPOSER par ANALYSE WAVEFORM à 3 points avec simulation de déplacement d’exposition pour les courbes Log renseignées.
+V3.53 : remplacement du bloc EXPOSER par ANALYSE WAVEFORM à 3 points avec simulation de déplacement d’exposition pour les courbes Log renseignées.
+
+
+=== V3.53 — CAMERA DB WAVEFORM GUIDES ===
+- Base embarquée mise à jour vers BOS_CAMERA_DB V1.6.
+- EXPOSER lit en priorité waveformGuide dans le profil caméra.
+- Blackmagic Video / Extended Video / Film Gen 5 et Film Gen 4 deviennent exploitables par le Waveform Analyzer.
+- Les tables de stops issues de la DB sont interpolées uniquement dans leur plage documentée ; pas d’extrapolation artificielle.
+- Les guides internes S-Log3 / S-Cinetone / LogC3 restent disponibles en secours.
+
+
+V3.53 — Interface plateau en 4 bulles
+- MARGE : haute lumière + ombre à conserver, marge pour ouvrir, contraste et simulation rapide.
+- LIRE LE WAVEFORM : une valeur en % est traduite en zone de courbe et, quand disponible, en stops par rapport au gris.
+- PLACER UN NIVEAU : conversion rapide stops → waveform/zebra, avec équivalence Cine EI quand disponible.
+- COMPENSER : calculateur de compensation conservé, interface allégée.
+- Références techniques détaillées retirées de l’écran principal.
+- Résumé caméra enrichi avec le profil actif.
+- Version visible : v3.53
