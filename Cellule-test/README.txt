@@ -1,4 +1,4 @@
-BOS EXPO — CELLULE RELATIVE — PROTOTYPE V0.2
+BOS EXPO — CELLULE RELATIVE — PROTOTYPE V0.3
 
 BUT
 Tester si la caméra d'un téléphone peut mesurer de façon répétable un écart de luminance en stops entre deux zones, sans prétendre donner une exposition absolue.
@@ -31,3 +31,11 @@ PROTOCOLE CONSEILLÉ
 
 
 V0.2 : PLAN B · 2 PHOTOS remonté directement sous la mesure caméra. Les commandes REDÉFINIR / EFFACER RÉF. sont supprimées ; le bouton initial DÉFINIR COMME RÉF. disparaît après prise de référence live.
+
+
+V0.3 : ajout du mode AUTO-METER live.
+- Le prototype tente d'abord un verrouillage manuel plus strict (stabilisation AE, passage manual, relecture sur plusieurs échantillons).
+- Si le verrou n'est pas fiable, il repasse en exposition auto et vérifie si getSettings() remonte ISO + exposureTime en direct.
+- Si oui, la référence mémorise le produit ISO × temps et l'écart est déduit des changements d'auto-exposition : une scène plus lumineuse doit pousser le produit vers le bas.
+- Les valeurs ISO / temps du téléphone sont affichées en permanence pour vérifier qu'elles évoluent réellement.
+- Si aucune méthode live n'est exploitable, le mode 2 PHOTOS reste le fallback.

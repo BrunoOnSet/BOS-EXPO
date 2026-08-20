@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO — Cellule relative</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=0.2" />
+  <link rel="stylesheet" href="style.css?v=0.3" />
 </head>
 <body>
   <main class="app">
@@ -63,7 +63,13 @@
         <button id="referenceBtn" class="primary-btn large" type="button" disabled>DÉFINIR COMME RÉF.</button>
       </div>
 
-      <div id="liveModeNote" class="mode-note">Au moment de la référence, l'app tentera de figer l'exposition du téléphone. Si ce verrouillage n'est pas vérifiable, utilise directement le mode 2 photos ci-dessous.</div>
+      <div class="meter-strip" id="meterStrip">
+        <div><span>MODE</span><strong id="meterMode">EN ATTENTE</strong></div>
+        <div><span>ISO TÉL.</span><strong id="meterIso">—</strong></div>
+        <div><span>EXPO TÉL.</span><strong id="meterTime">—</strong></div>
+      </div>
+
+      <div id="liveModeNote" class="mode-note">Au moment de la référence, l'app essaie d'abord un verrouillage manuel plus strict. Si ce verrou n'est pas fiable mais que le téléphone remonte ISO + temps d'exposition en direct, elle bascule automatiquement en AUTO-METER.</div>
 
       <div class="embedded-photo-panel photo-panel">
         <div class="section-head compact">
@@ -89,12 +95,13 @@
     <details class="panel diagnostics-panel">
       <summary>COMPATIBILITÉ / DIAGNOSTIC</summary>
       <div class="diag-grid">
-        <div><span>Mode exposition manuel</span><strong id="diagManual">—</strong></div>
-        <div><span>ISO contrôlable</span><strong id="diagIso">—</strong></div>
-        <div><span>Temps d'exposition contrôlable</span><strong id="diagTime">—</strong></div>
+        <div><span>Verrou manuel</span><strong id="diagManual">—</strong></div>
+        <div><span>ISO lu / contrôlable</span><strong id="diagIso">—</strong></div>
+        <div><span>Temps expo lu / contrôlable</span><strong id="diagTime">—</strong></div>
         <div><span>Balance des blancs verrouillable</span><strong id="diagWb">—</strong></div>
         <div><span>ImageCapture / photo</span><strong id="diagPhoto">—</strong></div>
         <div><span>Réglages lus</span><strong id="diagSettings">—</strong></div>
+        <div><span>Mode de mesure choisi</span><strong id="diagMeterMode">—</strong></div>
       </div>
       <pre id="diagRaw"></pre>
     </details>
@@ -104,14 +111,15 @@
       <ol>
         <li>Déploie le prototype en HTTPS et ouvre-le sur le téléphone.</li>
         <li>Pointe une surface uniforme, attends environ 1 seconde, puis fais <b>DÉFINIR COMME RÉF.</b></li>
+        <li>Le prototype choisit automatiquement <b>LOCK</b> si le verrouillage est fiable, sinon <b>AUTO-METER</b> si ISO + temps d'exposition sont lisibles.</li>
         <li>Sans changer de caméra du téléphone, pointe une seconde zone et note l'écart.</li>
         <li>Pour vérifier la précision, mesure idéalement la même surface sous deux niveaux de lumière connus, ou compare avec une cellule / une caméra de référence.</li>
         <li>Refais la mesure plusieurs fois : la répétabilité est plus importante que d'obtenir immédiatement le « bon » chiffre.</li>
       </ol>
     </details>
 
-    <footer>BOS · EXPO CELLULE · PROTO V0.2</footer>
+    <footer>BOS · EXPO CELLULE · PROTO V0.3</footer>
   </main>
-  <script src="app.js?v=0.2"></script>
+  <script src="app.js?v=0.3"></script>
 </body>
 </html>

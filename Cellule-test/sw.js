@@ -1,5 +1,5 @@
-const CACHE='bos-expo-cellule-proto-v0.2';
-const ASSETS=['./','./index.html','./style.css?v=0.1','./app.js?v=0.1','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const CACHE='bos-expo-cellule-proto-v0.3';
+const ASSETS=['./','./index.html','./style.css?v=0.3','./app.js?v=0.3','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

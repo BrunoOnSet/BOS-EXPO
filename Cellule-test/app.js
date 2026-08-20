@@ -4,6 +4,7 @@ const els = {
   video: $('video'), viewer: $('viewer'), lockBadge: $('lockBadge'), sampleCanvas: $('sampleCanvas'),
   referenceBtn: $('referenceBtn'), initialRefWrap: $('initialRefWrap'), stopValue: $('stopValue'), ratioValue: $('ratioValue'),
   cameraSelectWrap: $('cameraSelectWrap'), cameraSelect: $('cameraSelect'), liveModeNote: $('liveModeNote'),
+  meterMode: $('meterMode'), meterIso: $('meterIso'), meterTime: $('meterTime'), diagMeterMode: $('diagMeterMode'),
   photoRefBtn: $('photoRefBtn'), photoMeasureBtn: $('photoMeasureBtn'), photoAInfo: $('photoAInfo'), photoBInfo: $('photoBInfo'), photoDelta: $('photoDelta'),
   diagManual: $('diagManual'), diagIso: $('diagIso'), diagTime: $('diagTime'), diagWb: $('diagWb'), diagPhoto: $('diagPhoto'), diagSettings: $('diagSettings'), diagRaw: $('diagRaw')
 };
@@ -14,6 +15,8 @@ let imageCapture = null;
 let capabilities = {};
 let referenceLuma = null;
 let lockVerified = false;
+let meterMode = 'none'; // none | lock | auto
+let autoReference = null;
 let liveLoop = null;
 let recentStops = [];
 let photoA = null;
@@ -44,8 +47,11 @@ async function stopCamera(){
   if(liveLoop) cancelAnimationFrame(liveLoop);
   liveLoop = null;
   if(stream) stream.getTracks().forEach(t=>t.stop());
-  stream = null; track = null; imageCapture = null; referenceLuma = null; lockVerified = false;
+  stream = null; track = null; imageCapture = null; referenceLuma = null; lockVerified = false; meterMode='none'; autoReference=null;
   els.video.srcObject = null;
+  if(els.meterMode) els.meterMode.textContent='EN ATTENTE';
+  if(els.meterIso) els.meterIso.textContent='—';
+  if(els.meterTime) els.meterTime.textContent='—';
 }
 
 async function listCameras(){
@@ -84,6 +90,7 @@ async function startCamera(deviceId=''){
     els.photoRefBtn.disabled = !imageCapture;
     els.photoMeasureBtn.disabled = !imageCapture;
     setBadge('AUTO · PRÊT POUR RÉF.');
+    meterMode='none'; autoReference=null;
     updateDiagnostics();
     await listCameras();
     startLiveSampling();
@@ -97,25 +104,52 @@ async function startCamera(deviceId=''){
 els.startBtn.addEventListener('click',()=>startCamera(currentDeviceId));
 els.cameraSelect.addEventListener('change',()=>startCamera(els.cameraSelect.value));
 
+function exposureSettings(){
+  const s=track?.getSettings?.() || {};
+  const iso=Number(s.iso), exposureTime=Number(s.exposureTime);
+  return {
+    iso:Number.isFinite(iso)&&iso>0?iso:NaN,
+    exposureTime:Number.isFinite(exposureTime)&&exposureTime>0?exposureTime:NaN,
+    exposureMode:s.exposureMode || '',
+    raw:s
+  };
+}
+function formatExposureTimeRaw(v){
+  if(!Number.isFinite(v)||v<=0)return '—';
+  // La spec exprime exposureTime en unités de 100 µs. Le ratio est ce qui compte pour AUTO-METER.
+  const seconds=v/10000;
+  const inv=seconds>0?1/seconds:NaN;
+  if(Number.isFinite(inv)&&inv>=2)return `≈ 1/${Math.round(inv)}`;
+  return `${fmt(seconds,3)} s`;
+}
+function updateMeterStrip(){
+  const s=exposureSettings();
+  if(els.meterMode) els.meterMode.textContent=meterMode==='lock'?'LOCK':meterMode==='auto'?'AUTO-METER':'EN ATTENTE';
+  if(els.meterIso) els.meterIso.textContent=Number.isFinite(s.iso)?`ISO ${Math.round(s.iso)}`:'—';
+  if(els.meterTime) els.meterTime.textContent=formatExposureTimeRaw(s.exposureTime);
+  if(els.diagMeterMode) els.diagMeterMode.textContent=meterMode==='lock'?'LOCK · pixels':meterMode==='auto'?'AUTO-METER · ISO + temps':'Non défini';
+}
 function updateDiagnostics(){
   const modes = capabilities.exposureMode || [];
   const canManual = modes.includes?.('manual') || false;
-  const canIso = !!capabilities.iso;
-  const canTime = !!capabilities.exposureTime;
+  const canIsoControl = !!capabilities.iso;
+  const canTimeControl = !!capabilities.exposureTime;
   const wbModes = capabilities.whiteBalanceMode || [];
   const canWb = wbModes.includes?.('manual') || false;
-  const s = track?.getSettings?.() || {};
-  els.diagManual.textContent = canManual ? 'OUI' : 'NON / NON EXPOSÉ';
-  els.diagIso.textContent = canIso ? 'OUI' : 'NON / NON EXPOSÉ';
-  els.diagTime.textContent = canTime ? 'OUI' : 'NON / NON EXPOSÉ';
+  const s = exposureSettings();
+  const isoRead=Number.isFinite(s.iso), timeRead=Number.isFinite(s.exposureTime);
+  els.diagManual.textContent = canManual ? 'EXPOSÉ' : 'NON EXPOSÉ';
+  els.diagIso.textContent = isoRead ? (canIsoControl?'LU + CONTRÔLABLE':'LU') : (canIsoControl?'CONTRÔLABLE':'NON EXPOSÉ');
+  els.diagTime.textContent = timeRead ? (canTimeControl?'LU + CONTRÔLABLE':'LU') : (canTimeControl?'CONTRÔLABLE':'NON EXPOSÉ');
   els.diagWb.textContent = canWb ? 'OUI' : 'NON / NON EXPOSÉ';
   els.diagPhoto.textContent = imageCapture ? 'OUI' : 'NON';
   const bits=[];
-  if(Number.isFinite(s.iso)) bits.push(`ISO ${s.iso}`);
-  if(Number.isFinite(s.exposureTime)) bits.push(`t ${s.exposureTime}`);
+  if(isoRead) bits.push(`ISO ${Math.round(s.iso)}`);
+  if(timeRead) bits.push(`t ${s.exposureTime}`);
   if(s.exposureMode) bits.push(s.exposureMode);
   els.diagSettings.textContent = bits.length?bits.join(' · '):'Non exposés';
-  els.diagRaw.textContent = JSON.stringify({settings:s,capabilities:{
+  updateMeterStrip();
+  els.diagRaw.textContent = JSON.stringify({settings:s.raw,capabilities:{
     exposureMode:capabilities.exposureMode,iso:capabilities.iso,exposureTime:capabilities.exposureTime,
     exposureCompensation:capabilities.exposureCompensation,whiteBalanceMode:capabilities.whiteBalanceMode,colorTemperature:capabilities.colorTemperature,
     focusMode:capabilities.focusMode,torch:capabilities.torch,zoom:capabilities.zoom
@@ -155,68 +189,125 @@ async function sampleMedian(count=12,spacing=45){
   return vals.length ? vals[Math.floor(vals.length/2)] : NaN;
 }
 
+async function settingsMedian(count=8,spacing=90){
+  const vals=[];
+  for(let i=0;i<count;i++){
+    const s=exposureSettings();
+    if(Number.isFinite(s.iso)&&Number.isFinite(s.exposureTime)) vals.push(s);
+    await sleep(spacing);
+  }
+  if(!vals.length)return null;
+  const med=key=>{const a=vals.map(v=>v[key]).sort((x,y)=>x-y);return a[Math.floor(a.length/2)];};
+  return {iso:med('iso'),exposureTime:med('exposureTime'),samples:vals};
+}
+function settingsStable(samples){
+  if(!samples?.length)return false;
+  const isos=samples.map(s=>s.iso), times=samples.map(s=>s.exposureTime);
+  const iMin=Math.min(...isos),iMax=Math.max(...isos),tMin=Math.min(...times),tMax=Math.max(...times);
+  const iMid=(iMin+iMax)/2,tMid=(tMin+tMax)/2;
+  return (iMax-iMin)<=Math.max(1,iMid*0.04) && (tMax-tMin)<=Math.max(0.01,tMid*0.06);
+}
+async function tryEnableAutoExposure(){
+  if(!track?.applyConstraints)return;
+  const modes=capabilities.exposureMode||[];
+  const preferred=modes.includes?.('continuous')?'continuous':(modes.includes?.('single-shot')?'single-shot':null);
+  if(!preferred)return;
+  const advanced={exposureMode:preferred};
+  if(rangeHas(capabilities.exposureCompensation,0))advanced.exposureCompensation=0;
+  try{await track.applyConstraints({advanced:[advanced]});await sleep(700);}catch(_){ }
+}
 async function tryLockExposure(){
   if(!track?.applyConstraints || !track?.getSettings || !track?.getCapabilities) return {ok:false,reason:'API contraintes indisponible'};
   const caps=track.getCapabilities();
-  const before=track.getSettings();
   const modes=caps.exposureMode || [];
   if(!modes.includes?.('manual')) return {ok:false,reason:'exposureMode manual non exposé'};
 
-  const advanced={exposureMode:'manual'};
-  if(rangeHas(caps.iso,before.iso)) advanced.iso=before.iso;
-  if(rangeHas(caps.exposureTime,before.exposureTime)) advanced.exposureTime=before.exposureTime;
-  if((caps.whiteBalanceMode||[]).includes?.('manual')){
-    advanced.whiteBalanceMode='manual';
-    if(rangeHas(caps.colorTemperature,before.colorTemperature)) advanced.colorTemperature=before.colorTemperature;
-  }
+  // Laisse d'abord l'AE se stabiliser, puis passe en manuel en deux étapes.
+  await sleep(900);
+  const before=exposureSettings();
   try{
-    await track.applyConstraints({advanced:[advanced]});
-    await sleep(250);
-    const after=track.getSettings();
-    const modeLocked = after.exposureMode === 'manual';
-    const valuesVerifiable = Number.isFinite(before.iso)&&Number.isFinite(after.iso)&&Number.isFinite(before.exposureTime)&&Number.isFinite(after.exposureTime);
-    const valuesStable = !valuesVerifiable || (Math.abs(after.iso-before.iso) < Math.max(1,before.iso*0.03) && Math.abs(after.exposureTime-before.exposureTime) < Math.max(0.001,Math.abs(before.exposureTime)*0.05));
+    await track.applyConstraints({advanced:[{exposureMode:'manual'}]});
+    await sleep(500);
+    let locked=exposureSettings();
+    const advanced={exposureMode:'manual'};
+    if(rangeHas(caps.iso,locked.iso))advanced.iso=locked.iso;
+    if(rangeHas(caps.exposureTime,locked.exposureTime))advanced.exposureTime=locked.exposureTime;
+    if((caps.whiteBalanceMode||[]).includes?.('manual'))advanced.whiteBalanceMode='manual';
+    try{await track.applyConstraints({advanced:[advanced]});}catch(_){ }
+    await sleep(500);
+    const med=await settingsMedian(8,90);
+    const after=exposureSettings();
+    const modeLocked=after.exposureMode==='manual';
+    const stable=med?.samples?settingsStable(med.samples):false;
     updateDiagnostics();
-    return {ok:!!modeLocked&&valuesStable, reason:modeLocked?'manual confirmé par getSettings()':'manual non confirmé par getSettings()', before, after, valuesVerifiable};
+    return {ok:!!modeLocked&&stable,reason:modeLocked?(stable?'manual stable confirmé':'manual présent mais valeurs instables'):'manual non confirmé par getSettings()',before,after,median:med};
   }catch(err){
     return {ok:false,reason:`applyConstraints: ${err.name||err.message}`};
   }
+}
+function exposureProduct(s){
+  return Number.isFinite(s?.iso)&&Number.isFinite(s?.exposureTime)&&s.iso>0&&s.exposureTime>0 ? s.iso*s.exposureTime : NaN;
+}
+async function sampleAutoExposure(count=10,spacing=100){
+  const vals=[];
+  for(let i=0;i<count;i++){
+    const s=exposureSettings();
+    const p=exposureProduct(s);
+    if(Number.isFinite(p))vals.push({p,iso:s.iso,exposureTime:s.exposureTime});
+    await sleep(spacing);
+  }
+  if(!vals.length)return null;
+  vals.sort((a,b)=>a.p-b.p);
+  return vals[Math.floor(vals.length/2)];
 }
 
 async function setReference(){
   if(!track) return;
   els.referenceBtn.disabled=true;
-  els.referenceBtn.textContent='VERROUILLAGE…';
-  setBadge('VERROUILLAGE EXPO…');
-  // Laisser l'AE se stabiliser avant de figer ses réglages.
-  await sleep(700);
+  els.referenceBtn.textContent='ANALYSE…';
+  setBadge('TEST DU VERROU…');
+  await sleep(600);
   const lock=await tryLockExposure();
   lockVerified=lock.ok;
-  if(!lockVerified){
-    referenceLuma=null;
-    setBadge('VERROU NON FIABLE','warn');
-    els.stopValue.textContent='—';
-    els.ratioValue.textContent='Mesure live désactivée : essaie le mode 2 PHOTOS.';
-    els.liveModeNote.textContent=`Impossible de confirmer le verrouillage d’exposition (${lock.reason}). Aucun chiffre live n’est affiché pour éviter une fausse mesure.`;
-  } else {
+
+  if(lockVerified){
     const lum=await sampleMedian();
-    if(!Number.isFinite(lum)||lum<=0.0001){
-      referenceLuma=null;lockVerified=false;
-      setBadge('RÉF. TROP SOMBRE','warn');
-      els.ratioValue.textContent='La zone de référence est trop sombre pour une mesure stable.';
-    } else {
-      referenceLuma=lum;
-      recentStops=[];
-      setBadge('EXPO VERROUILLÉE · RÉF. 0,0','ok');
-      els.stopValue.textContent='0,0';
+    if(Number.isFinite(lum)&&lum>0.0001){
+      meterMode='lock'; referenceLuma=lum; autoReference=null; recentStops=[];
+      setBadge('LOCK · RÉF. 0,0','ok');
+      els.stopValue.textContent='0,0 stop';
       els.ratioValue.textContent='Référence mémorisée. Déplace le téléphone vers une autre zone.';
+      els.liveModeNote.textContent='Mode LOCK : exposition téléphone figée et stable. L’écart est calculé à partir de la luminance centrale.';
       if(els.initialRefWrap) els.initialRefWrap.classList.add('hidden');
-      els.liveModeNote.textContent='Exposition téléphone verrouillée et vérifiée. La valeur live est un écart relatif de luminance après traitement caméra : à valider par répétabilité.';
+    } else {
+      lockVerified=false; referenceLuma=null;
     }
   }
+
+  if(!lockVerified){
+    // Si le manuel n'est pas fiable, repasse volontairement en AE et exploite ISO + temps s'ils sont remontés en live.
+    await tryEnableAutoExposure();
+    const auto=await sampleAutoExposure();
+    if(auto && Number.isFinite(exposureProduct(auto))){
+      meterMode='auto'; autoReference=auto; referenceLuma=null; recentStops=[];
+      setBadge('AUTO-METER · RÉF. 0,0','ok');
+      els.stopValue.textContent='0,0 stop';
+      els.ratioValue.textContent='Référence mémorisée via ISO + temps d’exposition du téléphone.';
+      els.liveModeNote.textContent=`Mode AUTO-METER : verrou manuel non fiable (${lock.reason}), mais ISO + temps d’exposition sont lisibles. L’app laisse l’AE travailler et déduit l’écart de ses changements de réglages.`;
+      if(els.initialRefWrap) els.initialRefWrap.classList.add('hidden');
+    } else {
+      meterMode='none'; autoReference=null; referenceLuma=null;
+      setBadge('LIVE NON EXPLOITABLE','warn');
+      els.stopValue.textContent='—';
+      els.ratioValue.textContent='Utilise le mode 2 PHOTOS.';
+      els.liveModeNote.textContent=`Ni verrouillage fiable ni ISO + temps d’exposition live exploitables (${lock.reason}). Aucun chiffre live n’est affiché.`;
+    }
+  }
+  updateDiagnostics();
   els.referenceBtn.disabled=false;
   els.referenceBtn.textContent='DÉFINIR COMME RÉF.';
 }
+
 els.referenceBtn.addEventListener('click',setReference);
 
 
@@ -225,24 +316,40 @@ function startLiveSampling(){
   const tick=(ts)=>{
     if(ts-last>180){
       last=ts;
-      if(referenceLuma && lockVerified){
+      updateMeterStrip();
+      if(meterMode==='lock' && referenceLuma && lockVerified){
         const lum=sampleCenterLuma();
         if(Number.isFinite(lum)&&lum>0){
           let stops=log2(lum/referenceLuma);
           recentStops.push(stops); if(recentStops.length>7) recentStops.shift();
           const sorted=[...recentStops].sort((a,b)=>a-b);
           stops=sorted[Math.floor(sorted.length/2)];
-          const sign=stops>0.04?'+':'';
-          els.stopValue.textContent=`${sign}${fmt(stops,1)} stop${Math.abs(stops)>=1.5?'s':''}`;
-          const ratio=Math.pow(2,Math.abs(stops));
-          if(Math.abs(stops)<0.08) els.ratioValue.textContent='≈ même luminance que la référence';
-          else els.ratioValue.textContent=`≈ ${fmt(ratio,1)}× ${stops>0?'plus lumineuse':'moins lumineuse'} que la référence`;
+          renderLiveStops(stops);
+        }
+      } else if(meterMode==='auto' && autoReference){
+        const cur=exposureSettings();
+        const refP=exposureProduct(autoReference),curP=exposureProduct(cur);
+        if(Number.isFinite(refP)&&Number.isFinite(curP)&&refP>0&&curP>0){
+          // Une scène plus lumineuse pousse l'AE vers moins d'ISO / moins de temps : signe positif.
+          let stops=-log2(curP/refP);
+          recentStops.push(stops); if(recentStops.length>9) recentStops.shift();
+          const sorted=[...recentStops].sort((a,b)=>a-b);
+          stops=sorted[Math.floor(sorted.length/2)];
+          renderLiveStops(stops);
         }
       }
+      if(Math.floor(ts)%1200<200)updateDiagnostics();
     }
     liveLoop=requestAnimationFrame(tick);
   };
   liveLoop=requestAnimationFrame(tick);
+}
+function renderLiveStops(stops){
+  const sign=stops>0.04?'+':'';
+  els.stopValue.textContent=`${sign}${fmt(stops,1)} stop${Math.abs(stops)>=1.5?'s':''}`;
+  const ratio=Math.pow(2,Math.abs(stops));
+  if(Math.abs(stops)<0.08) els.ratioValue.textContent='≈ même niveau que la référence';
+  else els.ratioValue.textContent=`≈ ${fmt(ratio,1)}× ${stops>0?'plus lumineux':'moins lumineux'} que la référence`;
 }
 
 // ---------- EXIF minimal JPEG parser ----------
