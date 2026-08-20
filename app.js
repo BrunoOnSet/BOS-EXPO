@@ -1480,8 +1480,28 @@ function compactStopLabel(v){
   if(Math.abs(v)<.05)return "0 stop";
   return `${v>0?"+":""}${fmt(v,1)} stop${Math.abs(v)>=1.5?"s":""}`;
 }
+function renderQuickWaveformBar(guide){
+  const segHost=$("quickWaveformSegments"), markerHost=$("quickWaveformMarkers"), pinHost=$("quickWaveformPins");
+  if(!guide)return;
+  if(segHost){
+    segHost.innerHTML=(guide.zones||[]).map((z,i)=>{
+      const left=Math.max(0,Math.min(100,z.min)), right=Math.max(left,Math.min(100,z.max));
+      return `<span class="wave-seg wave-seg-${(i%5)+1}" style="left:${left}%;width:${Math.max(.15,right-left)}%" title="${escapeHtml(z.label)}"></span>`;
+    }).join("");
+  }
+  if(markerHost){
+    markerHost.innerHTML=(guide.markers||[]).slice(0,6).map(m=>`<span class="wave-marker" style="left:${Math.max(0,Math.min(100,m.value))}%"><i></i><b>${escapeHtml(m.label)}</b></span>`).join("");
+  }
+  if(pinHost){
+    const h=Math.max(0,Math.min(100,Number(waveformScene.high)||0));
+    const s=Math.max(0,Math.min(100,Number(waveformScene.shadow)||0));
+    pinHost.innerHTML=`<span class="quick-wave-pin shadow" style="left:${s}%" title="Ombre ${fmt(s,0)} %"><b>O</b></span><span class="quick-wave-pin high" style="left:${h}%" title="Haute lumière ${fmt(h,0)} %"><b>H</b></span>`;
+  }
+}
+
 function renderCompactExpoTools(guide,cam,p,bases){
   if(!guide)return;
+  renderQuickWaveformBar(guide);
   const canSim=!!guide.stopsFn;
   const high=scenePointInfo(guide,waveformScene.high,0);
   const shadow=scenePointInfo(guide,waveformScene.shadow,0);
