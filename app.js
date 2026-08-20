@@ -948,7 +948,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.50 — Situation 1 recap + transition alternatives workflow
+// BOS EXPO V3.51 — Situation 1 recap + transition alternatives workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
@@ -1221,8 +1221,8 @@ function simpleCalculateNow(changedKey=null){
   simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderExposureGuide();
 }
 
-// ---------- EXPOSER · lecture WAVEFORM par profil ----------
-let exposureGuideValue=null;
+// ---------- ANALYSE WAVEFORM · 3 points + simulation d’exposition ----------
+let waveformScene={skin:52,high:88,shadow:19,shift:0};
 let exposureGuideProfileKey="";
 
 function slog3CodeValue(linear){
@@ -1269,14 +1269,14 @@ function exposureProfileGuide(){
   if(gammaMode==="slog3" || /s-?log3/i.test(label)){
     const grey=slog3IreFromStops(0),toe=slog3IreFromStops(-4),m1=slog3IreFromStops(-1),p3=slog3IreFromStops(3),p5=slog3IreFromStops(5),p6=slog3IreFromStops(6);
     return {
-      key:"slog3",status:"S-LOG3",grey,stopsFn:slog3IreFromStops,
+      key:"slog3",status:"S-LOG3",grey,stopsFn:slog3IreFromStops,highStop:6,highSignal:p6,highLabel:"+6 stops / gris",
       zones:[
-        {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe",text:"Sous ≈ 12 %, S-Log3 est dans sa portion basse linéaire. C’est la zone des très basses lumières ; le bruit et la séparation des noirs deviennent les points à surveiller."},
-        {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres",text:"La courbe est logarithmique. Le signal reste exploitable, mais tu es plusieurs stops sous le gris moyen."},
-        {min:m1,max:p3,label:"MÉDIUMS",title:"Médiums",text:"Zone centrale de lecture : du voisinage de −1 stop jusqu’aux hautes valeurs de médiums. Gris, peaux et valeurs de référence se situent généralement ici."},
-        {min:p3,max:p5,label:"HAUTES",title:"Hautes lumières",text:"La courbe Log compresse progressivement une grande quantité de lumière réelle dans une portion réduite du signal."},
-        {min:p5,max:p6,label:"TRÈS HAUTES",title:"Très hautes lumières",text:"Tu approches des niveaux très élevés du signal S-Log3. La marge capteur réelle avant clipping dépend de la caméra et de son mode d’exposition."},
-        {min:p6,max:100.01,label:"EXTRÊMES",title:"Extrêmes",text:"Au-delà d’environ +6 stops par rapport au gris, ne déduis pas une marge capteur uniquement du pourcentage : vérifie le clipping réel de la caméra."}
+        {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe"},
+        {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres"},
+        {min:m1,max:p3,label:"MÉDIUMS",title:"Médiums"},
+        {min:p3,max:p5,label:"HAUTES",title:"Hautes lumières"},
+        {min:p5,max:p6,label:"TRÈS HAUTES",title:"Très hautes lumières"},
+        {min:p6,max:100.01,label:"EXTRÊMES",title:"Extrêmes"}
       ],
       markers:[
         {value:toe,label:"≈12 %",sub:"passage pied → log"},
@@ -1284,39 +1284,38 @@ function exposureProfileGuide(){
         {value:slog3IreForReflectance(.9),label:"≈61 %",sub:"blanc 90 %"},
         {value:p6,label:"≈94 %",sub:"+6 stops / gris"}
       ],
-      note:"S-Log3 sans LUT. Le point ≈12 % est la transition mathématique entre la portion basse linéaire et la portion logarithmique. Les zones décrivent le signal ; la latitude capteur et le clipping restent propres à la caméra.",
-      refWhite:`${Math.round(slog3IreForReflectance(.9))} %`,
-      refNote:"Sony place le gris 18 % S-Log3 autour de 41 %. La courbe passe de sa portion basse linéaire à sa portion log autour de 12 %."
+      note:"Simulation S-Log3 sans LUT. Les valeurs indiquent où le signal se déplacerait dans la courbe. Le repère haut n’est pas une garantie de clipping capteur : la latitude réelle dépend de la caméra et de son mode d’exposition.",
+      refWhite:`${Math.round(slog3IreForReflectance(.9))} %`,refNote:"Sony place le gris 18 % S-Log3 autour de 41 %."
     };
   }
   if(gammaMode==="scinetone" || /s-?cinetone/i.test(label)){
     return {
-      key:"scinetone",status:"S-CINETONE",grey:null,stopsFn:null,
+      key:"scinetone",status:"S-CINETONE",grey:null,stopsFn:null,highStop:null,highSignal:70,highLabel:"début roll-off 70 %",
       zones:[
-        {min:0,max:1.5,label:"SOUS LE NOIR",title:"Sous le noir nominal",text:"S-Cinetone place son niveau noir autour de 1,5 %. Une lecture en dessous correspond à une zone extrêmement basse du signal."},
-        {min:1.5,max:70,label:"ZONE PRINCIPALE",title:"Contraste principal",text:"Jusqu’à environ 70 %, S-Cinetone conserve son contraste principal. Il n’y a pas d’équivalence simple et universelle en stops comme sur une courbe Log."},
-        {min:70,max:100.01,label:"ROLL-OFF",title:"Roll-off hautes lumières",text:"À partir d’environ 70 %, Sony réduit progressivement le contraste des hautes lumières jusqu’à la saturation afin de conserver une transition plus douce."}
+        {min:0,max:1.5,label:"SOUS LE NOIR",title:"Sous le noir nominal"},
+        {min:1.5,max:70,label:"ZONE PRINCIPALE",title:"Contraste principal"},
+        {min:70,max:100.01,label:"ROLL-OFF",title:"Roll-off hautes lumières"}
       ],
       markers:[
         {value:1.5,label:"1,5 %",sub:"niveau noir"},
         {value:70,label:"70 %",sub:"début roll-off"},
         {value:100,label:"100 %",sub:"saturation signal"}
       ],
-      note:"S-Cinetone n’est pas une courbe Log. Le repère le plus utile ici est le début documenté du roll-off hautes lumières à 70 % ; évite de lui appliquer une lecture stops ↔ waveform de type Log.",
-      refWhite:"—",refNote:"Sony documente un niveau noir à 1,5 % et une réduction progressive du contraste des hautes lumières à partir de 70 % de niveau vidéo."
+      note:"S-Cinetone n’est pas une courbe Log. EXPO peut situer tes trois lectures dans ses zones, mais ne simule pas un déplacement en stops tant qu’une relation exposition ↔ signal suffisamment fiable n’est pas renseignée.",
+      refWhite:"—",refNote:"Sony documente un niveau noir à 1,5 % et une réduction progressive du contraste des hautes lumières à partir de 70 %."
     };
   }
   if(gammaMode==="logc3" || /log\s*c3/i.test(label)){
     const grey=logc3Ei800IreFromStops(0),toe=logc3Ei800IreFromStops(Math.log2(0.010591/0.18)),m1=logc3Ei800IreFromStops(-1),p3=logc3Ei800IreFromStops(3),p6=logc3Ei800IreFromStops(6),p76=logc3Ei800IreFromStops(7+2/3);
     return {
-      key:"logc3",status:"LOG C3 · EI 800",grey,stopsFn:logc3Ei800IreFromStops,
+      key:"logc3",status:"LOG C3 · EI 800",grey,stopsFn:logc3Ei800IreFromStops,highStop:7+2/3,highSignal:p76,highLabel:"+7⅔ stops · EI800",
       zones:[
-        {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe",text:"Sous ≈ 15 %, LogC3 EI 800 est dans sa portion basse. C’est la zone des ombres les plus profondes."},
-        {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres",text:"Portion logarithmique sous le gris moyen. La lecture en stops reste stable et utile pour situer les ombres."},
-        {min:m1,max:p3,label:"MÉDIUMS",title:"Médiums",text:"Zone centrale autour du gris moyen ARRI : 39,1 % à EI 800. Les repères en stops sont directement lisibles."},
-        {min:p3,max:p6,label:"HAUTES",title:"Hautes lumières",text:"Zone de hautes lumières LogC3 : beaucoup de latitude de scène est comprimée dans le haut du waveform."},
-        {min:p6,max:p76,label:"TRÈS HAUTES",title:"Très hautes lumières",text:"À EI 800 sur les caméras ALEV-3, tu approches de la limite haute documentée autour de +7,6 stops au-dessus du gris."},
-        {min:p76,max:100.01,label:"HORS LATITUDE EI800",title:"Au-delà du repère EI 800",text:"La table ARRI LogC3 EI 800 n’attribue plus de valeur utile au-delà d’environ +7⅔ stops. La latitude change avec l’EI."}
+        {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe"},
+        {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres"},
+        {min:m1,max:p3,label:"MÉDIUMS",title:"Médiums"},
+        {min:p3,max:p6,label:"HAUTES",title:"Hautes lumières"},
+        {min:p6,max:p76,label:"TRÈS HAUTES",title:"Très hautes lumières"},
+        {min:p76,max:100.01,label:"HORS REPÈRE EI800",title:"Au-delà du repère EI 800"}
       ],
       markers:[
         {value:toe,label:"≈15 %",sub:"passage pied → log"},
@@ -1325,21 +1324,21 @@ function exposureProfileGuide(){
         {value:p6,label:"83,2 %",sub:"+6 stops"},
         {value:p76,label:"95,6 %",sub:"+7⅔ stops · EI800"}
       ],
-      note:"Repères ARRI LogC3 à EI 800. Contrairement à LogC4, la relation exacte signal ↔ stops de LogC3 varie légèrement avec l’EI ; cette première version utilise donc la table officielle EI 800.",
-      refWhite:"—",refNote:"ARRI place le gris moyen LogC3 à 39,1 % à EI 800. La table ARRI donne les niveaux par tiers de stop jusqu’à +7⅔ stops."
+      note:"Simulation LogC3 à EI 800. La relation signal ↔ stops varie légèrement avec l’EI ; cette version utilise donc le repère EI 800 et ne présente pas sa limite haute comme un clipping universel.",
+      refWhite:"—",refNote:"ARRI place le gris moyen LogC3 à 39,1 % à EI 800."
     };
   }
   if(gammaMode==="bmfilm5" || /blackmagic.*film.*gen\s*5|film\s*gen\s*5/i.test(label)){
     const grey=bmFilmGen5IreFromStops(0),toe=(8.283605932402494*0.005+0.09246575342465753)*100,m1=bmFilmGen5IreFromStops(-1),p3=bmFilmGen5IreFromStops(3),p6=bmFilmGen5IreFromStops(6),p8=bmFilmGen5IreFromStops(8);
     return {
-      key:"bmfilm5",status:"FILM GEN 5",grey,stopsFn:bmFilmGen5IreFromStops,
+      key:"bmfilm5",status:"FILM GEN 5",grey,stopsFn:bmFilmGen5IreFromStops,highStop:8,highSignal:p8,highLabel:"repère +8 stops",
       zones:[
-        {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe",text:"Sous ≈ 13,4 %, Film Gen 5 est dans sa portion basse linéaire. C’est la zone des très basses lumières."},
-        {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres",text:"Portion logarithmique sous le gris moyen Blackmagic, situé à environ 38,4 %."},
-        {min:m1,max:p3,label:"MÉDIUMS",title:"Médiums",text:"Zone centrale autour du gris moyen. Le signal monte d’environ 6 points par stop dans cette partie de la courbe."},
-        {min:p3,max:p6,label:"HAUTES",title:"Hautes lumières",text:"Zone de hautes lumières comprimées par la courbe Film Gen 5."},
-        {min:p6,max:p8,label:"TRÈS HAUTES",title:"Très hautes lumières",text:"Le codage Gen 5 conserve encore beaucoup de headroom, mais le capteur peut clipper bien avant la limite mathématique de la courbe selon caméra et ISO."},
-        {min:p8,max:100.01,label:"EXTRÊMES",title:"Extrêmes encodés",text:"Zone très haute de la courbe. Ne l’interprète pas comme de la latitude capteur garantie : la dynamique réelle dépend du modèle et de l’ISO."}
+        {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe"},
+        {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres"},
+        {min:m1,max:p3,label:"MÉDIUMS",title:"Médiums"},
+        {min:p3,max:p6,label:"HAUTES",title:"Hautes lumières"},
+        {min:p6,max:p8,label:"TRÈS HAUTES",title:"Très hautes lumières"},
+        {min:p8,max:100.01,label:"EXTRÊMES",title:"Extrêmes encodés"}
       ],
       markers:[
         {value:toe,label:"≈13,4 %",sub:"passage pied → log"},
@@ -1348,8 +1347,8 @@ function exposureProfileGuide(){
         {value:p6,label:"74,3 %",sub:"+6 stops"},
         {value:p8,label:"86,3 %",sub:"+8 stops"}
       ],
-      note:"Blackmagic Film Gen 5 : la courbe d’encodage possède plus de headroom mathématique que beaucoup de capteurs. EXPO sépare donc volontairement « position dans la courbe » et « latitude réelle de la caméra ».",
-      refWhite:"—",refNote:"Blackmagic Film Gen 5 place le gris moyen autour de 38,4 %. La transition de la portion basse linéaire vers la portion logarithmique est autour de 13,4 %."
+      note:"Simulation Blackmagic Film Gen 5. Le repère +8 est un repère dans la fonction d’encodage, pas une promesse de latitude capteur : le modèle de caméra et l’ISO peuvent limiter les hautes lumières avant.",
+      refWhite:"—",refNote:"Blackmagic Film Gen 5 place le gris moyen autour de 38,4 %."
     };
   }
   return null;
@@ -1357,13 +1356,6 @@ function exposureProfileGuide(){
 
 function waveformZoneFor(guide,value){
   return guide?.zones?.find(z=>value>=z.min && value<z.max) || guide?.zones?.[guide.zones.length-1] || null;
-}
-function exposureGuideSetDefault(guide){
-  if(!guide)return;
-  if(exposureGuideProfileKey!==guide.key){
-    exposureGuideProfileKey=guide.key;
-    exposureGuideValue=Number.isFinite(guide.grey)?guide.grey:(guide.key==="scinetone"?70:50);
-  }
 }
 function renderWaveformSegments(guide){
   const host=$("exposeWaveformSegments");if(!host)return;
@@ -1375,6 +1367,55 @@ function renderWaveformSegments(guide){
 function renderWaveformMarkers(guide){
   const host=$("exposeWaveformMarkers");if(!host)return;
   host.innerHTML=(guide.markers||[]).map(m=>`<span class="wave-marker" style="left:${Math.max(0,Math.min(100,m.value))}%"><i></i><b>${escapeHtml(m.label)}</b></span>`).join("");
+}
+function sceneStopText(v){
+  if(!Number.isFinite(v))return "—";
+  if(Math.abs(v)<.05)return "0,0 stop";
+  return `${v>0?"+":""}${fmt(v,1)} stop${Math.abs(v)>=1.5?"s":""}`;
+}
+function sceneSignalText(v){
+  if(!Number.isFinite(v))return "—";
+  if(v>100)return "> 100 %";
+  if(v<0)return "< 0 %";
+  return `${fmt(v,1)} %`;
+}
+function scenePointInfo(guide,value,shift){
+  const v=Math.max(0,Math.min(100,Number(value)||0));
+  const zone=waveformZoneFor(guide,v);
+  if(!guide?.stopsFn)return {value:v,zone,stop:NaN,afterSignal:NaN,afterStop:NaN,afterZone:null};
+  const stop=inverseStopsFromSignal(guide.stopsFn,v,-12,12);
+  const afterStop=stop+(Number(shift)||0);
+  const afterSignal=guide.stopsFn(afterStop);
+  const afterZone=waveformZoneFor(guide,Math.max(0,Math.min(100,afterSignal)));
+  return {value:v,zone,stop,afterSignal,afterStop,afterZone};
+}
+function scenePointDom(key){
+  const cap=key==="skin"?"Skin":key==="high"?"High":"Shadow";
+  return {input:$("scenePoint"+cap),now:$("scenePoint"+cap+"Now"),after:$("scenePoint"+cap+"After")};
+}
+function renderScenePins(guide,infos,shift){
+  const host=$("scenePointPins");if(!host)return;
+  const defs=[{k:"skin",c:"S"},{k:"high",c:"H"},{k:"shadow",c:"O"}];
+  const pins=[];
+  defs.forEach(d=>{
+    const i=infos[d.k];if(!i)return;
+    pins.push(`<span class="scene-pin scene-pin-${d.k}" style="left:${Math.max(0,Math.min(100,i.value))}%"><b>${d.c}</b></span>`);
+    if(guide.stopsFn&&Math.abs(shift)>.04&&Number.isFinite(i.afterSignal)){
+      pins.push(`<span class="scene-pin scene-pin-after scene-pin-${d.k}" style="left:${Math.max(0,Math.min(100,i.afterSignal))}%"><b>${d.c}</b></span>`);
+    }
+  });
+  host.innerHTML=pins.join("");
+}
+function scenePresetButtons(){
+  document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>{
+    const v=Number(btn.dataset.shift);
+    btn.classList.toggle("active",Math.abs(v-waveformScene.shift)<.01);
+  });
+}
+function setSceneShift(v){
+  waveformScene.shift=Math.max(-2.5,Math.min(2.5,Number(v)||0));
+  const slider=$("sceneShiftSlider");if(slider)slider.value=waveformScene.shift.toFixed(1);
+  renderExposureGuide();
 }
 function renderExposureGuide(){
   const cam=currentCamera(),p=currentProfile()||{},guide=exposureProfileGuide();
@@ -1390,48 +1431,101 @@ function renderExposureGuide(){
   if($("cameraRefNote"))$("cameraRefNote").textContent=guide?.refNote||"Les repères précis de ce profil seront ajoutés lorsqu’ils sont documentés de façon fiable.";
   if(!guide)return;
 
-  exposureGuideSetDefault(guide);
-  const value=Math.max(0,Math.min(100,Number(exposureGuideValue)||0));
-  const slider=$("exposeWaveformSlider");if(slider && Math.abs(Number(slider.value)-value)>.001)slider.value=value.toFixed(1);
-  const zone=waveformZoneFor(guide,value);
-  if($("exposeReadValue"))$("exposeReadValue").textContent=`${fmt(value,1)} %`;
-  if($("exposeZoneBadge"))$("exposeZoneBadge").textContent=zone?.label||"—";
-  if($("exposeZoneTitle"))$("exposeZoneTitle").textContent=zone?.title||"—";
-  if($("exposeZoneText"))$("exposeZoneText").textContent=zone?.text||"—";
-  const cursor=$("exposeWaveformCursor");if(cursor)cursor.style.left=`${value}%`;
   renderWaveformSegments(guide);renderWaveformMarkers(guide);
-
   const keyGrid=$("exposeKeyGrid");
   if(keyGrid)keyGrid.innerHTML=(guide.markers||[]).map(m=>`<div class="wave-key"><b>${escapeHtml(m.label)}</b><span>${escapeHtml(m.sub||"")}</span></div>`).join("");
-
-  if(guide.stopsFn && Number.isFinite(guide.grey)){
-    const s=inverseStopsFromSignal(guide.stopsFn,value,-12,12);
-    if($("exposeDeltaLabel"))$("exposeDeltaLabel").textContent="ÉCART AU GRIS MOYEN";
-    if($("exposeDeltaValue"))$("exposeDeltaValue").textContent=Number.isFinite(s)?`${s>0?"+":""}${fmt(s,1)} stop${Math.abs(s)>=1.5?"s":""}`:"—";
-    if($("exposeDeltaText"))$("exposeDeltaText").textContent=`Gris moyen : ${fmt(guide.grey,1)} %. Valeur calculée dans la courbe, pas jugement d’exposition artistique.`;
-  }else{
-    if($("exposeDeltaLabel"))$("exposeDeltaLabel").textContent="COMPORTEMENT DE COURBE";
-    if($("exposeDeltaValue"))$("exposeDeltaValue").textContent=value>=70?"ROLL-OFF":"CONTRASTE PRINCIPAL";
-    if($("exposeDeltaText"))$("exposeDeltaText").textContent=value>=70?"Au-dessus de 70 %, le contraste hautes lumières diminue progressivement.":"S-Cinetone n’utilise pas une relation stops ↔ waveform de type Log.";
-  }
   if($("exposeNote"))$("exposeNote").textContent=guide.note||"";
 
+  const canSim=!!guide.stopsFn;
+  const shift=canSim?waveformScene.shift:0;
+  const pointKeys=["skin","high","shadow"];
+  const infos={};
+  pointKeys.forEach(key=>{
+    const dom=scenePointDom(key);
+    if(dom.input && document.activeElement!==dom.input)dom.input.value=String(waveformScene[key]);
+    const info=scenePointInfo(guide,waveformScene[key],shift);infos[key]=info;
+    if(dom.now){
+      dom.now.textContent=canSim?`${sceneStopText(info.stop)} · ${info.zone?.label||"—"}`:(info.zone?.label||"—");
+    }
+    if(dom.after){
+      if(canSim&&Math.abs(shift)>.04){
+        const flag=Number.isFinite(guide.highStop)&&info.afterStop>guide.highStop+.02?" · AU-DESSUS DU REPÈRE HAUT":"";
+        dom.after.textContent=`Après ${sceneStopText(shift)} → ${sceneSignalText(info.afterSignal)} · ${sceneStopText(info.afterStop)}${flag}`;
+      }else if(canSim){
+        dom.after.textContent="Déplace l’exposition pour simuler.";
+      }else{
+        dom.after.textContent="Lecture de zone uniquement pour ce profil.";
+      }
+    }
+  });
+  renderScenePins(guide,infos,shift);
+
+  const stopVals=pointKeys.map(k=>infos[k].stop).filter(Number.isFinite);
+  if($("sceneContrast"))$("sceneContrast").textContent=canSim&&stopVals.length>=2?`${fmt(Math.max(...stopVals)-Math.min(...stopVals),1)} stops`:"—";
+  if($("sceneContrastText"))$("sceneContrastText").textContent=canSim?"Écart entre la valeur la plus basse et la plus haute saisies.":"Pas de conversion stops ↔ signal fiable pour cette courbe.";
+
+  const highInfo=pointKeys.map(k=>({k,...infos[k]})).sort((a,b)=>b.value-a.value)[0];
+  if($("sceneHighPoint"))$("sceneHighPoint").textContent=highInfo?`${fmt(highInfo.value,1)} %`:"—";
+  if($("sceneHighText"))$("sceneHighText").textContent=highInfo?`${highInfo.zone?.label||"—"}${canSim?` · ${sceneStopText(highInfo.stop)}`:""}`:"—";
+
+  if($("sceneHighMargin")){
+    if(canSim&&highInfo&&Number.isFinite(guide.highStop)&&Number.isFinite(highInfo.stop)){
+      const margin=guide.highStop-highInfo.stop;
+      $("sceneHighMargin").textContent=margin>=0?`${fmt(margin,1)} stops`:`+${fmt(Math.abs(margin),1)} au-dessus`;
+      if($("sceneHighMarginText"))$("sceneHighMarginText").textContent=margin>=0?`Jusqu’au repère ${guide.highLabel}. Ce n’est pas une marge capteur garantie.`:`Le point dépasse déjà le repère ${guide.highLabel}. Ce n’est pas une mesure de clipping capteur.`;
+    }else{
+      $("sceneHighMargin").textContent=guide.highSignal?`${fmt(Math.max(0,guide.highSignal-(highInfo?.value||0)),1)} points`:"—";
+      if($("sceneHighMarginText"))$("sceneHighMarginText").textContent=guide.key==="scinetone"?"Distance en niveau vidéo jusqu’au début du roll-off à 70 %, pas en stops.":"Repère de courbe uniquement.";
+    }
+  }
+
+  const shiftSlider=$("sceneShiftSlider"),shiftCard=$("sceneShiftCard");
+  if(shiftSlider){shiftSlider.disabled=!canSim;shiftSlider.value=(canSim?waveformScene.shift:0).toFixed(1);}
+  shiftCard?.classList.toggle("disabled",!canSim);
+  document.querySelectorAll("#sceneShiftPresets button").forEach(b=>b.disabled=!canSim);
+  if($("sceneShiftIntent"))$("sceneShiftIntent").textContent=canSim?sceneStopText(waveformScene.shift):"NON DISPONIBLE";
+  if($("sceneShiftCopy")){
+    if(!canSim)$("sceneShiftCopy").textContent="Cette courbe n’a pas encore de relation stops ↔ signal suffisamment fiable dans BOS pour simuler un déplacement.";
+    else if(Math.abs(waveformScene.shift)<.05)$("sceneShiftCopy").textContent="Déplace le curseur pour voir où arriveraient les trois zones sur le waveform.";
+    else $("sceneShiftCopy").textContent=waveformScene.shift>0?`Si tu augmentes l’exposition de ${sceneStopText(waveformScene.shift)}, les trois points montent dans la courbe.`:`Si tu réduis l’exposition de ${sceneStopText(Math.abs(waveformScene.shift))}, les trois points descendent dans la courbe.`;
+  }
+  scenePresetButtons();
+
+  const sim=$("sceneSimList");
+  if(sim){
+    const rows=[
+      ["SUJET / PEAU",infos.skin],
+      ["HAUTE LUMIÈRE",infos.high],
+      ["OMBRE À CONSERVER",infos.shadow]
+    ];
+    sim.innerHTML=rows.map(([label,i])=>{
+      if(!canSim)return `<div class="scene-sim-row"><span>${label}</span><strong>${fmt(i.value,1)} %</strong><small>${i.zone?.title||"—"}</small></div>`;
+      const after=sceneSignalText(i.afterSignal),warn=Number.isFinite(guide.highStop)&&i.afterStop>guide.highStop+.02;
+      return `<div class="scene-sim-row${warn?" warning":""}"><span>${label}</span><strong>${fmt(i.value,1)} % → ${after}</strong><small>${sceneStopText(i.stop)} → ${sceneStopText(i.afterStop)}${warn?` · au-dessus du repère ${escapeHtml(guide.highLabel)}`:""}</small></div>`;
+    }).join("");
+  }
+
   const card=$("cineEiCard"),values=$("cineEiValues"),title=$("cineEiTitle");
-  const cineEi=guide.key==="slog3" && /cine\s*ei/i.test(String(p.label||""));
-  card?.classList.toggle("hidden",!cineEi||!bases.length);
-  if(cineEi&&bases.length){
-    const stops=inverseStopsFromSignal(guide.stopsFn,value,-8,8);
-    if(title)title.textContent=Number.isFinite(stops)&&Math.abs(stops)>.05?`Même placement : ${stops>0?"+":""}${fmt(stops,1)} stop${Math.abs(stops)>=1.5?"s":""}`:"Base nominale";
+  const cineEi=guide.key==="slog3" && /cine\s*ei/i.test(String(p.label||"")) && canSim && bases.length;
+  card?.classList.toggle("hidden",!cineEi);
+  if(cineEi){
+    if(title)title.textContent=Math.abs(waveformScene.shift)>.05?`Pour déplacer de ${sceneStopText(waveformScene.shift)}`:"Base nominale";
     if(values)values.innerHTML=bases.map(base=>{
-      const ei=Number.isFinite(stops)?Math.max(1,Math.round(base/Math.pow(2,stops))):base;
+      const ei=Math.max(1,Math.round(base/Math.pow(2,waveformScene.shift)));
       return `<span class="cine-ei-pill">Base ${formatThousands(base)} → EI ${formatThousands(ei)}</span>`;
     }).join("");
   }
 }
 
-$("exposeWaveformSlider")?.addEventListener("input",e=>{
-  exposureGuideValue=Number(e.target.value);renderExposureGuide();
+[["scenePointSkin","skin"],["scenePointHigh","high"],["scenePointShadow","shadow"]].forEach(([id,key])=>{
+  $(id)?.addEventListener("input",e=>{
+    const v=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));
+    waveformScene[key]=v;renderExposureGuide();
+  });
 });
+$("sceneShiftSlider")?.addEventListener("input",e=>setSceneShift(e.target.value));
+$("sceneShiftReset")?.addEventListener("click",()=>setSceneShift(0));
+document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEventListener("click",()=>setSceneShift(btn.dataset.shift)));
 
 // Replace the legacy updater once the original app has initialised.
 // V3.34 : les changements restent libres tant que CALCULER n'est pas pressé.

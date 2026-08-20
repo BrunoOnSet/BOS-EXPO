@@ -1109,7 +1109,7 @@ body.dark .iso-picker .picker-option.native-choice.selected{border-color:#F3F3F0
 }
 
 
-/* V3.50 — EXPOSER / lecture waveform par courbe */
+/* V3.51 — EXPOSER / lecture waveform par courbe */
 .waveform-read-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:6px 0 9px}
 .waveform-read-head>div:first-child span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.1em}
 .waveform-read-head>div:first-child strong{display:block;margin-top:3px;font-size:27px;line-height:1;font-weight:950;letter-spacing:-.04em}
@@ -1146,4 +1146,56 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
   .waveform-interpret-grid{grid-template-columns:1fr}
   .waveform-key-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .wave-marker b{display:none}
+}
+
+
+/* V3.51 — analyse waveform à 3 points + simulation */
+.scene-entry-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:7px 0 8px}
+.scene-entry-head>span{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.1em}
+.scene-entry-head small{color:var(--muted);font-size:8px;text-align:right}
+.scene-points-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.scene-point-card{display:block;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--field-bg)}
+.scene-point-kicker{display:block;color:var(--accent);font-size:7.5px;font-weight:950;letter-spacing:.08em;min-height:18px}
+.scene-point-input{display:flex;align-items:baseline;gap:3px;margin-top:5px}
+.scene-point-input input{width:72px;max-width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:23px;line-height:1;font-weight:950;letter-spacing:-.04em;padding:0}
+.scene-point-input b{font-size:10px;color:var(--muted)}
+.scene-point-card>strong{display:block;margin-top:7px;font-size:8.5px;line-height:1.3}
+.scene-point-card>small{display:block;margin-top:4px;color:var(--muted);font-size:7.5px;line-height:1.35;min-height:30px}
+.scene-waveform-shell{margin-top:10px}
+.scene-point-pins{position:absolute;inset:0;z-index:4;pointer-events:none}
+.scene-pin{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.scene-pin b{font-size:8px;font-weight:950}
+.scene-pin-after{top:calc(50% + 15px);background:var(--panel);color:var(--accent);border:2px dashed var(--accent);opacity:.95}
+.scene-summary-grid{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:7px;margin-top:9px}
+.scene-summary-card{padding:10px;border:1px solid var(--line);border-radius:13px;background:var(--field-bg)}
+.scene-summary-card.accent-card{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.scene-summary-card span{display:block;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.08em}
+.scene-summary-card strong{display:block;margin-top:5px;font-size:16px;line-height:1.05;font-weight:950}
+.scene-summary-card small{display:block;margin-top:5px;color:var(--muted);font-size:7.5px;line-height:1.35}
+.scene-shift-card{margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+.scene-shift-card.disabled{opacity:.62}
+.scene-shift-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.scene-shift-head span{display:block;color:var(--accent);font-size:8px;font-weight:950;letter-spacing:.09em}
+.scene-shift-head strong{display:block;margin-top:4px;font-size:19px;line-height:1;font-weight:950}
+.scene-shift-slider{margin:10px 0 2px}
+.scene-shift-axis{display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:5px;color:var(--muted);font-size:6.5px;font-weight:850;letter-spacing:.06em}
+.scene-shift-axis span:nth-child(2){text-align:left}.scene-shift-axis span:nth-child(4){text-align:right}
+.scene-shift-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:9px}
+.scene-shift-presets button{border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);padding:7px 3px;font-size:8px;font-weight:900;cursor:pointer}
+.scene-shift-presets button.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.scene-shift-presets button:disabled{cursor:default}
+.scene-shift-copy{margin-top:8px;color:var(--muted);font-size:8px;line-height:1.4}
+.scene-sim-list{display:grid;gap:6px;margin-top:9px}
+.scene-sim-row{display:grid;grid-template-columns:1.05fr 1.1fr;column-gap:8px;row-gap:3px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--field-bg)}
+.scene-sim-row>span{color:var(--muted);font-size:7.5px;font-weight:900;letter-spacing:.06em}
+.scene-sim-row>strong{text-align:right;font-size:10px;font-weight:950}
+.scene-sim-row>small{grid-column:1/-1;color:var(--muted);font-size:7.5px;line-height:1.35}
+.scene-sim-row.warning{border-color:var(--warn);box-shadow:none}
+@media(max-width:560px){
+  .scene-points-grid{grid-template-columns:1fr}
+  .scene-point-card{display:grid;grid-template-columns:1.1fr auto;column-gap:8px;align-items:center}
+  .scene-point-kicker{min-height:0}.scene-point-input{margin:0;justify-content:flex-end}.scene-point-input input{text-align:right;width:72px;font-size:21px}
+  .scene-point-card>strong,.scene-point-card>small{grid-column:1/-1;min-height:0}
+  .scene-summary-grid{grid-template-columns:1fr 1fr}
+  .scene-summary-card:first-child{grid-column:1/-1}
 }

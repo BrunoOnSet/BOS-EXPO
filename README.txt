@@ -445,7 +445,7 @@ V3.49 — SITUATIONS / CONTINUITÉ D’EXPO
 - Les anciennes scènes locales sont conservées et affichées comme situations.
 
 
-V3.50 — WAVEFORM / ZONES DE COURBE
+V3.51 — WAVEFORM / ZONES DE COURBE
 - Refonte du bloc EXPOSER autour d'une lecture directe du waveform.
 - Curseur 0–100 % : interprétation de la zone de courbe et écart en stops quand la courbe le permet.
 - S-Log3 : pied ≈12 %, gris ≈41 %, blanc 90 % ≈61 %, repère +6 stops ≈94 %.
@@ -454,3 +454,6 @@ V3.50 — WAVEFORM / ZONES DE COURBE
 - Blackmagic Film Gen 5 : gris ≈38,4 %, transition portion basse/log ≈13,4 %, repères stops.
 - Les limites ISO MIN/MAX et DIAPH MIN/MAX sont retirées de l'interface Réglages caméra (elles restent internes pour la compatibilité du solveur de compensation).
 - Distinction explicite entre position dans la courbe et latitude réelle du capteur.
+
+
+V3.51 : remplacement du bloc EXPOSER par ANALYSE WAVEFORM à 3 points avec simulation de déplacement d’exposition pour les courbes Log renseignées.
