@@ -467,7 +467,7 @@ V3.54 : remplacement du bloc EXPOSER par ANALYSE WAVEFORM à 3 points avec simul
 - Les guides internes S-Log3 / S-Cinetone / LogC3 restent disponibles en secours.
 
 
-V3.54 — Interface plateau en 4 bulles
+V3.55 — Interface plateau en 4 bulles
 - MARGE : haute lumière + ombre à conserver, marge pour ouvrir, contraste et simulation rapide.
 - LIRE LE WAVEFORM : une valeur en % est traduite en zone de courbe et, quand disponible, en stops par rapport au gris.
 - PLACER UN NIVEAU : conversion rapide stops → waveform/zebra, avec équivalence Cine EI quand disponible.
@@ -475,3 +475,11 @@ V3.54 — Interface plateau en 4 bulles
 - Références techniques détaillées retirées de l’écran principal.
 - Résumé caméra enrichi avec le profil actif.
 - Version visible : v3.54
+
+
+V3.55 — EXPLORATEUR WAVEFORM
+- La barre 0–100 % quitte la bulle MARGE et devient un outil interactif dans EXPLORER LE WAVEFORM.
+- Un curseur permet de parcourir toute la courbe.
+- EXPO affiche : zone, intérêt pratique de la zone, latitude documentée autour du point et qualité de signal attendue.
+- La notion de qualité reste volontairement qualitative : elle décrit le comportement de la courbe, pas une promesse de bruit/dynamique capteur.
+- La latitude affichée s’appuie sur la plage stops↔signal documentée dans waveformGuide lorsqu’elle existe.

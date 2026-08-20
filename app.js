@@ -1481,7 +1481,7 @@ function compactStopLabel(v){
   return `${v>0?"+":""}${fmt(v,1)} stop${Math.abs(v)>=1.5?"s":""}`;
 }
 function renderQuickWaveformBar(guide){
-  const segHost=$("quickWaveformSegments"), markerHost=$("quickWaveformMarkers"), pinHost=$("quickWaveformPins");
+  const segHost=$("quickWaveformSegments"), markerHost=$("quickWaveformMarkers"), cursor=$("quickWaveformCursor");
   if(!guide)return;
   if(segHost){
     segHost.innerHTML=(guide.zones||[]).map((z,i)=>{
@@ -1492,11 +1492,76 @@ function renderQuickWaveformBar(guide){
   if(markerHost){
     markerHost.innerHTML=(guide.markers||[]).slice(0,6).map(m=>`<span class="wave-marker" style="left:${Math.max(0,Math.min(100,m.value))}%"><i></i><b>${escapeHtml(m.label)}</b></span>`).join("");
   }
-  if(pinHost){
-    const h=Math.max(0,Math.min(100,Number(waveformScene.high)||0));
-    const s=Math.max(0,Math.min(100,Number(waveformScene.shadow)||0));
-    pinHost.innerHTML=`<span class="quick-wave-pin shadow" style="left:${s}%" title="Ombre ${fmt(s,0)} %"><b>O</b></span><span class="quick-wave-pin high" style="left:${h}%" title="Haute lumière ${fmt(h,0)} %"><b>H</b></span>`;
+  if(cursor){
+    const v=Math.max(0,Math.min(100,Number(compactExpoState.read)||0));
+    cursor.style.left=`${v}%`;
   }
+}
+
+function waveformExplorerAdvice(zone,value){
+  const label=String(zone?.label||zone?.title||'').toUpperCase();
+  if(/SOUS LE NOIR|PIED|TRÈS BASSES/.test(label))return {
+    useTitle:'NOIRS / DÉTAIL NON PRIORITAIRE',
+    useText:'À réserver aux noirs assumés ou aux zones dont le détail n’est pas essentiel.',
+    quality:'FRAGILE',
+    qualityText:'Très peu de signal utile : le bruit et la perte de détail deviennent plus visibles.'
+  };
+  if(/OMBRE/.test(label))return {
+    useTitle:'OMBRES AVEC DÉTAIL',
+    useText:'Intéressant pour garder de la matière dans les ombres sans les remonter inutilement.',
+    quality:'CORRECTE À SURVEILLER',
+    qualityText:'Détail exploitable, mais la propreté dépend davantage du capteur, de l’ISO/EI et du niveau réel de lumière.'
+  };
+  if(/MÉDIUM|ZONE PRINCIPALE|CONTRASTE PRINCIPAL/.test(label))return {
+    useTitle:'SUJETS ET INFORMATIONS IMPORTANTES',
+    useText:'Zone généralement confortable pour les éléments dont tu veux conserver texture et nuances.',
+    quality:'TRÈS BONNE',
+    qualityText:'Zone de signal robuste et facile à travailler, sous réserve du rendu artistique recherché.'
+  };
+  if(/TRÈS HAUTES|ROLL-OFF/.test(label))return {
+    useTitle:'HAUTES LUMIÈRES À PRÉSERVER',
+    useText:'Utile pour placer des sources, fenêtres ou reflets que tu veux encore conserver sans les sacrifier.',
+    quality:'COMPRIMÉE',
+    qualityText:'La courbe consacre moins de variation de signal aux écarts de lumière ; les nuances deviennent plus serrées.'
+  };
+  if(/HAUTES/.test(label))return {
+    useTitle:'ÉLÉMENTS LUMINEUX IMPORTANTS',
+    useText:'Bonne zone pour des hautes lumières dont tu veux garder la texture tout en restant lumineuses.',
+    quality:'BONNE',
+    qualityText:'Signal encore confortable, avec une compression croissante en allant vers le haut de la courbe.'
+  };
+  if(/EXTRÊME|HORS REPÈRE|SATURATION/.test(label))return {
+    useTitle:'SPÉCULAIRES / ZONES SACRIFIABLES',
+    useText:'À réserver de préférence aux pics lumineux ou aux éléments dont la texture n’est pas critique.',
+    quality:'TRÈS COMPRIMÉE / LIMITE',
+    qualityText:'Très faible marge de signal : risque de perte rapide de nuances ou de dépassement du repère documenté.'
+  };
+  return {
+    useTitle:'SELON LE SUJET',
+    useText:zone?.text||zone?.title||'Zone de la courbe sélectionnée.',
+    quality:'À INTERPRÉTER',
+    qualityText:'La qualité finale dépend de la caméra, de l’ISO/EI et de la quantité réelle de lumière.'
+  };
+}
+
+function waveformExplorerLatitude(guide,info){
+  if(guide?.stopRange&&guide.stopRange.length===2&&Number.isFinite(info?.stop)){
+    const low=Number(guide.stopRange[0]), high=Number(guide.stopRange[1]);
+    const down=info.stop-low, up=high-info.stop;
+    return {
+      value:`−${fmt(Math.max(0,down),1)} / +${fmt(Math.max(0,up),1)} stops`,
+      text:'Marge dans la plage stops ↔ signal documentée de la courbe, pas une mesure garantie de la latitude capteur.'
+    };
+  }
+  if(Number.isFinite(guide?.highStop)&&Number.isFinite(info?.stop)){
+    const up=guide.highStop-info.stop;
+    return {value:`+${fmt(Math.max(0,up),1)} stops vers le haut`,text:`Jusqu’au repère ${guide.highLabel}. La marge basse n’est pas suffisamment documentée ici.`};
+  }
+  if(Number.isFinite(guide?.highSignal)){
+    const pts=guide.highSignal-info.value;
+    return {value:`${fmt(Math.max(0,pts),1)} points vers le haut`,text:`Jusqu’au repère ${guide.highLabel}. Ce profil n’a pas de conversion fiable en stops.`};
+  }
+  return {value:'—',text:'Latitude non renseignée de façon suffisamment fiable pour ce profil.'};
 }
 
 function renderCompactExpoTools(guide,cam,p,bases){
@@ -1545,10 +1610,20 @@ function renderCompactExpoTools(guide,cam,p,bases){
   });
 
   const readV=Math.max(0,Math.min(100,Number(compactExpoState.read)||0));
-  if($("quickReadInput")&&document.activeElement!==$("quickReadInput"))$("quickReadInput").value=String(readV);
+  if($("quickReadSlider")&&document.activeElement!==$("quickReadSlider"))$("quickReadSlider").value=String(readV);
+  if($("quickReadValue"))$("quickReadValue").textContent=fmt(readV,readV%1?1:0);
+  if($("quickWaveformCursor"))$("quickWaveformCursor").style.left=`${readV}%`;
   const readInfo=scenePointInfo(guide,readV,0);
-  if($("quickReadAnswer"))$("quickReadAnswer").textContent=canSim&&Number.isFinite(readInfo.stop)?`${compactStopLabel(readInfo.stop)} · ${readInfo.zone?.label||"—"}`:(readInfo.zone?.label||"—");
+  const advice=waveformExplorerAdvice(readInfo.zone,readV);
+  const latitude=waveformExplorerLatitude(guide,readInfo);
+  if($("quickReadAnswer"))$("quickReadAnswer").textContent=canSim&&Number.isFinite(readInfo.stop)?`${readInfo.zone?.label||"—"} · ${compactStopLabel(readInfo.stop)}`:(readInfo.zone?.label||"—");
   if($("quickReadText"))$("quickReadText").textContent=readInfo.zone?.text||readInfo.zone?.title||"Position dans la courbe.";
+  if($("quickReadUseTitle"))$("quickReadUseTitle").textContent=advice.useTitle;
+  if($("quickReadUseText"))$("quickReadUseText").textContent=advice.useText;
+  if($("quickReadLatitude"))$("quickReadLatitude").textContent=latitude.value;
+  if($("quickReadLatitudeText"))$("quickReadLatitudeText").textContent=latitude.text;
+  if($("quickReadQuality"))$("quickReadQuality").textContent=advice.quality;
+  if($("quickReadQualityText"))$("quickReadQualityText").textContent=advice.qualityText;
 
   const place=Number(compactExpoState.placeStop)||0;
   let signal=canSim?guide.stopsFn(place):NaN;
@@ -1681,7 +1756,7 @@ document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEvent
 
 $("quickHighInput")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickShadowInput")?.addEventListener("input",e=>{waveformScene.shadow=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
-$("quickReadInput")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
+$("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 document.querySelectorAll("#quickShiftPresets button").forEach(btn=>btn.addEventListener("click",()=>setSceneShift(btn.dataset.shift)));
 document.querySelectorAll("#placeStopPresets button").forEach(btn=>btn.addEventListener("click",()=>{compactExpoState.placeStop=Number(btn.dataset.stop)||0;renderExposureGuide();}));
 

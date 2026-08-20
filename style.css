@@ -1273,3 +1273,30 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
 .quick-wave-pin.high{background:var(--accent);color:#fff}
 .quick-waveform-axis{display:flex;justify-content:space-between;margin-top:6px;color:var(--muted);font-size:7px;font-weight:850}
 @media(max-width:430px){.quick-waveform-markers .wave-marker b{display:none}}
+
+
+/* V3.55 — explorateur waveform interactif */
+.waveform-explorer-panel{padding-bottom:15px}
+.waveform-explorer-head{align-items:flex-end}
+.waveform-explorer-value{display:flex;align-items:baseline;gap:3px;flex:0 0 auto}
+.waveform-explorer-value strong{font-size:31px;line-height:1;font-weight:950;letter-spacing:-.05em}
+.waveform-explorer-value span{font-size:10px;font-weight:900;color:var(--muted)}
+.waveform-explorer-shell{margin-top:11px;padding:10px 10px 8px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+.waveform-explorer-scale{position:relative;height:46px;border:1px solid var(--line);border-radius:10px;background:var(--field-bg);overflow:visible}
+.waveform-explorer-scale .quick-waveform-segments{position:absolute;inset:0;overflow:hidden;border-radius:9px}
+.waveform-explorer-scale .quick-waveform-markers{position:absolute;inset:0;pointer-events:none}
+.waveform-explorer-cursor{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--accent);transform:translateX(-1px);z-index:5;pointer-events:none}
+.waveform-explorer-cursor span{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);border-radius:50%;background:var(--panel);border:3px solid var(--accent);box-shadow:0 1px 5px rgba(0,0,0,.18)}
+.waveform-explorer-cursor span:after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--accent)}
+.waveform-explorer-slider-label{display:block;margin:9px 0 0;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.09em}
+.waveform-explorer-slider{width:100%;margin:5px 0 0;accent-color:var(--accent)}
+.waveform-explorer-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.waveform-explorer-zone,.waveform-explorer-info{padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--field-bg);min-width:0}
+.waveform-explorer-zone{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.waveform-explorer-zone>span,.waveform-explorer-info>span{display:block;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.09em}
+.waveform-explorer-zone strong,.waveform-explorer-info strong{display:block;margin-top:5px;font-size:14px;line-height:1.1;font-weight:950}
+.waveform-explorer-zone small,.waveform-explorer-info small{display:block;margin-top:5px;color:var(--muted);font-size:8px;line-height:1.35}
+@media(max-width:430px){
+  .waveform-explorer-summary{grid-template-columns:1fr}
+  .waveform-explorer-head{align-items:flex-start}
+}
