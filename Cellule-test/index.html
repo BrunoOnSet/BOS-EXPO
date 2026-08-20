@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO — Cellule relative</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=0.1" />
+  <link rel="stylesheet" href="style.css?v=0.2" />
 </head>
 <body>
   <main class="app">
@@ -59,32 +59,31 @@
         <div id="ratioValue" class="ratio-value">Définis d'abord une référence.</div>
       </div>
 
-      <div class="action-grid">
+      <div class="initial-ref-wrap" id="initialRefWrap">
         <button id="referenceBtn" class="primary-btn large" type="button" disabled>DÉFINIR COMME RÉF.</button>
-        <button id="resetRefBtn" class="secondary-btn large" type="button" disabled>EFFACER RÉF.</button>
       </div>
 
-      <div id="liveModeNote" class="mode-note">Au moment de la référence, l'app tentera de figer l'exposition du téléphone. Si ce verrouillage n'est pas vérifiable, la mesure live sera désactivée.</div>
-    </section>
+      <div id="liveModeNote" class="mode-note">Au moment de la référence, l'app tentera de figer l'exposition du téléphone. Si ce verrouillage n'est pas vérifiable, utilise directement le mode 2 photos ci-dessous.</div>
 
-    <section class="panel photo-panel">
-      <div class="section-head compact">
-        <div>
-          <div class="kicker">PLAN B · 2 PHOTOS</div>
-          <div class="subtitle">Comparaison par métadonnées d'exposition</div>
+      <div class="embedded-photo-panel photo-panel">
+        <div class="section-head compact">
+          <div>
+            <div class="kicker">PLAN B · 2 PHOTOS</div>
+            <div class="subtitle">Comparaison par métadonnées d'exposition</div>
+          </div>
+          <span class="beta-pill">TEST</span>
         </div>
-        <span class="beta-pill">TEST</span>
+        <p class="small-copy">Si le verrouillage live n'est pas disponible, prends deux photos. Le prototype essaie de lire ISO, temps de pose et ouverture dans les EXIF et calcule l'écart d'EV entre les deux captures.</p>
+        <div class="photo-grid">
+          <button id="photoRefBtn" class="secondary-btn" type="button" disabled>PHOTO A · RÉF.</button>
+          <button id="photoMeasureBtn" class="secondary-btn" type="button" disabled>PHOTO B · MESURE</button>
+        </div>
+        <div class="photo-results">
+          <div><span>PHOTO A</span><strong id="photoAInfo">—</strong></div>
+          <div><span>PHOTO B</span><strong id="photoBInfo">—</strong></div>
+        </div>
+        <div id="photoDelta" class="photo-delta">Aucune comparaison.</div>
       </div>
-      <p class="small-copy">Si le verrouillage live n'est pas disponible, prends deux photos. Le prototype essaie de lire ISO, temps de pose et ouverture dans les EXIF et calcule l'écart d'EV entre les deux captures.</p>
-      <div class="photo-grid">
-        <button id="photoRefBtn" class="secondary-btn" type="button" disabled>PHOTO A · RÉF.</button>
-        <button id="photoMeasureBtn" class="secondary-btn" type="button" disabled>PHOTO B · MESURE</button>
-      </div>
-      <div class="photo-results">
-        <div><span>PHOTO A</span><strong id="photoAInfo">—</strong></div>
-        <div><span>PHOTO B</span><strong id="photoBInfo">—</strong></div>
-      </div>
-      <div id="photoDelta" class="photo-delta">Aucune comparaison.</div>
     </section>
 
     <details class="panel diagnostics-panel">
@@ -111,8 +110,8 @@
       </ol>
     </details>
 
-    <footer>BOS · EXPO CELLULE · PROTO V0.1</footer>
+    <footer>BOS · EXPO CELLULE · PROTO V0.2</footer>
   </main>
-  <script src="app.js?v=0.1"></script>
+  <script src="app.js?v=0.2"></script>
 </body>
 </html>

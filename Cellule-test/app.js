@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const els = {
   themeBtn: $('themeBtn'), startBtn: $('startBtn'), cameraState: $('cameraState'),
   video: $('video'), viewer: $('viewer'), lockBadge: $('lockBadge'), sampleCanvas: $('sampleCanvas'),
-  referenceBtn: $('referenceBtn'), resetRefBtn: $('resetRefBtn'), stopValue: $('stopValue'), ratioValue: $('ratioValue'),
+  referenceBtn: $('referenceBtn'), initialRefWrap: $('initialRefWrap'), stopValue: $('stopValue'), ratioValue: $('ratioValue'),
   cameraSelectWrap: $('cameraSelectWrap'), cameraSelect: $('cameraSelect'), liveModeNote: $('liveModeNote'),
   photoRefBtn: $('photoRefBtn'), photoMeasureBtn: $('photoMeasureBtn'), photoAInfo: $('photoAInfo'), photoBInfo: $('photoBInfo'), photoDelta: $('photoDelta'),
   diagManual: $('diagManual'), diagIso: $('diagIso'), diagTime: $('diagTime'), diagWb: $('diagWb'), diagPhoto: $('diagPhoto'), diagSettings: $('diagSettings'), diagRaw: $('diagRaw')
@@ -210,25 +210,15 @@ async function setReference(){
       setBadge('EXPO VERROUILLÉE · RÉF. 0,0','ok');
       els.stopValue.textContent='0,0';
       els.ratioValue.textContent='Référence mémorisée. Déplace le téléphone vers une autre zone.';
-      els.resetRefBtn.disabled=false;
+      if(els.initialRefWrap) els.initialRefWrap.classList.add('hidden');
       els.liveModeNote.textContent='Exposition téléphone verrouillée et vérifiée. La valeur live est un écart relatif de luminance après traitement caméra : à valider par répétabilité.';
     }
   }
   els.referenceBtn.disabled=false;
-  els.referenceBtn.textContent='REDÉFINIR LA RÉF.';
+  els.referenceBtn.textContent='DÉFINIR COMME RÉF.';
 }
 els.referenceBtn.addEventListener('click',setReference);
 
-async function resetReference(){
-  referenceLuma=null; lockVerified=false; recentStops=[];
-  els.stopValue.textContent='—'; els.ratioValue.textContent='Définis d’abord une référence.';
-  els.resetRefBtn.disabled=true; els.referenceBtn.textContent='DÉFINIR COMME RÉF.';
-  try{ await track?.applyConstraints?.({}); }catch(_){ }
-  setBadge('AUTO · PRÊT POUR RÉF.');
-  els.liveModeNote.textContent="Au moment de la référence, l'app tentera de figer l'exposition du téléphone. Si ce verrouillage n'est pas vérifiable, la mesure live sera désactivée.";
-  updateDiagnostics();
-}
-els.resetRefBtn.addEventListener('click',resetReference);
 
 function startLiveSampling(){
   let last=0;

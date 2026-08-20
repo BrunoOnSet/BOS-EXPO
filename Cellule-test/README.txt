@@ -1,4 +1,4 @@
-BOS EXPO — CELLULE RELATIVE — PROTOTYPE V0.1
+BOS EXPO — CELLULE RELATIVE — PROTOTYPE V0.2
 
 BUT
 Tester si la caméra d'un téléphone peut mesurer de façon répétable un écart de luminance en stops entre deux zones, sans prétendre donner une exposition absolue.
@@ -28,3 +28,6 @@ PROTOCOLE CONSEILLÉ
 - Tester si possible la même surface sous deux niveaux de lumière connus.
 - Comparer avec une cellule / un spotmètre / une caméra de référence.
 - Noter modèle de téléphone + navigateur + résultat affiché dans COMPATIBILITÉ / DIAGNOSTIC.
+
+
+V0.2 : PLAN B · 2 PHOTOS remonté directement sous la mesure caméra. Les commandes REDÉFINIR / EFFACER RÉF. sont supprimées ; le bouton initial DÉFINIR COMME RÉF. disparaît après prise de référence live.
