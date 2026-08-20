@@ -754,7 +754,7 @@ pickerGrid.addEventListener("click",e=>{
     simpleSetCurrentFromValues(simpleReferenceValues());
     simpleLastRecap=null;
     updateUI();
-    simpleSetCalcSummary("Situation 1 modifiée : CALCUL a été réaligné automatiquement.","ok");
+    simpleSetCalcSummary("Référence modifiée : CALCUL a été réaligné automatiquement.","ok");
   }else{
     updateUI();
     if(simpleChangedKey)simpleCalculateNow(simpleChangedKey);
@@ -948,7 +948,7 @@ if("serviceWorker" in navigator){
 
 
 // ============================================================
-// BOS EXPO V3.48 — Situation 1 recap + transition alternatives workflow
+// BOS EXPO V3.49 — Situation 1 recap + transition alternatives workflow
 // ============================================================
 const SIMPLE_EXPO_STORAGE_KEY="bos-expo-simple-v1";
 let simpleRoles={aperture:"auto",iso:"auto",shutter:"auto",nd:"auto"};
@@ -1202,7 +1202,7 @@ function simpleCalculateNow(changedKey=null){
   const reference=simpleReferenceValues();
   const current=simplePhysicalValues();
   if(!(reference.aperture>0&&reference.iso>0&&reference.shutter>0&&reference.nd>=0)){
-    simpleSetCalcSummary("Situation 1 incomplète ou invalide.","warning");
+    simpleSetCalcSummary("Référence incomplète ou invalide.","warning");
     return;
   }
   const targetTotal=simpleTotal(reference);
@@ -1218,8 +1218,66 @@ function simpleCalculateNow(changedKey=null){
     simpleSetCalcSummary(`${parts.join(" · ")} · ${fmtStop(residual)} restant`,"warning");
   }
   simpleLastRecap={reference,current,after,result};
-  simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
+  simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderExposureGuide();
 }
+
+// ---------- EXPOSER · repères IRE S-Log3 ----------
+let exposureGuideStop=0;
+function slog3CodeValue(linear){
+  const x=Math.max(0,Number(linear)||0);
+  if(x>=0.01125)return 420 + Math.log10((x+0.01)/(0.18+0.01))*261.5;
+  return x*(171.2102946929-95)/0.01125+95;
+}
+function slog3IreFromStops(stops){
+  const code=slog3CodeValue(0.18*Math.pow(2,Number(stops)||0));
+  return (code-64)/(940-64)*100;
+}
+function slog3IreForReflectance(reflectance){
+  const code=slog3CodeValue(Number(reflectance)||0);
+  return (code-64)/(940-64)*100;
+}
+function exposureGuideSupported(){
+  const p=currentProfile()||{};
+  return gammaMode==="slog3" || /s-?log3/i.test(String(p.label||""));
+}
+function renderExposureGuide(){
+  const cam=currentCamera(),p=currentProfile()||{};
+  const supported=exposureGuideSupported();
+  const line=$("exposeProfileLine"),status=$("exposeStatus"),yes=$("exposeSupported"),no=$("exposeUnsupported");
+  if(line)line.textContent=`${cam?.name||cam?.expo?.label||"Caméra"} · ${p.label||gammaMode||"Profil"}`;
+  if(status){status.textContent=supported?"S-LOG3":"NON RENSEIGNÉ";status.classList.toggle("off",!supported);}
+  yes?.classList.toggle("hidden",!supported); no?.classList.toggle("hidden",supported);
+  const bases=currentBaseIsos();
+  if($("refProfileName"))$("refProfileName").textContent=p.label||gammaMode||"—";
+  if($("refBaseValues"))$("refBaseValues").textContent=bases.length?bases.map(formatThousands).join(" / "):"—";
+  if($("refGreyValue"))$("refGreyValue").textContent=supported?"41 IRE":"—";
+  if($("refWhiteValue"))$("refWhiteValue").textContent=supported?`${Math.round(slog3IreForReflectance(.9))} IRE`:"—";
+  if($("cameraRefNote"))$("cameraRefNote").textContent=supported?"Sony définit le gris 18 % S-Log3 à environ 41 IRE, sans LUT. Le blanc 90 % se situe autour de 61 IRE.":"Les repères précis de ce profil seront ajoutés à BOS-CAMERA-DB lorsqu’ils sont documentés de façon fiable.";
+  if(!supported)return;
+  const ire=slog3IreFromStops(exposureGuideStop);
+  if($("exposeGreyIre"))$("exposeGreyIre").textContent="41 IRE";
+  if($("exposeTargetLabel"))$("exposeTargetLabel").textContent=`CIBLE · ${exposureGuideStop>0?"+":""}${exposureGuideStop} STOP${Math.abs(exposureGuideStop)===1?"":"S"}`;
+  if($("exposeTargetIre"))$("exposeTargetIre").textContent=`${Math.round(ire)} IRE`;
+  if($("exposeZebraText"))$("exposeZebraText").textContent=`Zebra cible : ${Math.round(ire)} %`;
+  const stops=[-3,-2,-1,0,1,2,3,4];
+  const grid=$("exposeStopGrid");
+  if(grid)grid.innerHTML=stops.map(s=>`<button type="button" class="expose-stop-btn${s===exposureGuideStop?" active":""}" data-expose-stop="${s}"><b>${s>0?"+":""}${s}</b><span>${Math.round(slog3IreFromStops(s))} IRE</span></button>`).join("");
+  const card=$("cineEiCard"),values=$("cineEiValues"),title=$("cineEiTitle");
+  const cineEi=/cine\s*ei/i.test(String(p.label||""));
+  card?.classList.toggle("hidden",!cineEi||!bases.length);
+  if(cineEi&&bases.length){
+    if(title)title.textContent=exposureGuideStop===0?"Base nominale":`${exposureGuideStop>0?"Exposer plus":"Exposer moins"} de ${Math.abs(exposureGuideStop)} stop${Math.abs(exposureGuideStop)===1?"":"s"}`;
+    if(values)values.innerHTML=bases.map(base=>{
+      const ei=Math.max(1,Math.round(base/Math.pow(2,exposureGuideStop)));
+      return `<span class="cine-ei-pill">Base ${formatThousands(base)} → EI ${formatThousands(ei)}</span>`;
+    }).join("");
+  }
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-expose-stop]");if(!b)return;
+  exposureGuideStop=Number(b.dataset.exposeStop)||0;renderExposureGuide();
+});
+
 // Replace the legacy updater once the original app has initialised.
 // V3.34 : les changements restent libres tant que CALCULER n'est pas pressé.
 updateUI=function(){
@@ -1229,10 +1287,11 @@ updateUI=function(){
   if(methodChanged){simpleLastMethodSig=methodSig;simpleLimitsLoadedFor="";simpleLoadLimits(true);}
   simpleRenderLimits();
   simpleRenderLocks();
+  renderExposureGuide();
   // Garde les valeurs de référence et de calcul dans les limites choisies, sans lancer de compensation.
   simpleClampReferenceToLimits();
   simpleClampCurrentToLimits();
-  simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderScenes();
+  simpleRenderRows();simpleRenderReference();updateBaseIsoNote();renderExposureGuide();
   if(methodChanged){
     // Sur changement caméra/profil, garde une référence valide et lisible.
     const r=simpleReferenceValues();

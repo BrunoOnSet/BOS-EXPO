@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.47" />
+  <link rel="stylesheet" href="style.css?v=3.49" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -116,11 +116,53 @@
       </div>
     </section>
 
+    <section class="panel expose-panel" id="exposePanel">
+      <div class="compact-section-head expose-head">
+        <div>
+          <div class="panel-kicker">EXPOSER</div>
+          <div class="panel-subtitle">Repères de signal adaptés à la caméra et au profil sélectionnés.</div>
+        </div>
+        <span class="expose-status" id="exposeStatus">S-LOG3</span>
+      </div>
+
+      <div class="expose-profile-line" id="exposeProfileLine">—</div>
+
+      <div id="exposeSupported">
+        <div class="expose-main-grid">
+          <div class="expose-main-card">
+            <span>GRIS 18 %</span>
+            <strong id="exposeGreyIre">41 IRE</strong>
+            <small>signal S-Log3 · sans LUT</small>
+          </div>
+          <div class="expose-main-card accent-card">
+            <span id="exposeTargetLabel">CIBLE · 0 STOP</span>
+            <strong id="exposeTargetIre">41 IRE</strong>
+            <small id="exposeZebraText">Zebra cible : 41 %</small>
+          </div>
+        </div>
+
+        <div class="expose-stop-title">PLACEMENT PAR RAPPORT AU GRIS 18 %</div>
+        <div class="expose-stop-grid" id="exposeStopGrid"></div>
+
+        <div class="cine-ei-card" id="cineEiCard">
+          <div>
+            <span>CINE EI</span>
+            <strong id="cineEiTitle">Exposer à la cible sélectionnée</strong>
+          </div>
+          <div id="cineEiValues" class="cine-ei-values"></div>
+        </div>
+
+        <div class="expose-note">Les valeurs IRE correspondent au signal S-Log3 mesuré sans LUT. Elles indiquent où placer le signal, pas si ton choix artistique d’exposition est « correct ».</div>
+      </div>
+
+      <div id="exposeUnsupported" class="expose-unsupported hidden">Les repères IRE précis de ce profil ne sont pas encore renseignés dans BOS-CAMERA-DB. La compensation reste disponible normalement.</div>
+    </section>
+
     <section class="panel simple-expo-panel" id="simpleExpoPanel">
       <div class="compact-section-head simple-expo-head">
         <div>
-          <div class="panel-kicker">COMPENSATION</div>
-          <div class="panel-subtitle">Mémorise ta situation de base, puis compare les autres situations de tournage.</div>
+          <div class="panel-kicker">COMPENSER</div>
+          <div class="panel-subtitle">Pars d’une exposition validée, puis teste un changement de réglage.</div>
         </div>
         <button class="small-action" id="simpleResetBtn" type="button">RESET</button>
       </div>
@@ -128,12 +170,8 @@
       <div class="simple-reference-block situation-one-block">
         <div class="simple-reference-head situation-one-head">
           <div class="situation-one-title">
-            <div class="situation-one-kicker-row">
-              <div class="simple-section-kicker">SITUATION 1</div>
-              <span class="situation-active-badge">ACTIVE</span>
-            </div>
-            <input id="situation1Name" class="situation-main-name" type="text" value="Situation 1" aria-label="Nom de la situation 1" />
-            <div class="simple-section-note">Situation de base · mémorise ici un réglage qui donne une exposition juste.</div>
+            <div class="simple-section-kicker">RÉFÉRENCE</div>
+            <div class="simple-section-note">Réglage de départ que tu considères correctement exposé.</div>
           </div>
         </div>
         <div class="simple-reference-grid">
@@ -150,7 +188,7 @@
             <div class="simple-section-kicker">CALCUL</div>
             <div class="simple-section-note">Réglage actif : modifie un paramètre, les autres compensent automatiquement.</div>
           </div>
-          <button class="small-action" id="simpleCalcResetBtn" type="button">= SIT. 1</button>
+          <button class="small-action" id="simpleCalcResetBtn" type="button">= RÉF.</button>
         </div>
         <div class="simple-calc-grid">
           <div class="simple-calc-item">
@@ -285,18 +323,20 @@
       </div>
     </section>
 
-    <section class="panel scenes-panel situations-panel">
-      <div class="compact-section-head scenes-head">
+    <section class="panel camera-ref-panel" id="cameraRefPanel">
+      <div class="compact-section-head">
         <div>
-          <div class="panel-kicker">SITUATIONS</div>
-          <div class="panel-subtitle">Pour chaque situation, mémorise un réglage qui donne une exposition juste. EXPO calcule ensuite toutes les façons simples de passer de l’une à l’autre.</div>
+          <div class="panel-kicker">RÉFÉRENCES CAMÉRA</div>
+          <div class="panel-subtitle">Les repères essentiels du profil sélectionné.</div>
         </div>
-        <button class="small-action scene-add-btn" id="addSceneBtn" type="button">+ SITUATION</button>
       </div>
-
-      <div class="scene-rule"><strong>Principe :</strong> Situation 1 reste la base. Pour chaque nouvelle situation, règle Diaph / ISO / Shutter / ND comme si tu étais réellement dans cette situation. Les comparaisons se mettent à jour automatiquement.</div>
-      <div class="scenes-list" id="scenesList"></div>
-      <div class="scene-empty" id="sceneEmpty">Situation 1 est ta base. Ajoute une Situation 2 pour voir les différentes façons de passer de l’une à l’autre.</div>
+      <div class="camera-ref-grid">
+        <div><span>PROFIL</span><strong id="refProfileName">—</strong></div>
+        <div><span>BASE ISO / EI</span><strong id="refBaseValues">—</strong></div>
+        <div><span>GRIS 18 %</span><strong id="refGreyValue">—</strong></div>
+        <div><span>BLANC 90 %</span><strong id="refWhiteValue">—</strong></div>
+      </div>
+      <div class="camera-ref-note" id="cameraRefNote">—</div>
     </section>
 
     <footer>
@@ -306,7 +346,7 @@
           <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
           <span>Made for the set · Bruno Guillard</span>
         </a>
-        <span class="app-version">v3.48</span>
+        <span class="app-version">v3.49</span>
       </div>
     </footer>
   </main>
@@ -444,6 +484,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=3.47"></script>
+  <script src="app.js?v=3.49"></script>
 </body>
 </html>
