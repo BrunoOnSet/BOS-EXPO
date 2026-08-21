@@ -1302,6 +1302,7 @@ function waveformGuideFromDbProfile(p){
     grey:Number(g.middleGrayPercent),
     stopsFn:fn,
     stopRange:first&&last?[first.stop,last.stop]:null,
+    stopTable:table,
     signalRange:first&&last?[Math.min(first.percent,last.percent),Math.max(first.percent,last.percent)]:null,
     highStop:Number.isFinite(highStop)?highStop:null,
     highSignal:last?.percent,
@@ -1345,19 +1346,24 @@ function exposureProfileGuide(){
   }
   if(gammaMode==="scinetone" || /s-?cinetone/i.test(label)){
     return {
-      key:"scinetone",status:"S-CINETONE",grey:null,stopsFn:null,highStop:null,highSignal:70,highLabel:"début roll-off 70 %",
+      key:"scinetone",status:"S-CINETONE",grey:null,stopsFn:null,highStop:null,highSignal:100,highLabel:"saturation signal 100 %",
+      rolloffStart:70,
       zones:[
-        {min:0,max:1.5,label:"SOUS LE NOIR",title:"Sous le noir nominal"},
-        {min:1.5,max:70,label:"ZONE PRINCIPALE",title:"Contraste principal"},
-        {min:70,max:100.01,label:"ROLL-OFF",title:"Roll-off hautes lumières"}
+        {min:0,max:1.5,label:"SOUS LE NOIR",title:"Sous le noir nominal",text:"Sous le niveau noir S-Cinetone documenté par Sony."},
+        {min:1.5,max:12,label:"OMBRES PROFONDES",title:"Ombres profondes",text:"Zone très basse : détails et nuances deviennent plus fragiles."},
+        {min:12,max:30,label:"BASSES LUMIÈRES",title:"Basses lumières",text:"S-Cinetone renforce légèrement le contraste dans les basses lumières."},
+        {min:30,max:50,label:"MÉDIUMS BAS",title:"Médiums bas",text:"Zone de transition confortable pour conserver texture et couleur."},
+        {min:50,max:70,label:"MÉDIUMS HAUTS",title:"Médiums hauts",text:"Zone principale lumineuse avant le début du roll-off documenté."},
+        {min:70,max:85,label:"ROLL-OFF DOUX",title:"Début du roll-off",text:"À partir de 70 %, Sony réduit progressivement le contraste des hautes lumières."},
+        {min:85,max:100.01,label:"ROLL-OFF FORT",title:"Très hautes lumières",text:"Compression plus forte en approchant de la saturation : les écarts de lumière se resserrent dans le signal."}
       ],
       markers:[
         {value:1.5,label:"1,5 %",sub:"niveau noir"},
         {value:70,label:"70 %",sub:"début roll-off"},
         {value:100,label:"100 %",sub:"saturation signal"}
       ],
-      note:"S-Cinetone n’est pas une courbe Log. EXPO peut situer tes trois lectures dans ses zones, mais ne simule pas un déplacement en stops tant qu’une relation exposition ↔ signal suffisamment fiable n’est pas renseignée.",
-      refWhite:"—",refNote:"Sony documente un niveau noir à 1,5 % et une réduction progressive du contraste des hautes lumières à partir de 70 %."
+      note:"S-Cinetone n’est pas une courbe Log. Les seuils 1,5 % et 70 % sont documentés par Sony. Les subdivisions intermédiaires sont des zones de lecture pratiques BOS destinées à montrer que le comportement n’est pas uniforme ; les transitions réelles sont progressives.",
+      refWhite:"—",refNote:"Sony documente un niveau noir à 1,5 %, un contraste légèrement renforcé dans les basses lumières et une réduction progressive du contraste des hautes lumières à partir de 70 %."
     };
   }
   if(gammaMode==="logc3" || /log\s*c3/i.test(label)){
@@ -1480,9 +1486,80 @@ function compactStopLabel(v){
   if(Math.abs(v)<.05)return "0 stop";
   return `${v>0?"+":""}${fmt(v,1)} stop${Math.abs(v)>=1.5?"s":""}`;
 }
+function waveformStopTableForGuide(guide){
+  if(Array.isArray(guide?.stopTable)&&guide.stopTable.length>=2){
+    return guide.stopTable.filter(x=>Number.isFinite(x?.stop)&&Number.isFinite(x?.percent)).sort((a,b)=>a.stop-b.stop);
+  }
+  if(!guide?.stopsFn)return [];
+  let min=-4,max=6;
+  if(guide.key==="bmfilm5")max=8;
+  else if(guide.key==="logc3")max=7;
+  else if(guide.key==="slog3")max=6;
+  else if(Array.isArray(guide.stopRange)){min=Math.ceil(guide.stopRange[0]);max=Math.floor(guide.stopRange[1]);}
+  const out=[];
+  for(let s=Math.ceil(min);s<=Math.floor(max);s++){
+    const percent=guide.stopsFn(s);
+    if(Number.isFinite(percent)&&percent>=0&&percent<=100)out.push({stop:s,percent});
+  }
+  return out;
+}
+function renderWaveformStopRuler(guide){
+  const tickHost=$("quickWaveformStops"), bandHost=$("quickWaveformStopBands"), help=$("quickWaveformStopHelp");
+  if(!tickHost||!bandHost||!help)return;
+  const table=waveformStopTableForGuide(guide);
+  if(table.length<2){
+    tickHost.innerHTML="";bandHost.innerHTML="";
+    help.textContent="Pas de conversion fiable waveform ↔ diaph pour ce profil.";
+    help.classList.add("no-stops");
+    return;
+  }
+  help.classList.remove("no-stops");
+  help.textContent="Chaque espace entre deux traits = 1 diaph de lumière réelle (×2 / ÷2).";
+  bandHost.innerHTML=table.slice(0,-1).map((a,i)=>{
+    const b=table[i+1];
+    const left=Math.max(0,Math.min(100,a.percent)), right=Math.max(left,Math.min(100,b.percent));
+    return `<span class="wave-stop-band ${i%2?'alt':''}" style="left:${left}%;width:${Math.max(.1,right-left)}%" title="${a.stop>=0?'+':''}${fmt(a.stop,0)} → ${b.stop>=0?'+':''}${fmt(b.stop,0)} : 1 diaph"></span>`;
+  }).join("");
+  tickHost.innerHTML=table.map((x,i)=>{
+    const pos=Math.max(0,Math.min(100,x.percent));
+    const label=Math.abs(x.stop)<1e-9?'0':`${x.stop>0?'+':''}${fmt(x.stop,0)}`;
+    const edge=i===0?' edge-left':i===table.length-1?' edge-right':'';
+    return `<span class="wave-stop-tick${edge}" style="left:${pos}%" title="${label} stop · ${fmt(x.percent,1)} %"><i></i><b>${label}</b></span>`;
+  }).join("");
+}
+function waveformSignalTrend(zone,value){
+  const label=String(zone?.label||zone?.title||'').toUpperCase();
+  const min=Number(zone?.min),max=Number(zone?.max);
+  const progress=Number.isFinite(min)&&Number.isFinite(max)&&max>min?Math.max(0,Math.min(1,(Number(value)-min)/(max-min))):.5;
+  const high=/ROLL-OFF|HAUTES|EXTRÊME|SATURATION|HORS REPÈRE/.test(label);
+  if(high){
+    return {
+      mode:'compression',progress,
+      left:'Plus de marge',right:'Plus comprimé',
+      note:'Dans cette zone, monter encore le signal ne signifie pas « meilleure image » : la marge diminue et la compression augmente.'
+    };
+  }
+  return {
+    mode:'cleaner',progress,
+    left:'Bas de zone · plus fragile',right:'Haut de zone · plus robuste',
+    note:'À zone comparable, placer le signal plus haut donne généralement davantage de signal utile et une image plus robuste, tant qu’on ne sacrifie pas les hautes lumières.'
+  };
+}
+function renderSignalTrend(zone,value){
+  const visual=$("quickReadQualityVisual"),cursor=$("quickReadQualityCursor"),left=$("quickReadQualityLeft"),right=$("quickReadQualityRight");
+  if(!visual||!cursor||!left||!right)return null;
+  const trend=waveformSignalTrend(zone,value);
+  visual.classList.toggle('compression',trend.mode==='compression');
+  visual.classList.toggle('cleaner',trend.mode==='cleaner');
+  cursor.style.left=`${5+trend.progress*90}%`;
+  left.textContent=trend.left;right.textContent=trend.right;
+  return trend;
+}
+
 function renderQuickWaveformBar(guide){
   const segHost=$("quickWaveformSegments"), markerHost=$("quickWaveformMarkers"), cursor=$("quickWaveformCursor");
   if(!guide)return;
+  renderWaveformStopRuler(guide);
   if(segHost){
     segHost.innerHTML=(guide.zones||[]).map((z,i)=>{
       const left=Math.max(0,Math.min(100,z.min)), right=Math.max(left,Math.min(100,z.max));
@@ -1498,8 +1575,63 @@ function renderQuickWaveformBar(guide){
   }
 }
 
-function waveformExplorerAdvice(zone,value){
+function waveformExplorerAdvice(zone,value,guide){
   const label=String(zone?.label||zone?.title||'').toUpperCase();
+  const v=Math.max(0,Math.min(100,Number(value)||0));
+
+  // S-Cinetone : le comportement varie progressivement. Les seules ruptures constructeur
+  // utilisées comme repères durs sont le noir 1,5 % et le début de roll-off à 70 %.
+  if(guide?.key==="scinetone"){
+    if(v<1.5)return {
+      useTitle:'NOIR / INFORMATION NON PRIORITAIRE',
+      useText:'Sous le niveau noir nominal : à réserver à ce que tu acceptes de perdre.',
+      quality:'TRÈS FRAGILE',
+      qualityText:'Très peu de séparation utile dans le signal ; le détail sombre devient difficile à conserver.'
+    };
+    if(v<12)return {
+      useTitle:'OMBRES PROFONDES',
+      useText:'Pour des noirs avec juste assez de matière, pas pour un détail critique.',
+      quality:'FRAGILE',
+      qualityText:'Le signal est bas : la texture et la propreté dépendent fortement du niveau réel de lumière et de l’ISO.'
+    };
+    if(v<30)return {
+      useTitle:'OMBRES AVEC MATIÈRE',
+      useText:'Bonne zone pour garder du relief dans une partie sombre de l’image.',
+      quality:'CORRECTE / CONTRASTÉE',
+      qualityText:'S-Cinetone renforce légèrement le contraste des basses lumières : le rendu paraît dense, mais la réserve de correction reste moindre que dans les médiums.'
+    };
+    if(v<50)return {
+      useTitle:'MÉDIUMS / TEXTURES',
+      useText:'Zone confortable pour les matières, décors et sujets que tu veux garder riches en nuances.',
+      quality:'BONNE',
+      qualityText:'Signal confortable et encore peu comprimé ; bon compromis entre texture, contraste et souplesse.'
+    };
+    if(v<70)return {
+      useTitle:'SUJETS LUMINEUX / PEAUX',
+      useText:'Zone pratique pour les éléments importants que tu veux lumineux tout en gardant de la texture.',
+      quality:'TRÈS CONFORTABLE',
+      qualityText:'Signal fort avant le roll-off. La séparation tonale reste généreuse, sans supposer que toute valeur de cette zone est artistiquement idéale.'
+    };
+    if(v<85)return {
+      useTitle:'HAUTES LUMIÈRES À PRÉSERVER',
+      useText:'Le roll-off commence : utile pour conserver des hautes lumières avec une transition plus douce.',
+      quality:'COMPRESSION DOUCE',
+      qualityText:'Depuis 70 %, le contraste diminue progressivement. Les détails restent présents mais les écarts de lumière sont davantage comprimés.'
+    };
+    if(v<96)return {
+      useTitle:'TRÈS HAUTES LUMIÈRES',
+      useText:'À utiliser pour les zones très lumineuses dont tu veux encore garder un peu de texture.',
+      quality:'FORTEMENT COMPRIMÉE',
+      qualityText:'On approche de la saturation : les nuances se resserrent et la marge de correction diminue rapidement.'
+    };
+    return {
+      useTitle:'SPÉCULAIRES / LIMITE',
+      useText:'À réserver aux pics lumineux ou aux zones dont la texture n’est plus essentielle.',
+      quality:'LIMITE',
+      qualityText:'Très proche de la saturation du signal : faible séparation tonale restante.'
+    };
+  }
+
   if(/SOUS LE NOIR|PIED|TRÈS BASSES/.test(label))return {
     useTitle:'NOIRS / DÉTAIL NON PRIORITAIRE',
     useText:'À réserver aux noirs assumés ou aux zones dont le détail n’est pas essentiel.',
@@ -1543,7 +1675,6 @@ function waveformExplorerAdvice(zone,value){
     qualityText:'La qualité finale dépend de la caméra, de l’ISO/EI et de la quantité réelle de lumière.'
   };
 }
-
 function waveformExplorerLatitude(guide,info){
   if(guide?.stopRange&&guide.stopRange.length===2&&Number.isFinite(info?.stop)){
     const low=Number(guide.stopRange[0]), high=Number(guide.stopRange[1]);
@@ -1569,53 +1700,42 @@ function renderCompactExpoTools(guide,cam,p,bases){
   renderQuickWaveformBar(guide);
   const canSim=!!guide.stopsFn;
   const high=scenePointInfo(guide,waveformScene.high,0);
-  const shadow=scenePointInfo(guide,waveformScene.shadow,0);
-  const shift=canSim?waveformScene.shift:0;
-  const highAfter=canSim&&Number.isFinite(high.stop)?guide.stopsFn(high.stop+shift):NaN;
-  const shadowAfter=canSim&&Number.isFinite(shadow.stop)?guide.stopsFn(shadow.stop+shift):NaN;
 
   if($("quickHighInput")&&document.activeElement!==$("quickHighInput"))$("quickHighInput").value=String(waveformScene.high);
-  if($("quickShadowInput")&&document.activeElement!==$("quickShadowInput"))$("quickShadowInput").value=String(waveformScene.shadow);
 
   const openEl=$("quickOpenMargin"),openTxt=$("quickOpenText");
+  let highLimitSignal=Number.isFinite(guide.highSignal)?Math.max(0,Math.min(100,guide.highSignal)):100;
   if(canSim&&Number.isFinite(guide.highStop)&&Number.isFinite(high.stop)){
     const m=guide.highStop-high.stop;
     if(openEl)openEl.textContent=m>=0?`+${fmt(m,1)} stop${m>=1.5?"s":""}`:"DÉPASSÉ";
-    if(openTxt)openTxt.textContent=m>=0?`jusqu’au repère haut ${guide.highLabel}`:`haute lumière déjà au-dessus du repère ${guide.highLabel}`;
-  }else if(Number.isFinite(guide.highSignal)){
-    const pts=guide.highSignal-high.value;
+    if(openTxt)openTxt.textContent=m>=0?`avant le repère haut ${guide.highLabel}`:`la haute lumière dépasse déjà le repère ${guide.highLabel}`;
+  }else if(Number.isFinite(highLimitSignal)){
+    const pts=highLimitSignal-high.value;
     if(openEl)openEl.textContent=pts>=0?`${fmt(pts,1)} points`:"DÉPASSÉ";
-    if(openTxt)openTxt.textContent=`jusqu’à ${guide.highLabel} · pas de conversion fiable en stops`;
+    if(openTxt)openTxt.textContent=guide.key==="scinetone"?`jusqu’à la saturation du signal · conversion en stops non fiable`:`jusqu’au repère haut · conversion en stops non disponible`;
   }else{
     if(openEl)openEl.textContent="—";if(openTxt)openTxt.textContent="Repère haut non renseigné.";
   }
 
-  if($("quickContrast"))$("quickContrast").textContent=canSim&&Number.isFinite(high.stop)&&Number.isFinite(shadow.stop)?`${fmt(Math.abs(high.stop-shadow.stop),1)} stops`:"—";
-  if($("quickContrastText"))$("quickContrastText").textContent=canSim?"entre les deux valeurs saisies":"conversion stops ↔ signal non renseignée";
-
-  if($("quickSimValues")){
-    $("quickSimValues").textContent=canSim&&Number.isFinite(highAfter)&&Number.isFinite(shadowAfter)?`${fmt(high.value,0)} % → ${fmt(highAfter,1)} % · ${fmt(shadow.value,0)} % → ${fmt(shadowAfter,1)} %`:`${fmt(high.value,0)} % · ${fmt(shadow.value,0)} %`;
+  const currentPct=Math.max(0,Math.min(100,high.value));
+  const limitPct=Math.max(currentPct,Math.min(100,highLimitSignal));
+  if($("quickHighRailCurrent"))$("quickHighRailCurrent").style.left=`${currentPct}%`;
+  if($("quickHighRailLimit"))$("quickHighRailLimit").style.left=`${limitPct}%`;
+  if($("quickHighRailFill")){
+    $("quickHighRailFill").style.left=`${currentPct}%`;
+    $("quickHighRailFill").style.width=`${Math.max(0,limitPct-currentPct)}%`;
   }
-  const simBox=$("quickSimValues")?.parentElement;
-  let warning=false,statusText="Réglage actuel.";
-  if(canSim&&Math.abs(shift)>.04){
-    warning=Number.isFinite(guide.highStop)&&Number.isFinite(high.stop)&&high.stop+shift>guide.highStop+.02;
-    statusText=warning?"Repère haut dépassé.":`${compactStopLabel(shift)} simulé.`;
-  }else if(!canSim)statusText="Simulation non disponible pour ce profil.";
-  if($("quickSimStatus"))$("quickSimStatus").textContent=statusText;
-  simBox?.classList.toggle("warning",warning);
-  document.querySelectorAll("#quickShiftPresets button").forEach(b=>{
-    b.disabled=!canSim;
-    b.classList.toggle("active",Math.abs(Number(b.dataset.shift)-waveformScene.shift)<.01);
-  });
+  if($("quickHighRailNow"))$("quickHighRailNow").textContent=`ACTUEL ${fmt(currentPct,1)} %`;
+  if($("quickHighRailEnd"))$("quickHighRailEnd").textContent=`LIMITE ${fmt(limitPct,1)} %`;
 
   const readV=Math.max(0,Math.min(100,Number(compactExpoState.read)||0));
   if($("quickReadSlider")&&document.activeElement!==$("quickReadSlider"))$("quickReadSlider").value=String(readV);
   if($("quickReadValue"))$("quickReadValue").textContent=fmt(readV,readV%1?1:0);
   if($("quickWaveformCursor"))$("quickWaveformCursor").style.left=`${readV}%`;
   const readInfo=scenePointInfo(guide,readV,0);
-  const advice=waveformExplorerAdvice(readInfo.zone,readV);
+  const advice=waveformExplorerAdvice(readInfo.zone,readV,guide);
   const latitude=waveformExplorerLatitude(guide,readInfo);
+  const signalTrend=renderSignalTrend(readInfo.zone,readV);
   if($("quickReadAnswer"))$("quickReadAnswer").textContent=canSim&&Number.isFinite(readInfo.stop)?`${readInfo.zone?.label||"—"} · ${compactStopLabel(readInfo.stop)}`:(readInfo.zone?.label||"—");
   if($("quickReadText"))$("quickReadText").textContent=readInfo.zone?.text||readInfo.zone?.title||"Position dans la courbe.";
   if($("quickReadUseTitle"))$("quickReadUseTitle").textContent=advice.useTitle;
@@ -1623,7 +1743,7 @@ function renderCompactExpoTools(guide,cam,p,bases){
   if($("quickReadLatitude"))$("quickReadLatitude").textContent=latitude.value;
   if($("quickReadLatitudeText"))$("quickReadLatitudeText").textContent=latitude.text;
   if($("quickReadQuality"))$("quickReadQuality").textContent=advice.quality;
-  if($("quickReadQualityText"))$("quickReadQualityText").textContent=advice.qualityText;
+  if($("quickReadQualityText"))$("quickReadQualityText").textContent=signalTrend?`${advice.qualityText} ${signalTrend.note}`:advice.qualityText;
 
   const place=Number(compactExpoState.placeStop)||0;
   let signal=canSim?guide.stopsFn(place):NaN;
@@ -1755,9 +1875,7 @@ $("sceneShiftReset")?.addEventListener("click",()=>setSceneShift(0));
 document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEventListener("click",()=>setSceneShift(btn.dataset.shift)));
 
 $("quickHighInput")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
-$("quickShadowInput")?.addEventListener("input",e=>{waveformScene.shadow=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
-document.querySelectorAll("#quickShiftPresets button").forEach(btn=>btn.addEventListener("click",()=>setSceneShift(btn.dataset.shift)));
 document.querySelectorAll("#placeStopPresets button").forEach(btn=>btn.addEventListener("click",()=>{compactExpoState.placeStop=Number(btn.dataset.stop)||0;renderExposureGuide();}));
 
 // Replace the legacy updater once the original app has initialised.

@@ -1300,3 +1300,41 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
   .waveform-explorer-summary{grid-template-columns:1fr}
   .waveform-explorer-head{align-items:flex-start}
 }
+
+
+/* V3.56 — Hautes lumières simplifiées + S-Cinetone gradué */
+.highlight-margin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:8px;margin-top:8px}
+.highlight-input,.highlight-answer{min-height:92px}
+.highlight-margin-rail{margin-top:10px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.highlight-margin-track{position:relative;height:10px;border-radius:999px;background:var(--field-bg);border:1px solid var(--line);overflow:visible}
+.highlight-margin-track>span{position:absolute;top:-1px;bottom:-1px;border-radius:999px;background:var(--accent-soft)}
+.highlight-margin-track>i,.highlight-margin-track>b{position:absolute;top:50%;width:2px;height:18px;transform:translate(-1px,-50%);background:var(--accent);border-radius:2px}
+.highlight-margin-track>b{background:var(--text)}
+.highlight-margin-labels{display:flex;justify-content:space-between;gap:10px;margin-top:6px;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.07em}
+@media(max-width:430px){.highlight-margin-grid{grid-template-columns:1fr 1fr}}
+
+
+/* V3.57 — règle en diaphragmes + progression qualité / compression */
+.waveform-stop-bands{position:absolute;inset:0;overflow:hidden;border-radius:9px;pointer-events:none;z-index:1}
+.wave-stop-band{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--panel) 10%,transparent);border-left:1px solid color-mix(in srgb,var(--text) 9%,transparent)}
+.wave-stop-band.alt{background:color-mix(in srgb,var(--panel) 24%,transparent)}
+.waveform-stop-ticks{position:absolute;inset:0;pointer-events:none;z-index:3}
+.wave-stop-tick{position:absolute;top:0;bottom:0;width:1px;border-left:1px dashed color-mix(in srgb,var(--text) 38%,transparent)}
+.wave-stop-tick i{position:absolute;left:-2px;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--text);opacity:.7}
+.wave-stop-tick b{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);padding:1px 3px;border-radius:4px;background:color-mix(in srgb,var(--panel) 82%,transparent);font-size:6.5px;line-height:1;font-weight:950;color:var(--text);white-space:nowrap}
+.wave-stop-tick.edge-left b{transform:none;left:3px}.wave-stop-tick.edge-right b{left:auto;right:3px;transform:none}
+.waveform-stop-help{margin-top:5px;color:var(--accent);font-size:7px;font-weight:900;line-height:1.3;letter-spacing:.02em}
+.waveform-stop-help.no-stops{color:var(--muted);font-weight:800}
+.signal-quality-card{overflow:hidden}
+.signal-quality-visual{position:relative;height:28px;margin-top:9px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 22%,var(--field-bg)),color-mix(in srgb,var(--accent) 7%,var(--field-bg)) 68%,var(--field-bg));}
+.signal-quality-noise{position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--text) 60%,transparent) .8px,transparent .9px);background-size:4px 4px;opacity:.48;-webkit-mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.7) 25%,transparent 82%);mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.7) 25%,transparent 82%)}
+.signal-quality-compression{display:none;position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 7px,color-mix(in srgb,var(--text) 22%,transparent) 7px 9px);-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 45%,#000 100%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 45%,#000 100%)}
+.signal-quality-visual.compression .signal-quality-noise{opacity:.08;-webkit-mask-image:linear-gradient(90deg,#000 0%,transparent 45%);mask-image:linear-gradient(90deg,#000 0%,transparent 45%)}
+.signal-quality-visual.compression .signal-quality-compression{display:block}
+.signal-quality-visual>i{position:absolute;top:-2px;bottom:-2px;width:3px;transform:translateX(-50%);background:var(--accent);box-shadow:0 0 0 2px var(--panel);z-index:4}
+.signal-quality-labels{display:flex;justify-content:space-between;gap:10px;margin-top:4px;color:var(--muted);font-size:6.8px;font-weight:800;line-height:1.25}
+.signal-quality-labels span:last-child{text-align:right}
+@media(max-width:430px){
+  .wave-stop-tick b{font-size:6px;padding:1px 2px}
+  .signal-quality-labels{font-size:6.3px}
+}

@@ -467,7 +467,7 @@ V3.54 : remplacement du bloc EXPOSER par ANALYSE WAVEFORM à 3 points avec simul
 - Les guides internes S-Log3 / S-Cinetone / LogC3 restent disponibles en secours.
 
 
-V3.55 — Interface plateau en 4 bulles
+V3.56 — Interface plateau en 4 bulles
 - MARGE : haute lumière + ombre à conserver, marge pour ouvrir, contraste et simulation rapide.
 - LIRE LE WAVEFORM : une valeur en % est traduite en zone de courbe et, quand disponible, en stops par rapport au gris.
 - PLACER UN NIVEAU : conversion rapide stops → waveform/zebra, avec équivalence Cine EI quand disponible.
@@ -477,9 +477,26 @@ V3.55 — Interface plateau en 4 bulles
 - Version visible : v3.54
 
 
-V3.55 — EXPLORATEUR WAVEFORM
+V3.56 — EXPLORATEUR WAVEFORM
 - La barre 0–100 % quitte la bulle MARGE et devient un outil interactif dans EXPLORER LE WAVEFORM.
 - Un curseur permet de parcourir toute la courbe.
 - EXPO affiche : zone, intérêt pratique de la zone, latitude documentée autour du point et qualité de signal attendue.
 - La notion de qualité reste volontairement qualitative : elle décrit le comportement de la courbe, pas une promesse de bruit/dynamique capteur.
 - La latitude affichée s’appuie sur la plage stops↔signal documentée dans waveformGuide lorsqu’elle existe.
+
+
+V3.56 — HAUTES LUMIÈRES + EXPLORER S-CINETONE
+- La bulle MARGE devient HAUTES LUMIÈRES : une seule valeur à saisir et une réponse directe sur la marge pour ouvrir.
+- Suppression de l’ombre, du contraste et de la simulation dans cette bulle.
+- Ajout d’un mini repère ACTUEL → LIMITE.
+- S-Cinetone : la grande zone 1,5–70 % est subdivisée en zones pratiques pour ne plus laisser croire que toute la plage a le même comportement.
+- Les seuils Sony 1,5 % (noir) et 70 % (début du roll-off) restent les seuls seuils constructeur présentés comme tels ; les subdivisions intermédiaires sont explicitement des repères pratiques BOS.
+- L’explorateur donne désormais une qualité/robustesse graduée dans S-Cinetone au lieu de « très bonne » sur toute la zone principale.
+
+
+V3.57 — WAVEFORM / DIAPHS
+- La barre Explorer affiche maintenant les repères d’un stop lorsque le profil possède une table stops ↔ signal fiable.
+- Chaque intervalle entre deux traits représente 1 diaphragme de lumière réelle (x2 / ÷2).
+- S-Cinetone n’affiche pas de fausse règle en stops : l’interface indique que la conversion n’est pas suffisamment fiable.
+- La carte Signal / qualité ajoute une lecture visuelle : dans les basses et médiums, le bruit graphique diminue en montant dans la zone ; dans les hautes lumières, la visualisation bascule vers la compression / perte de marge.
+- Le niveau du waveform n’est jamais présenté comme une note de qualité absolue : capteur, ISO/EI et exposition réelle restent déterminants.
