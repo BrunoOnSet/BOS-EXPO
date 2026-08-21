@@ -500,3 +500,10 @@ V3.57 — WAVEFORM / DIAPHS
 - S-Cinetone n’affiche pas de fausse règle en stops : l’interface indique que la conversion n’est pas suffisamment fiable.
 - La carte Signal / qualité ajoute une lecture visuelle : dans les basses et médiums, le bruit graphique diminue en montant dans la zone ; dans les hautes lumières, la visualisation bascule vers la compression / perte de marge.
 - Le niveau du waveform n’est jamais présenté comme une note de qualité absolue : capteur, ISO/EI et exposition réelle restent déterminants.
+
+
+V3.59 — DYNAMIQUE / REPÈRES TERRAIN
+- "Explorer le waveform" devient "Explorer la dynamique de l’image".
+- Suppression de la bulle Hautes lumières, devenue redondante.
+- Latitude autour du point : affichage des stops vers le haut ET vers le bas quand les repères de courbe le permettent.
+- Ajout de repères terrain indicatifs : fenêtre/ciel, visage lumineux, visage sombre, ombre avec détails, ombre avec peu de détails.

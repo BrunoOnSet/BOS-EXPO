@@ -954,15 +954,14 @@ function makePanelCollapsible(panelId,headSelector,defaultOpen=true){
 
 function setupExpoUiTweaks(){
   forceSimplifiedExpoModes();
-  const stack=$("exposeSupported"), read=$("readToolPanel"), margin=$("marginToolPanel");
-  if(stack && read && margin && stack.firstElementChild!==read){ stack.insertBefore(read, margin); }
+  const stack=$("exposeSupported"), read=$("readToolPanel");
+  if(stack && read && stack.firstElementChild!==read){ stack.insertBefore(read, stack.firstElementChild); }
   if($("placeToolPanel")){ $("placeToolPanel").hidden=true; $("placeToolPanel").classList.add('hidden'); }
   document.querySelector('.method-profile-grid .method-compact-item:nth-child(2)')?.classList.add('hidden');
   $("gainBaseRow")?.classList.add('hidden');
   document.querySelector('.method-exposure-grid')?.classList.add('hidden');
   $("fpsRow")?.classList.add('hidden');
   makePanelCollapsible('readToolPanel','.waveform-explorer-head',true);
-  makePanelCollapsible('marginToolPanel','.quick-tool-head',true);
   makePanelCollapsible('simpleExpoPanel','.simple-expo-head',true);
 }
 
@@ -1361,6 +1360,8 @@ function waveformGuideFromDbProfile(p){
     stopRange:first&&last?[first.stop,last.stop]:null,
     stopTable:table,
     signalRange:first&&last?[Math.min(first.percent,last.percent),Math.max(first.percent,last.percent)]:null,
+    lowStop:Number.isFinite(first?.stop)?first.stop:null,
+    lowLabel:Number.isFinite(first?.stop)?`${approximate?"≈ ":""}${first.stop>=0?"+":""}${fmt(first.stop,1)} stops / gris`:"repère bas DB",
     highStop:Number.isFinite(highStop)?highStop:null,
     highSignal:last?.percent,
     highLabel:Number.isFinite(highStop)?`${approximate?"≈ ":""}${highStop>=0?"+":""}${fmt(highStop,1)} stops / gris`:"repère haut DB",
@@ -1382,7 +1383,7 @@ function exposureProfileGuide(){
   if(gammaMode==="slog3" || /s-?log3/i.test(label)){
     const grey=slog3IreFromStops(0),toe=slog3IreFromStops(-4),m1=slog3IreFromStops(-1),p3=slog3IreFromStops(3),p5=slog3IreFromStops(5),p6=slog3IreFromStops(6);
     return {
-      key:"slog3",status:"S-LOG3",grey,stopsFn:slog3IreFromStops,highStop:6,highSignal:p6,highLabel:"+6 stops / gris",
+      key:"slog3",status:"S-LOG3",grey,stopsFn:slog3IreFromStops,lowStop:-4,lowLabel:"−4 stops / gris · passage pied → log",highStop:6,highSignal:p6,highLabel:"+6 stops / gris",
       zones:[
         {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe"},
         {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres"},
@@ -1426,7 +1427,7 @@ function exposureProfileGuide(){
   if(gammaMode==="logc3" || /log\s*c3/i.test(label)){
     const grey=logc3Ei800IreFromStops(0),toe=logc3Ei800IreFromStops(Math.log2(0.010591/0.18)),m1=logc3Ei800IreFromStops(-1),p3=logc3Ei800IreFromStops(3),p6=logc3Ei800IreFromStops(6),p76=logc3Ei800IreFromStops(7+2/3);
     return {
-      key:"logc3",status:"LOG C3 · EI 800",grey,stopsFn:logc3Ei800IreFromStops,highStop:7+2/3,highSignal:p76,highLabel:"+7⅔ stops · EI800",
+      key:"logc3",status:"LOG C3 · EI 800",grey,stopsFn:logc3Ei800IreFromStops,lowStop:Math.log2(0.010591/0.18),lowLabel:"passage pied → log",highStop:7+2/3,highSignal:p76,highLabel:"+7⅔ stops · EI800",
       zones:[
         {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe"},
         {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres"},
@@ -1449,7 +1450,7 @@ function exposureProfileGuide(){
   if(gammaMode==="bmfilm5" || /blackmagic.*film.*gen\s*5|film\s*gen\s*5/i.test(label)){
     const grey=bmFilmGen5IreFromStops(0),toe=(8.283605932402494*0.005+0.09246575342465753)*100,m1=bmFilmGen5IreFromStops(-1),p3=bmFilmGen5IreFromStops(3),p6=bmFilmGen5IreFromStops(6),p8=bmFilmGen5IreFromStops(8);
     return {
-      key:"bmfilm5",status:"FILM GEN 5",grey,stopsFn:bmFilmGen5IreFromStops,highStop:8,highSignal:p8,highLabel:"repère +8 stops",
+      key:"bmfilm5",status:"FILM GEN 5",grey,stopsFn:bmFilmGen5IreFromStops,lowStop:Math.log2(0.005/0.18),lowLabel:"passage pied → log",highStop:8,highSignal:p8,highLabel:"repère +8 stops",
       zones:[
         {min:0,max:toe,label:"PIED / TRÈS BASSES",title:"Pied de courbe"},
         {min:toe,max:m1,label:"OMBRES LOG",title:"Ombres"},
@@ -1751,23 +1752,60 @@ function waveformExplorerAdvice(zone,value,guide){
   };
 }
 function waveformExplorerLatitude(guide,info){
-  if(guide?.stopRange&&guide.stopRange.length===2&&Number.isFinite(info?.stop)){
-    const low=Number(guide.stopRange[0]), high=Number(guide.stopRange[1]);
-    const down=info.stop-low, up=high-info.stop;
-    return {
-      value:`−${fmt(Math.max(0,down),1)} / +${fmt(Math.max(0,up),1)} stops`,
-      text:'Marge dans la plage stops ↔ signal documentée de la courbe, pas une mesure garantie de la latitude capteur.'
-    };
+  if(!Number.isFinite(info?.stop)){
+    if(Number.isFinite(guide?.highSignal)){
+      const pts=guide.highSignal-info.value;
+      return {value:`${fmt(Math.max(0,pts),1)} points vers le haut`,text:`Jusqu’au repère ${guide.highLabel}. Ce profil n’a pas de conversion fiable en stops.`};
+    }
+    return {value:'—',text:'Latitude non renseignée de façon suffisamment fiable pour ce profil.'};
   }
-  if(Number.isFinite(guide?.highStop)&&Number.isFinite(info?.stop)){
-    const up=guide.highStop-info.stop;
-    return {value:`+${fmt(Math.max(0,up),1)} stops vers le haut`,text:`Jusqu’au repère ${guide.highLabel}. La marge basse n’est pas suffisamment documentée ici.`};
+  const low=Array.isArray(guide?.stopRange)&&guide.stopRange.length===2?Number(guide.stopRange[0]):Number(guide?.lowStop);
+  const high=Array.isArray(guide?.stopRange)&&guide.stopRange.length===2?Number(guide.stopRange[1]):Number(guide?.highStop);
+  const parts=[];
+  if(Number.isFinite(high)) parts.push(`+${fmt(Math.max(0,high-info.stop),1)} stops ↑`);
+  if(Number.isFinite(low)) parts.push(`−${fmt(Math.max(0,info.stop-low),1)} stops ↓`);
+  if(parts.length===2){
+    return {value:parts.join(' · '),text:'Jusqu’aux repères haut et bas documentés de la courbe. Ce n’est pas une mesure garantie de la latitude réelle du capteur.'};
   }
-  if(Number.isFinite(guide?.highSignal)){
-    const pts=guide.highSignal-info.value;
-    return {value:`${fmt(Math.max(0,pts),1)} points vers le haut`,text:`Jusqu’au repère ${guide.highLabel}. Ce profil n’a pas de conversion fiable en stops.`};
+  if(parts.length===1){
+    return {value:parts[0],text:Number.isFinite(high)?`Jusqu’au repère ${guide.highLabel}. Le repère bas n’est pas suffisamment documenté.`:'Jusqu’au repère bas documenté. Le repère haut n’est pas suffisamment documenté.'};
   }
   return {value:'—',text:'Latitude non renseignée de façon suffisamment fiable pour ce profil.'};
+}
+
+function waveformTerrainKey(zone,value,guide,stop){
+  if(Number.isFinite(stop)){
+    if(stop>=3) return 'window';
+    if(stop>=1) return 'bright-face';
+    if(stop>=-1) return 'dark-face';
+    if(stop>=-3) return 'shadow-detail';
+    return 'shadow-low';
+  }
+  const label=String(zone?.label||zone?.title||'').toUpperCase();
+  const z=guide?.zones||[];
+  const idx=Math.max(0,z.indexOf(zone));
+  const count=Math.max(1,z.length);
+  const rel=(idx+.5)/count;
+  if(/EXTRÊME|ROLL-OFF FORT|TRÈS HAUTES|SATURATION|HORS REPÈRE/.test(label) || rel>.82) return 'window';
+  if(/HAUTES|ROLL-OFF DOUX|MÉDIUMS HAUTS/.test(label) || rel>.62) return 'bright-face';
+  if(/MÉDIUM|ZONE PRINCIPALE|CONTRASTE PRINCIPAL/.test(label) || rel>.42) return 'dark-face';
+  if(/OMBRE|BASSES LUMIÈRES/.test(label) || rel>.20) return 'shadow-detail';
+  return 'shadow-low';
+}
+function renderTerrainExamples(zone,value,guide,stop){
+  const key=waveformTerrainKey(zone,value,guide,stop);
+  document.querySelectorAll('#quickReadTerrainExamples [data-terrain]').forEach(el=>el.classList.toggle('active',el.dataset.terrain===key));
+  const note=$("quickReadTerrainNote");
+  if(note){
+    const labels={
+      'window':'Exemples typiques : fenêtre, ciel clair, source visible ou reflet très lumineux.',
+      'bright-face':'Exemples typiques : visage très éclairé, peau claire lumineuse, matière claire importante.',
+      'dark-face':'Exemples typiques : visage plus sombre, sujet principal volontairement dense, matière en médiums bas.',
+      'shadow-detail':'Exemples typiques : ombre avec matière, côté non éclairé d’un visage, décor sombre dont tu veux garder le détail.',
+      'shadow-low':'Exemples typiques : ombre profonde, fond sombre ou zone dont le détail est secondaire.'
+    };
+    note.textContent=`${labels[key]} Repères indicatifs : le placement dépend du rendu recherché.`;
+  }
 }
 
 function renderCompactExpoTools(guide,cam,p,bases){
@@ -1822,6 +1860,7 @@ function renderCompactExpoTools(guide,cam,p,bases){
   if($("quickReadLatitudeText"))$("quickReadLatitudeText").textContent=latitude.text;
   if($("quickReadQuality"))$("quickReadQuality").textContent=advice.quality;
   if($("quickReadQualityText"))$("quickReadQualityText").textContent=signalTrend?`${advice.qualityText} ${signalTrend.note}`:advice.qualityText;
+  renderTerrainExamples(readInfo.zone,readV,guide,readInfo.stop);
 
   const place=Number(compactExpoState.placeStop)||0;
   let signal=canSim?guide.stopsFn(place):NaN;

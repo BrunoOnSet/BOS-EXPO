@@ -1377,3 +1377,18 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
   .panel-collapse-btn{min-width:32px;height:32px;}
   .highlight-slider-scale{height:40px;}
 }
+
+
+/* V3.59 — dynamique + latitude haut/bas + repères terrain */
+.terrain-examples-card{grid-column:1/-1;}
+.terrain-example-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:9px;}
+.terrain-example-strip>div{padding:8px 7px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-width:0;opacity:.58;transition:opacity .15s ease,border-color .15s ease,background .15s ease;}
+.terrain-example-strip>div b{display:block;font-size:8px;line-height:1.18;font-weight:900;}
+.terrain-example-strip>div small{display:block;margin-top:3px;font-size:6.8px;line-height:1.2;color:var(--muted);}
+.terrain-example-strip>div.active{opacity:1;border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent-soft);}
+.terrain-examples-note{margin-top:8px !important;}
+@media(max-width:520px){
+  .terrain-example-strip{grid-template-columns:1fr;gap:5px;}
+  .terrain-example-strip>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;}
+  .terrain-example-strip>div small{margin-top:0;text-align:right;}
+}
