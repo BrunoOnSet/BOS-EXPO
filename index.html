@@ -10,7 +10,7 @@
   <title>BRUNO ONSET / EXPO</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.57" />
+  <link rel="stylesheet" href="style.css?v=3.58" />
 </head>
 <body>
   <main class="app" id="mainApp">
@@ -56,7 +56,7 @@
             <div class="chips mode-chips" id="gammaMode"></div>
           </div>
 
-          <div class="method-compact-item">
+          <div class="method-compact-item hidden" aria-hidden="true">
             <span class="method-label">Sensibilité</span>
             <div class="chips mode-chips" id="sensitivityMode">
               <button class="active" data-value="iso">ISO</button>
@@ -65,7 +65,7 @@
           </div>
         </div>
 
-        <div class="gain-base-row hidden" id="gainBaseRow">
+        <div class="gain-base-row hidden" id="gainBaseRow" aria-hidden="true">
           <span class="method-label">Base gain</span>
           <div class="chips mode-chips gain-base-chips" id="gainBaseMode"></div>
           <span class="gain-base-help" id="gainBaseHelp">0 dB = base native sélectionnée</span>
@@ -96,7 +96,7 @@
         </div>
         <div class="iso-limit-help hidden" id="isoLimitHelp" aria-hidden="true">ISO MIN reprend la base native de la caméra. Les limites ISO et diaph restent modifiables.</div>
 
-        <div class="method-compact-grid method-exposure-grid single-method-row">
+        <div class="method-compact-grid method-exposure-grid single-method-row hidden" aria-hidden="true">
           <div class="method-compact-item">
             <span class="method-label">Shutter</span>
             <div class="chips mode-chips" id="shutterMode">
@@ -106,7 +106,7 @@
           </div>
         </div>
 
-        <div class="fps-row hidden" id="fpsRow">
+        <div class="fps-row hidden" id="fpsRow" aria-hidden="true">
           <div class="label-row compact-label-row">
             <span class="method-label">Cadence</span>
             <span class="unit">fps · nécessaire avec un shutter en angle</span>
@@ -117,7 +117,7 @@
     </section>
 
     <div id="exposeSupported" class="expo-quick-stack">
-      <section class="panel quick-tool-panel margin-tool-panel" id="marginToolPanel">
+      <section class="panel quick-tool-panel margin-tool-panel" id="marginToolPanel" data-default-open="true">
         <div class="compact-section-head quick-tool-head">
           <div>
             <div class="panel-kicker">HAUTES LUMIÈRES</div>
@@ -136,9 +136,20 @@
           <div class="highlight-margin-track"><span id="quickHighRailFill"></span><i id="quickHighRailCurrent"></i><b id="quickHighRailLimit"></b></div>
           <div class="highlight-margin-labels"><span id="quickHighRailNow">—</span><span id="quickHighRailEnd">—</span></div>
         </div>
+
+        <div class="highlight-slider-shell" aria-label="Choix de la haute lumière sur une échelle de 0 à 100 %">
+          <div class="highlight-slider-scale">
+            <div class="highlight-slider-segments" id="quickHighSegments"></div>
+            <div class="highlight-slider-markers" id="quickHighMarkers"></div>
+            <div class="highlight-slider-cursor" id="quickHighCursor"><span></span></div>
+          </div>
+          <div class="highlight-slider-axis"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 %</span></div>
+          <label class="waveform-explorer-slider-label" for="quickHighSlider">NIVEAU DE HAUTE LUMIÈRE</label>
+          <input id="quickHighSlider" class="waveform-explorer-slider" type="range" min="0" max="100" step="0.1" value="90">
+        </div>
       </section>
 
-      <section class="panel quick-tool-panel read-tool-panel waveform-explorer-panel" id="readToolPanel">
+      <section class="panel quick-tool-panel read-tool-panel waveform-explorer-panel" id="readToolPanel" data-default-open="true">
         <div class="quick-inline-head waveform-explorer-head">
           <div><div class="panel-kicker">EXPLORER LE WAVEFORM</div><div class="panel-subtitle">Déplace le curseur : EXPO t’explique ce que représente cette zone de la courbe.</div></div>
           <div class="waveform-explorer-value"><strong id="quickReadValue">70</strong><span>%</span></div>
@@ -169,7 +180,7 @@
         </div>
       </section>
 
-      <section class="panel quick-tool-panel place-tool-panel" id="placeToolPanel">
+      <section class="panel quick-tool-panel place-tool-panel hidden" id="placeToolPanel" hidden>
         <div class="quick-inline-head place-head">
           <div><div class="panel-kicker">PLACER UN NIVEAU</div><div class="panel-subtitle">Choisis son écart par rapport au gris de la courbe.</div></div>
           <div class="place-value"><strong id="quickPlaceSignal">—</strong><span>WAVEFORM / ZEBRA</span></div>
@@ -183,7 +194,7 @@
 
     <section class="panel expose-unsupported hidden" id="exposeUnsupported">Cette courbe n’est pas encore renseignée de façon suffisamment fiable pour ces outils. EXPO préfère ne rien extrapoler.</section>
 
-    <section class="panel simple-expo-panel" id="simpleExpoPanel">
+    <section class="panel simple-expo-panel" id="simpleExpoPanel" data-default-open="true">
       <div class="compact-section-head simple-expo-head">
         <div>
           <div class="panel-kicker">COMPENSER</div>

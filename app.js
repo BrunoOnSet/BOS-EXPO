@@ -429,6 +429,7 @@ function updateSelectDisplays(){
 }
 
 function updateUI(){
+  if(sensitivityMode!=="iso" || shutterMode!=="speed") forceSimplifiedExpoModes();
   $("refShutterEquiv").textContent=shutterEquiv(num(inputs.refShutter.value));
   $("newShutterEquiv").textContent=shutterEquiv(num(inputs.newShutter.value));
   solveAuto();
@@ -875,7 +876,8 @@ $("resetBtn").addEventListener("click",()=>{
   inputs.newAperture.value="4"; inputs.newIso.value="1600"; inputs.newShutter.value="50"; inputs.newNd.value="0";
 
   syncMethodButtons(); saveMethodPreferences(); updateUI();
-});
+}
+);
 
 
 // Situation controls
@@ -908,6 +910,61 @@ cameraSettingsToggle.addEventListener("click",()=>{
   setCameraSettingsOpen(cameraSettingsToggle.getAttribute("aria-expanded")!=="true");
 });
 setCameraSettingsOpen(false);
+
+function forceSimplifiedExpoModes(){
+  const prevSens=sensitivityMode;
+  const prevShutter=shutterMode;
+  let refIsoPhysical=prevSens==="gain"?gainDbToIso(num(inputs.refIso.value)):num(inputs.refIso.value);
+  let newIsoPhysical=prevSens==="gain"?gainDbToIso(num(inputs.newIso.value)):num(inputs.newIso.value);
+  if(!(refIsoPhysical>0))refIsoPhysical=800;
+  if(!(newIsoPhysical>0))newIsoPhysical=refIsoPhysical;
+  let refSeconds=prevShutter==="angle"?(num(inputs.refShutter.value)/(360*currentFps)):timeFromShutter(num(inputs.refShutter.value));
+  let newSeconds=prevShutter==="angle"?(num(inputs.newShutter.value)/(360*currentFps)):timeFromShutter(num(inputs.newShutter.value));
+  if(!(refSeconds>0))refSeconds=1/50;
+  if(!(newSeconds>0))newSeconds=refSeconds;
+  sensitivityMode="iso";
+  shutterMode="speed";
+  inputs.refIso.value=String(snapIso(refIsoPhysical));
+  inputs.newIso.value=String(snapIso(newIsoPhysical));
+  inputs.refShutter.value=String(SHUTTER_SPEEDS[nearestIndex(SHUTTER_SPEEDS,1/refSeconds,true)]);
+  inputs.newShutter.value=String(SHUTTER_SPEEDS[nearestIndex(SHUTTER_SPEEDS,1/newSeconds,true)]);
+  syncMethodButtons();
+}
+
+function makePanelCollapsible(panelId,headSelector,defaultOpen=true){
+  const panel=$(panelId); if(!panel) return;
+  const head=panel.querySelector(headSelector); if(!head || head.dataset.collapsibleReady==="1") return;
+  head.dataset.collapsibleReady="1";
+  const content=document.createElement('div');
+  content.className='panel-collapse-content';
+  content.id=`${panelId}Content`;
+  while(head.nextSibling){content.appendChild(head.nextSibling);}
+  panel.appendChild(content);
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.className='panel-collapse-btn';
+  btn.setAttribute('aria-expanded', defaultOpen ? 'true' : 'false');
+  btn.setAttribute('aria-controls', content.id);
+  btn.innerHTML='<span class="collapse-chevron" aria-hidden="true">⌃</span>';
+  head.appendChild(btn);
+  const setOpen=(open)=>{panel.classList.toggle('collapsed',!open); content.hidden=!open; btn.setAttribute('aria-expanded',open?'true':'false');};
+  btn.addEventListener('click',e=>{e.stopPropagation(); setOpen(content.hidden);});
+  setOpen(defaultOpen);
+}
+
+function setupExpoUiTweaks(){
+  forceSimplifiedExpoModes();
+  const stack=$("exposeSupported"), read=$("readToolPanel"), margin=$("marginToolPanel");
+  if(stack && read && margin && stack.firstElementChild!==read){ stack.insertBefore(read, margin); }
+  if($("placeToolPanel")){ $("placeToolPanel").hidden=true; $("placeToolPanel").classList.add('hidden'); }
+  document.querySelector('.method-profile-grid .method-compact-item:nth-child(2)')?.classList.add('hidden');
+  $("gainBaseRow")?.classList.add('hidden');
+  document.querySelector('.method-exposure-grid')?.classList.add('hidden');
+  $("fpsRow")?.classList.add('hidden');
+  makePanelCollapsible('readToolPanel','.waveform-explorer-head',true);
+  makePanelCollapsible('marginToolPanel','.quick-tool-head',true);
+  makePanelCollapsible('simpleExpoPanel','.simple-expo-head',true);
+}
 
 // Theme
 const themeToggle=$("themeToggle"),themeColor=$("themeColor");
@@ -1575,6 +1632,24 @@ function renderQuickWaveformBar(guide){
   }
 }
 
+function renderQuickHighBar(guide){
+  const segHost=$("quickHighSegments"), markerHost=$("quickHighMarkers"), cursor=$("quickHighCursor");
+  if(!guide)return;
+  if(segHost){
+    segHost.innerHTML=(guide.zones||[]).map((z,i)=>{
+      const left=Math.max(0,Math.min(100,z.min)), right=Math.max(left,Math.min(100,z.max));
+      return `<span class="wave-seg wave-seg-${(i%5)+1}" style="left:${left}%;width:${Math.max(.15,right-left)}%" title="${escapeHtml(z.label)}"></span>`;
+    }).join("");
+  }
+  if(markerHost){
+    markerHost.innerHTML=(guide.markers||[]).slice(0,4).map(m=>`<span class="wave-marker" style="left:${Math.max(0,Math.min(100,m.value))}%"><i></i><b>${escapeHtml(m.label)}</b></span>`).join("");
+  }
+  if(cursor){
+    const v=Math.max(0,Math.min(100,Number(waveformScene.high)||0));
+    cursor.style.left=`${v}%`;
+  }
+}
+
 function waveformExplorerAdvice(zone,value,guide){
   const label=String(zone?.label||zone?.title||'').toUpperCase();
   const v=Math.max(0,Math.min(100,Number(value)||0));
@@ -1698,10 +1773,13 @@ function waveformExplorerLatitude(guide,info){
 function renderCompactExpoTools(guide,cam,p,bases){
   if(!guide)return;
   renderQuickWaveformBar(guide);
+  renderQuickHighBar(guide);
   const canSim=!!guide.stopsFn;
   const high=scenePointInfo(guide,waveformScene.high,0);
 
   if($("quickHighInput")&&document.activeElement!==$("quickHighInput"))$("quickHighInput").value=String(waveformScene.high);
+  if($("quickHighSlider")&&document.activeElement!==$("quickHighSlider"))$("quickHighSlider").value=String(waveformScene.high);
+  if($("quickHighCursor"))$("quickHighCursor").style.left=`${Math.max(0,Math.min(100,Number(waveformScene.high)||0))}%`;
 
   const openEl=$("quickOpenMargin"),openTxt=$("quickOpenText");
   let highLimitSignal=Number.isFinite(guide.highSignal)?Math.max(0,Math.min(100,guide.highSignal)):100;
@@ -1875,6 +1953,7 @@ $("sceneShiftReset")?.addEventListener("click",()=>setSceneShift(0));
 document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEventListener("click",()=>setSceneShift(btn.dataset.shift)));
 
 $("quickHighInput")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
+$("quickHighSlider")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 document.querySelectorAll("#placeStopPresets button").forEach(btn=>btn.addEventListener("click",()=>{compactExpoState.placeStop=Number(btn.dataset.stop)||0;renderExposureGuide();}));
 
