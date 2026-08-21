@@ -1839,10 +1839,10 @@ function waveformExplorerLatitude(guide,info,sensorRange){
   if(Number.isFinite(high)) parts.push(`+${fmt(Math.max(0,high-info.stop),1)} stops ↑`);
   if(Number.isFinite(low)) parts.push(`−${fmt(Math.max(0,info.stop-low),1)} stops ↓`);
   if(parts.length===2){
-    return {value:parts.join(' · '),text:'Repères de la courbe uniquement : la répartition réelle de latitude capteur à cet ISO/EI n’est pas documentée dans la base.'};
+    return {value:parts.join(' · '),text:'Repères de la courbe à la sensibilité native / de référence. Ils ne représentent pas une mesure garantie de la dynamique réelle du capteur.'};
   }
   if(parts.length===1){
-    return {value:parts[0],text:'Repère de courbe uniquement : latitude capteur réelle non documentée à cette sensibilité.'};
+    return {value:parts[0],text:'Repère de courbe à la sensibilité native / de référence. La dynamique réelle du capteur peut varier avec les réglages.'};
   }
   return {value:'—',text:'Latitude non renseignée de façon suffisamment fiable pour ce profil.'};
 }
@@ -1889,7 +1889,7 @@ function renderCompactExpoTools(guide,cam,p,bases){
   if(!guide)return;
   renderQuickWaveformBar(guide);
   renderQuickHighBar(guide);
-  const sensorRange=renderExplorerSensitivity(cam,p);
+  const sensorRange=null;
   const canSim=!!guide.stopsFn;
   const high=scenePointInfo(guide,waveformScene.high,0);
 
@@ -2072,7 +2072,6 @@ document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEvent
 $("quickHighInput")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickHighSlider")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
-$("explorerIsoSelect")?.addEventListener("change",e=>{explorerSensitivity=Number(e.target.value)||explorerSensitivity;renderExposureGuide();});
 document.querySelectorAll("#placeStopPresets button").forEach(btn=>btn.addEventListener("click",()=>{compactExpoState.placeStop=Number(btn.dataset.stop)||0;renderExposureGuide();}));
 
 // Replace the legacy updater once the original app has initialised.

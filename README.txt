@@ -517,3 +517,10 @@ V3.60 — DYNAMIQUE / ISO-EI / GABARIT STABLE
 - « Ombre avec peu de détails » commence dès la partie basse/fragile des zones d’ombre.
 - Hauteur de la bulle stabilisée pour éviter les sauts visuels quand le point change de zone.
 - Ajout d’une note générale : données constructeur = points de repère, pas garantie universelle pour toutes les conditions de tournage.
+
+
+V3.61 — DYNAMIQUE / RÉFÉRENCE NATIVE
+- Retrait du choix ISO/EI dans Explorer la dynamique de l’image.
+- Les repères sont présentés à la sensibilité native / de référence du profil.
+- La latitude affichée redevient un repère de courbe, sans prétendre quantifier la dynamique réelle à chaque ISO/EI.
+- Ajout d’une note indiquant que les données peuvent varier avec les réglages caméra et les conditions de tournage.

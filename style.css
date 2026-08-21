@@ -1394,7 +1394,7 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
 }
 
 
-/* V3.60 — ISO/EI dans Dynamique + repères sombre→clair + gabarit stable */
+/* V3.61 — repères à sensibilité native / de référence ; choix ISO/EI retiré de Dynamique */
 .explorer-sensitivity-row{display:grid;grid-template-columns:minmax(150px,.72fr) 1.28fr;gap:9px;align-items:stretch;margin-top:11px;}
 .explorer-sensitivity-field{display:flex;flex-direction:column;gap:6px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);}
 .explorer-sensitivity-field>span{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.09em;}
