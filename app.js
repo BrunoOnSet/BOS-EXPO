@@ -1922,9 +1922,9 @@ function renderCompactExpoTools(guide,cam,p,bases){
   if($("quickHighRailNow"))$("quickHighRailNow").textContent=`ACTUEL ${fmt(currentPct,1)} %`;
   if($("quickHighRailEnd"))$("quickHighRailEnd").textContent=`LIMITE ${fmt(limitPct,1)} %`;
 
-  const readV=Math.max(0,Math.min(100,Number(compactExpoState.read)||0));
+  const readV=Math.round(Math.max(0,Math.min(100,Number(compactExpoState.read)||0)));
   if($("quickReadSlider")&&document.activeElement!==$("quickReadSlider"))$("quickReadSlider").value=String(readV);
-  if($("quickReadValue"))$("quickReadValue").textContent=fmt(readV,readV%1?1:0);
+  if($("quickReadValue"))$("quickReadValue").textContent=String(Math.round(readV));
   if($("quickWaveformCursor"))$("quickWaveformCursor").style.left=`${readV}%`;
   const readInfo=scenePointInfo(guide,readV,0);
   const advice=waveformExplorerAdvice(readInfo.zone,readV,guide);
@@ -2071,7 +2071,7 @@ document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEvent
 
 $("quickHighInput")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickHighSlider")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
-$("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
+$("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.round(Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0)));renderExposureGuide();});
 document.querySelectorAll("#placeStopPresets button").forEach(btn=>btn.addEventListener("click",()=>{compactExpoState.placeStop=Number(btn.dataset.stop)||0;renderExposureGuide();}));
 
 // Replace the legacy updater once the original app has initialised.

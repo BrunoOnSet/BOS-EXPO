@@ -524,3 +524,11 @@ V3.61 — DYNAMIQUE / RÉFÉRENCE NATIVE
 - Les repères sont présentés à la sensibilité native / de référence du profil.
 - La latitude affichée redevient un repère de courbe, sans prétendre quantifier la dynamique réelle à chaque ISO/EI.
 - Ajout d’une note indiquant que les données peuvent varier avec les réglages caméra et les conditions de tournage.
+
+
+V3.62 — DYNAMIQUE / POURCENTAGES ENTIERS
+- Explorer la dynamique : curseur 0–100 % par pas entiers.
+- Valeur principale affichée sans décimale pour stabiliser l’interface.
+- Largeur du bloc pourcentage fixée avec chiffres tabulaires pour éviter les sauts de mise en page.
+- Note visible sous l’introduction : « Données constructeur à l’ISO natif. Variations possibles selon les réglages caméra. »
+- Ancienne note constructeur longue retirée du bas de la bulle.
