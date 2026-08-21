@@ -507,3 +507,13 @@ V3.59 — DYNAMIQUE / REPÈRES TERRAIN
 - Suppression de la bulle Hautes lumières, devenue redondante.
 - Latitude autour du point : affichage des stops vers le haut ET vers le bas quand les repères de courbe le permettent.
 - Ajout de repères terrain indicatifs : fenêtre/ciel, visage lumineux, visage sombre, ombre avec détails, ombre avec peu de détails.
+
+
+V3.60 — DYNAMIQUE / ISO-EI / GABARIT STABLE
+- Choix ISO/EI directement dans « Explorer la dynamique de l’image ».
+- Latitude capteur autour du point calculée depuis les données constructeur quand disponibles ; sinon l’app distingue clairement les repères de courbe de la latitude capteur.
+- Fallback constructeur Blackmagic pour Pocket Cinema Camera 4K/6K (100–6400) et URSA Mini Pro 12K (125–3200).
+- Repères terrain réordonnés du plus sombre au plus clair.
+- « Ombre avec peu de détails » commence dès la partie basse/fragile des zones d’ombre.
+- Hauteur de la bulle stabilisée pour éviter les sauts visuels quand le point change de zone.
+- Ajout d’une note générale : données constructeur = points de repère, pas garantie universelle pour toutes les conditions de tournage.

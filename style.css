@@ -1392,3 +1392,29 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
   .terrain-example-strip>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;}
   .terrain-example-strip>div small{margin-top:0;text-align:right;}
 }
+
+
+/* V3.60 — ISO/EI dans Dynamique + repères sombre→clair + gabarit stable */
+.explorer-sensitivity-row{display:grid;grid-template-columns:minmax(150px,.72fr) 1.28fr;gap:9px;align-items:stretch;margin-top:11px;}
+.explorer-sensitivity-field{display:flex;flex-direction:column;gap:6px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);}
+.explorer-sensitivity-field>span{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.09em;}
+.explorer-sensitivity-field select{width:100%;min-height:34px;border:1px solid var(--line);border-radius:9px;background:var(--field-bg);color:var(--text);padding:0 9px;font-size:11px;font-weight:900;}
+.explorer-sensitivity-note{display:flex;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--field-bg);color:var(--muted);font-size:8px;line-height:1.35;}
+.explorer-sensitivity-note.sensor-data{border-color:var(--accent);background:var(--accent-soft);color:var(--text);}
+.explorer-manufacturer-note{display:block;margin-top:9px!important;padding-top:9px;border-top:1px solid var(--line);color:var(--muted);font-size:7px!important;line-height:1.4!important;}
+
+/* La bulle ne change plus visuellement de hauteur avec la position du curseur. */
+.waveform-explorer-zone{height:96px;overflow:hidden;}
+.waveform-explorer-info:not(.signal-quality-card):not(.terrain-examples-card){height:108px;overflow:hidden;}
+.signal-quality-card{height:184px;overflow:hidden;}
+.terrain-examples-card{height:145px;overflow:hidden;}
+.waveform-explorer-panel:not(.collapsed) .panel-collapse-content{min-height:610px;}
+
+@media(max-width:520px){
+  .explorer-sensitivity-row{grid-template-columns:1fr;}
+  .waveform-explorer-zone{height:102px;}
+  .waveform-explorer-info:not(.signal-quality-card):not(.terrain-examples-card){height:114px;}
+  .signal-quality-card{height:190px;}
+  .terrain-examples-card{height:270px;}
+  .waveform-explorer-panel:not(.collapsed) .panel-collapse-content{min-height:1110px;}
+}

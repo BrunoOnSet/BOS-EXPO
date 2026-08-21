@@ -1280,6 +1280,72 @@ function simpleCalculateNow(changedKey=null){
 // ---------- ANALYSE WAVEFORM · 3 points + simulation d’exposition ----------
 let waveformScene={skin:52,high:90,shadow:20,shift:0};
 let compactExpoState={read:70,placeStop:1};
+let explorerSensitivity=null;
+let explorerSensitivitySig="";
+
+// Latitude capteur constructeur utilisée uniquement quand une table suffisamment fiable est disponible.
+// Les Pocket 4K/6K suivent les tableaux Blackmagic de répartition au-dessus / sous le gris.
+function explorerBmdPocketRange(cameraId,iso){
+  const v=Number(iso);if(!(v>0))return null;
+  if(cameraId==="bmpcc6k"){
+    if(v>=100&&v<=1000){const above=5.9+log2(v/400);return {above,below:13.4-above,total:13.4,source:"Blackmagic · table constructeur"};}
+    if(v>=1250&&v<=6400){const above=5.6+log2(v/3200);return {above,below:12.1-above,total:12.1,source:"Blackmagic · table constructeur"};}
+  }
+  if(cameraId==="bmpcc4k"){
+    if(v>=100&&v<=1000){const above=5.5+log2(v/400);return {above,below:13.1-above,total:13.1,source:"Blackmagic · table constructeur"};}
+    if(v>=1250&&v<=6400){const above=5.1+log2(v/3200);return {above,below:12.3-above,total:12.3,source:"Blackmagic · table constructeur"};}
+  }
+  if(cameraId==="ursamp12k"&&v>=125&&v<=3200){
+    const above=6.1+log2(v/800);return {above,below:13.9-above,total:13.9,source:"Blackmagic · table constructeur"};
+  }
+  return null;
+}
+function explorerDynamicRangeFromDb(cam,p,iso){
+  const sources=[cam?.dynamicRangeByIso,cam?.dynamicRange?.byIso,p?.dynamicRangeByIso,p?.dynamicRange?.byIso].filter(Boolean);
+  for(const src of sources){
+    const rows=Array.isArray(src)?src:Object.entries(src).map(([k,v])=>({iso:Number(k),...(v||{})}));
+    if(!rows.length)continue;
+    const exact=rows.find(r=>Math.abs(Number(r.iso??r.ei)-Number(iso))<.01);
+    if(!exact)continue;
+    const above=Number(exact.stopsAbove??exact.above??exact.highlights);
+    const below=Number(exact.stopsBelow??exact.below??exact.shadows);
+    const total=Number(exact.totalStops??exact.total??(above+below));
+    if(Number.isFinite(above)&&Number.isFinite(below))return {above,below,total:Number.isFinite(total)?total:above+below,source:"BOS Camera DB · données constructeur"};
+  }
+  return explorerBmdPocketRange(cam?.id,iso);
+}
+function explorerSensitivityOptions(cam,p){
+  if(cam?.id==="bmpcc4k"||cam?.id==="bmpcc6k")return [100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600];
+  if(cam?.id==="ursamp12k")return [125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200];
+  let vals=simpleAvailableIsoValues().filter(v=>v>=50&&v<=51200);
+  const bases=currentBaseIsos();
+  vals=[...new Set([...vals,...bases,Number(p?.defaultValue)].filter(v=>Number(v)>0))].sort((a,b)=>a-b);
+  return vals;
+}
+function ensureExplorerSensitivity(cam,p){
+  const sig=`${cam?.id||""}|${gammaMode}`;
+  const opts=explorerSensitivityOptions(cam,p);
+  if(explorerSensitivitySig!==sig||!opts.some(v=>Math.abs(v-Number(explorerSensitivity))<.01)){
+    explorerSensitivitySig=sig;
+    const wanted=Number(p?.defaultValue)||currentBaseIsos()[0]||opts[0]||800;
+    explorerSensitivity=opts.reduce((best,v)=>Math.abs(Math.log(v/wanted))<Math.abs(Math.log(best/wanted))?v:best,opts[0]||wanted);
+  }
+  return explorerSensitivity;
+}
+function renderExplorerSensitivity(cam,p){
+  const sel=$("explorerIsoSelect"),label=$("explorerIsoLabel"),note=$("explorerIsoNote");if(!sel)return null;
+  const unit=currentSensitivityUnit()==="EI"?"EI":"ISO";
+  if(label)label.textContent=`${unit} DE TOURNAGE`;
+  const current=ensureExplorerSensitivity(cam,p);
+  const opts=explorerSensitivityOptions(cam,p);
+  sel.innerHTML=opts.map(v=>`<option value="${v}"${Math.abs(v-current)<.01?" selected":""}>${unit} ${formatThousands(v)}</option>`).join("");
+  const dr=explorerDynamicRangeFromDb(cam,p,current);
+  if(note){
+    note.classList.toggle("sensor-data",!!dr);
+    note.textContent=dr?`${dr.source} · ${fmt(dr.total,1)} stops au total · +${fmt(dr.above,1)} au-dessus / −${fmt(dr.below,1)} sous le gris.`:`${unit} ${formatThousands(current)} sélectionné · la DB ne renseigne pas encore la répartition réelle de latitude capteur à cette sensibilité.`;
+  }
+  return dr;
+}
 let exposureGuideProfileKey="";
 
 function slog3CodeValue(linear){
@@ -1751,7 +1817,15 @@ function waveformExplorerAdvice(zone,value,guide){
     qualityText:'La qualité finale dépend de la caméra, de l’ISO/EI et de la quantité réelle de lumière.'
   };
 }
-function waveformExplorerLatitude(guide,info){
+function waveformExplorerLatitude(guide,info,sensorRange){
+  if(sensorRange&&Number.isFinite(info?.stop)){
+    const up=sensorRange.above-info.stop;
+    const down=sensorRange.below+info.stop;
+    return {
+      value:`+${fmt(Math.max(0,up),1)} stops ↑ · −${fmt(Math.max(0,down),1)} stops ↓`,
+      text:`Latitude capteur estimée depuis la répartition constructeur à ${currentSensitivityUnit()==="EI"?"EI":"ISO"} ${formatThousands(explorerSensitivity)}. Total annoncé : ${fmt(sensorRange.total,1)} stops.`
+    };
+  }
   if(!Number.isFinite(info?.stop)){
     if(Number.isFinite(guide?.highSignal)){
       const pts=guide.highSignal-info.value;
@@ -1765,32 +1839,35 @@ function waveformExplorerLatitude(guide,info){
   if(Number.isFinite(high)) parts.push(`+${fmt(Math.max(0,high-info.stop),1)} stops ↑`);
   if(Number.isFinite(low)) parts.push(`−${fmt(Math.max(0,info.stop-low),1)} stops ↓`);
   if(parts.length===2){
-    return {value:parts.join(' · '),text:'Jusqu’aux repères haut et bas documentés de la courbe. Ce n’est pas une mesure garantie de la latitude réelle du capteur.'};
+    return {value:parts.join(' · '),text:'Repères de la courbe uniquement : la répartition réelle de latitude capteur à cet ISO/EI n’est pas documentée dans la base.'};
   }
   if(parts.length===1){
-    return {value:parts[0],text:Number.isFinite(high)?`Jusqu’au repère ${guide.highLabel}. Le repère bas n’est pas suffisamment documenté.`:'Jusqu’au repère bas documenté. Le repère haut n’est pas suffisamment documenté.'};
+    return {value:parts[0],text:'Repère de courbe uniquement : latitude capteur réelle non documentée à cette sensibilité.'};
   }
   return {value:'—',text:'Latitude non renseignée de façon suffisamment fiable pour ce profil.'};
 }
 
 function waveformTerrainKey(zone,value,guide,stop){
+  const label=String(zone?.label||zone?.title||'').toUpperCase();
+  const zMin=Number(zone?.min),zMax=Number(zone?.max);
+  const progress=Number.isFinite(zMin)&&Number.isFinite(zMax)&&zMax>zMin?Math.max(0,Math.min(1,(Number(value)-zMin)/(zMax-zMin))):.5;
+  if(/SOUS LE NOIR|PIED|TRÈS BASSES/.test(label))return 'shadow-low';
+  if(/OMBRE|BASSES LUMIÈRES/.test(label))return progress<.48?'shadow-low':'shadow-detail';
   if(Number.isFinite(stop)){
-    if(stop>=3) return 'window';
-    if(stop>=1) return 'bright-face';
-    if(stop>=-1) return 'dark-face';
-    if(stop>=-3) return 'shadow-detail';
+    if(stop>=2.5)return 'window';
+    if(stop>=.75)return 'bright-face';
+    if(stop>=-.75)return 'dark-face';
+    if(stop>=-2)return 'shadow-detail';
     return 'shadow-low';
   }
-  const label=String(zone?.label||zone?.title||'').toUpperCase();
   const z=guide?.zones||[];
   const idx=Math.max(0,z.indexOf(zone));
   const count=Math.max(1,z.length);
   const rel=(idx+.5)/count;
-  if(/EXTRÊME|ROLL-OFF FORT|TRÈS HAUTES|SATURATION|HORS REPÈRE/.test(label) || rel>.82) return 'window';
-  if(/HAUTES|ROLL-OFF DOUX|MÉDIUMS HAUTS/.test(label) || rel>.62) return 'bright-face';
-  if(/MÉDIUM|ZONE PRINCIPALE|CONTRASTE PRINCIPAL/.test(label) || rel>.42) return 'dark-face';
-  if(/OMBRE|BASSES LUMIÈRES/.test(label) || rel>.20) return 'shadow-detail';
-  return 'shadow-low';
+  if(/EXTRÊME|ROLL-OFF FORT|TRÈS HAUTES|SATURATION|HORS REPÈRE/.test(label)||rel>.82)return 'window';
+  if(/HAUTES|ROLL-OFF DOUX|MÉDIUMS HAUTS/.test(label)||rel>.62)return 'bright-face';
+  if(/MÉDIUM|ZONE PRINCIPALE|CONTRASTE PRINCIPAL/.test(label)||rel>.42)return 'dark-face';
+  return 'shadow-detail';
 }
 function renderTerrainExamples(zone,value,guide,stop){
   const key=waveformTerrainKey(zone,value,guide,stop);
@@ -1804,7 +1881,7 @@ function renderTerrainExamples(zone,value,guide,stop){
       'shadow-detail':'Exemples typiques : ombre avec matière, côté non éclairé d’un visage, décor sombre dont tu veux garder le détail.',
       'shadow-low':'Exemples typiques : ombre profonde, fond sombre ou zone dont le détail est secondaire.'
     };
-    note.textContent=`${labels[key]} Repères indicatifs : le placement dépend du rendu recherché.`;
+    note.textContent=`${labels[key]} Repère indicatif : le placement dépend du rendu recherché et des conditions de tournage.`;
   }
 }
 
@@ -1812,6 +1889,7 @@ function renderCompactExpoTools(guide,cam,p,bases){
   if(!guide)return;
   renderQuickWaveformBar(guide);
   renderQuickHighBar(guide);
+  const sensorRange=renderExplorerSensitivity(cam,p);
   const canSim=!!guide.stopsFn;
   const high=scenePointInfo(guide,waveformScene.high,0);
 
@@ -1850,7 +1928,7 @@ function renderCompactExpoTools(guide,cam,p,bases){
   if($("quickWaveformCursor"))$("quickWaveformCursor").style.left=`${readV}%`;
   const readInfo=scenePointInfo(guide,readV,0);
   const advice=waveformExplorerAdvice(readInfo.zone,readV,guide);
-  const latitude=waveformExplorerLatitude(guide,readInfo);
+  const latitude=waveformExplorerLatitude(guide,readInfo,sensorRange);
   const signalTrend=renderSignalTrend(readInfo.zone,readV);
   if($("quickReadAnswer"))$("quickReadAnswer").textContent=canSim&&Number.isFinite(readInfo.stop)?`${readInfo.zone?.label||"—"} · ${compactStopLabel(readInfo.stop)}`:(readInfo.zone?.label||"—");
   if($("quickReadText"))$("quickReadText").textContent=readInfo.zone?.text||readInfo.zone?.title||"Position dans la courbe.";
@@ -1994,6 +2072,7 @@ document.querySelectorAll("#sceneShiftPresets button").forEach(btn=>btn.addEvent
 $("quickHighInput")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickHighSlider")?.addEventListener("input",e=>{waveformScene.high=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
 $("quickReadSlider")?.addEventListener("input",e=>{compactExpoState.read=Math.max(0,Math.min(100,Number(String(e.target.value).replace(",","."))||0));renderExposureGuide();});
+$("explorerIsoSelect")?.addEventListener("change",e=>{explorerSensitivity=Number(e.target.value)||explorerSensitivity;renderExposureGuide();});
 document.querySelectorAll("#placeStopPresets button").forEach(btn=>btn.addEventListener("click",()=>{compactExpoState.placeStop=Number(btn.dataset.stop)||0;renderExposureGuide();}));
 
 // Replace the legacy updater once the original app has initialised.
