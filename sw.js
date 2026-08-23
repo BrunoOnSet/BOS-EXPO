@@ -1,7 +1,7 @@
-const CACHE = "bos-expo-v3.62";
-const ASSETS=["./","./index.html","./style.css?v=3.62","./app.js?v=3.62","./manifest.webmanifest","./icon-192.png","./icon-512.png","./logo-bruno-guillard.png"];
+const CACHE = "bos-expo-v3.65";
+const ASSETS=["./","./index.html","./style.css?v=3.65","./app.js?v=3.65","./manifest.webmanifest","./icon-192.png","./icon-512.png","./logo-bruno-guillard.png"];
 const CAMERA_DB_HOST="raw.githubusercontent.com";
-const CAMERA_DB_PATH="/BrunoSetTools/BOS-CAMERA-DB/main/cameras.json";
+const CAMERA_DB_PATH="/BrunoOnSet/BOS-CAMERA-DB/main/cameras.json";
 
 self.addEventListener("install",e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));

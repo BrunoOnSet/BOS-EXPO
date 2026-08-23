@@ -526,9 +526,25 @@ V3.61 — DYNAMIQUE / RÉFÉRENCE NATIVE
 - Ajout d’une note indiquant que les données peuvent varier avec les réglages caméra et les conditions de tournage.
 
 
-V3.62 — DYNAMIQUE / POURCENTAGES ENTIERS
+V3.63 — DYNAMIQUE / POURCENTAGES ENTIERS
 - Explorer la dynamique : curseur 0–100 % par pas entiers.
 - Valeur principale affichée sans décimale pour stabiliser l’interface.
 - Largeur du bloc pourcentage fixée avec chiffres tabulaires pour éviter les sauts de mise en page.
 - Note visible sous l’introduction : « Données constructeur à l’ISO natif. Variations possibles selon les réglages caméra. »
 - Ancienne note constructeur longue retirée du bas de la bulle.
+
+
+V3.63
+- Remise des limites ISO MIN / ISO MAX / DIAPH MIN / DIAPH MAX directement dans la bulle COMPENSER.
+- Clarification : la graduation en stops affichée sur la barre Waveform ne représente pas la dynamique totale du capteur.
+
+V3.65 — CAMERA DB V1.7 / COURBE ≠ DYNAMIQUE CAPTEUR
+- URL de la base caméra corrigée vers l’organisation BrunoOnSet / BOS-CAMERA-DB.
+- Nouveau cache DB afin de ne pas conserver une ancienne base locale.
+- Support de dynamicRangeReference (BOS_CAMERA_DB V1.7) séparément de waveformGuide.
+- EXPOSER utilise toute stopTable fournie par la DB ; S-Log3 de secours étendu à -8/+6, LogC3 à -6/+7, Film Gen 5 à -4/+8.
+- La marge hautes lumières utilise la latitude haute constructeur quand elle est explicitement publiée ; sinon elle reste un simple repère de courbe.
+- La carte « Latitude autour du point » accepte les données constructeur partielles sans inventer les valeurs manquantes (ex. Sony : total 15+ et +6 au-dessus du gris, sans déduire la latitude basse).
+- ALEXA Mini LF / LogC3 et ALEXA 35 / LogC4 peuvent exploiter la répartition capteur constructeur de la DB V1.7.
+- Les textes UI rappellent explicitement que les traits du waveform décrivent la courbe / le rendu et non la dynamique totale du capteur.
+

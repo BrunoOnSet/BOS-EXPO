@@ -1420,8 +1420,17 @@ body.dark .wave-seg-1{background:rgba(255,255,255,.06)}
 }
 
 
-/* V3.62 — pourcentage entier + en-tête stable */
+/* V3.63 — pourcentage entier + en-tête stable */
 .waveform-explorer-head>div:first-child{min-width:0;flex:1 1 auto;}
 .waveform-explorer-value{width:82px;min-width:82px;flex:0 0 82px;justify-content:flex-end;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
 .waveform-explorer-value strong{display:inline-block;min-width:58px;text-align:right;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
 .explorer-native-note{margin-top:4px;color:var(--muted);font-size:10px;line-height:1.35;font-weight:800;}
+
+
+/* V3.63 — limites directement dans COMPENSER */
+.compensate-limits-block{margin:0 0 14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--soft);}
+.compensate-limits-block .camera-limits-grid{margin-top:10px;}
+.compensate-limits-block .iso-limit-help{margin-top:8px;}
+.compenser-limits-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.compenser-limits-grid .iso-limit-field{min-width:0;}
+@media(max-width:620px){.compenser-limits-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
