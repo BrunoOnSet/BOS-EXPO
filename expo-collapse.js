@@ -46,12 +46,22 @@
     p.head.setAttribute('role','button');p.head.setAttribute('tabindex','0');
   }
 
+  function applyCompactHeaderVisibility(p,open){
+    const target=p.panel.id==='readToolPanel'
+      ? p.head.querySelector('.waveform-explorer-value')
+      : p.head.querySelector('#simpleResetBtn');
+    if(!target)return;
+    if(open)target.style.removeProperty('display');
+    else target.style.setProperty('display','none','important');
+  }
+
   function apply(p,key){
     normalizeLegacy(p);
     const open=!!state[key];
     p.panel.classList.toggle('bos-suite-collapsed',!open);
     p.head.setAttribute('aria-expanded',open?'true':'false');
     shortCopy(p,!open);
+    applyCompactHeaderVisibility(p,open);
     fit();setTimeout(fit,80);
   }
 
