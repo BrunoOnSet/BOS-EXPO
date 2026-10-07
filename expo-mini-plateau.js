@@ -4,131 +4,117 @@
   const frame=document.getElementById('expoFrame');
   if(!frame)return;
 
-  const APERTURES=[1,1.1,1.2,1.4,1.6,1.8,2,2.2,2.5,2.8,3.2,3.5,4,4.5,5,5.6,6.3,7.1,8,9,10,11,13,14,16];
-  const ISOS=[100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800];
-  const ND_STOPS=[0,1/3,2/3,1,4/3,5/3,2,7/3,8/3,3,10/3,11/3,4,13/3,14/3,5,16/3,17/3,6];
+  const SOURCE_MAX=20;
+  const SOURCE_MIN=0.5;
+  const BG_MAX=5;
+  const BG_MIN=0.3;
 
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const log2=v=>Math.log(v)/Math.LN2;
-  const fmt=(v,d=1)=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d,minimumFractionDigits:0});
-  const fmtStop=v=>{
-    if(Math.abs(v)<0.05)return '0,0 stop';
-    return (v>0?'+':'−')+Math.abs(v).toLocaleString('fr-FR',{maximumFractionDigits:1})+' stop';
-  };
-  const fmtNd=v=>{
-    const whole=Math.floor(v+1e-6),frac=v-whole;
-    if(Math.abs(frac-1/3)<.05)return `${whole?whole+'⅓':'⅓'} stop`;
-    if(Math.abs(frac-2/3)<.05)return `${whole?whole+'⅔':'⅔'} stop`;
-    return `${whole} ${whole===1?'stop':'stops'}`;
-  };
+  const fmt=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:1,minimumFractionDigits:1});
 
   function styleText(){return `
 html.bos-suite-embed #bosMiniPlateau{
   width:100%;margin-top:12px;border:1px solid var(--card-border,#D7D9D6);border-radius:22px;background:var(--panel);box-shadow:none;overflow:hidden;padding:0;
 }
 html.bos-suite-embed #bosMiniPlateau.bmp-collapsed{height:82px}
-html.bos-suite-embed #bosMiniPlateau.bmp-collapsed .bmp-body{display:none}
-html.bos-suite-embed .bmp-head{display:grid;grid-template-columns:34px minmax(0,1fr) auto 24px;align-items:center;gap:12px;width:100%;height:80px;min-height:80px;padding:14px 16px;border:0;background:transparent;text-align:left;cursor:pointer;color:inherit}
-html.bos-suite-embed #bosMiniPlateau:not(.bmp-collapsed) .bmp-head{border-bottom:1px solid var(--line)}
-html.bos-suite-embed .bmp-number{width:34px;height:34px;display:grid;place-items:center;border:1px solid #2F5B66;border-radius:10px;background:rgba(47,91,102,.14);color:#2F5B66;font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:11px;font-weight:700}
-html.bos-suite-embed body.dark .bmp-number{background:rgba(47,91,102,.22);color:#7FA7B0}
-html.bos-suite-embed .bmp-title{min-width:0}
-html.bos-suite-embed .bmp-title strong{display:block;overflow:hidden;color:#2F5B66;font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.15;font-weight:700;white-space:nowrap;text-overflow:ellipsis}
-html.bos-suite-embed body.dark .bmp-title strong{color:#7FA7B0}
-html.bos-suite-embed .bmp-title small{display:block;margin-top:4px;overflow:hidden;color:var(--muted);font-size:10px;line-height:1.3;white-space:nowrap;text-overflow:ellipsis}
-html.bos-suite-embed .bmp-reset{min-height:30px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel2);color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.06em;cursor:pointer}
-html.bos-suite-embed .bmp-chevron{display:grid;place-items:center;width:24px;height:24px;color:var(--muted);font-size:18px;line-height:1;transform:rotate(180deg)}
-html.bos-suite-embed #bosMiniPlateau.bmp-collapsed .bmp-chevron{transform:none}
-html.bos-suite-embed .bmp-body{padding:16px 18px 18px}
-html.bos-suite-embed .bmp-intro{margin:0 0 12px;color:var(--muted);font-size:10px;line-height:1.45}
-html.bos-suite-embed .bmp-views{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(180px,.75fr);gap:12px}
-html.bos-suite-embed .bmp-stage,html.bos-suite-embed .bmp-monitor{position:relative;min-height:220px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel2)}
-html.bos-suite-embed .bmp-stage{background:linear-gradient(to bottom,var(--panel2) 0 72%,color-mix(in srgb,var(--muted) 10%,var(--panel2)) 72% 100%)}
-html.bos-suite-embed .bmp-stage-floor{position:absolute;left:5%;right:5%;bottom:27%;height:1px;background:var(--line)}
-html.bos-suite-embed .bmp-stage svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-html.bos-suite-embed #bmpBeam{fill:rgba(255,220,132,.18);stroke:rgba(199,151,44,.34);stroke-width:1;stroke-dasharray:5 5}
-html.bos-suite-embed .bmp-source{position:absolute;bottom:25%;width:42px;height:88px;transform:translateX(-50%);transition:left .15s ease}
-html.bos-suite-embed .bmp-source .head{position:absolute;left:7px;top:0;width:28px;height:20px;border:2px solid #2F5B66;border-radius:3px;transform:skewY(-7deg);background:var(--panel)}
-html.bos-suite-embed .bmp-source .stand{position:absolute;left:20px;top:20px;width:2px;height:55px;background:#2F5B66}
-html.bos-suite-embed .bmp-source .stand:before,html.bos-suite-embed .bmp-source .stand:after{content:"";position:absolute;bottom:0;width:27px;height:2px;background:#2F5B66;transform-origin:left center}
-html.bos-suite-embed .bmp-source .stand:before{transform:rotate(28deg)}html.bos-suite-embed .bmp-source .stand:after{transform:rotate(152deg)}
-html.bos-suite-embed .bmp-subject{position:absolute;left:62%;bottom:25%;width:34px;height:94px;transform:translateX(-50%);filter:brightness(var(--bmp-subject-bright,1));transition:filter .12s ease}
-html.bos-suite-embed .bmp-subject:before{content:"";position:absolute;left:8px;top:0;width:18px;height:18px;border-radius:50%;background:var(--text)}
-html.bos-suite-embed .bmp-subject:after{content:"";position:absolute;left:6px;top:19px;width:22px;height:60px;border-radius:48% 48% 22% 22%;background:var(--text);box-shadow:-8px 51px 0 -6px var(--text),8px 51px 0 -6px var(--text)}
-html.bos-suite-embed .bmp-wall{position:absolute;right:7%;bottom:25%;width:22px;height:112px;border:1px solid var(--line);background:color-mix(in srgb,var(--text) var(--bmp-wall-mix,18%),var(--panel));transition:background .12s ease}
-html.bos-suite-embed .bmp-camera{position:absolute;bottom:23%;width:49px;height:50px;transform:translateX(-50%);transition:left .15s ease}
-html.bos-suite-embed .bmp-camera .body{position:absolute;left:3px;top:7px;width:32px;height:23px;border:2px solid #2F5B66;border-radius:4px;background:var(--panel)}
-html.bos-suite-embed .bmp-camera .lens{position:absolute;left:34px;top:12px;width:12px;height:13px;border:2px solid #2F5B66;border-left:0;border-radius:0 4px 4px 0}
-html.bos-suite-embed .bmp-camera .legs{position:absolute;left:19px;top:29px;width:2px;height:18px;background:#2F5B66;box-shadow:-7px 14px 0 -0.5px #2F5B66,7px 14px 0 -0.5px #2F5B66}
-html.bos-suite-embed .bmp-label{position:absolute;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
-html.bos-suite-embed #bmpSourceLabel{bottom:9%;transform:translateX(-50%)}html.bos-suite-embed #bmpCameraLabel{bottom:3%;transform:translateX(-50%)}html.bos-suite-embed #bmpSubjectLabel{left:62%;bottom:9%;transform:translateX(-50%)}html.bos-suite-embed #bmpWallLabel{right:4%;bottom:9%}
-html.bos-suite-embed .bmp-monitor{background:#17191c;isolation:isolate}
-html.bos-suite-embed .bmp-monitor-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(25,29,33,.96),rgba(90,91,88,.78));filter:brightness(var(--bmp-preview-bg,1)) blur(var(--bmp-bg-blur,2px));transform:scale(1.05);transition:filter .12s ease}
-html.bos-suite-embed .bmp-monitor-bg:before,html.bos-suite-embed .bmp-monitor-bg:after{content:"";position:absolute;bottom:14%;width:17%;height:57%;background:rgba(255,255,255,.13);border-radius:4px}
-html.bos-suite-embed .bmp-monitor-bg:before{left:12%}html.bos-suite-embed .bmp-monitor-bg:after{right:11%;height:39%}
-html.bos-suite-embed .bmp-monitor-subject{position:absolute;left:50%;bottom:-3%;width:54px;height:78%;transform:translateX(-50%) scale(var(--bmp-subject-scale,1));transform-origin:50% 100%;filter:brightness(var(--bmp-preview-subject,1));transition:filter .12s ease,transform .15s ease}
-html.bos-suite-embed .bmp-monitor-subject:before{content:"";position:absolute;left:31%;top:0;width:38%;aspect-ratio:1;border-radius:50%;background:#c9cbcd}
-html.bos-suite-embed .bmp-monitor-subject:after{content:"";position:absolute;left:0;bottom:0;width:100%;height:70%;border-radius:45% 45% 12% 12%;background:#b7b9bc}
-html.bos-suite-embed .bmp-noise{position:absolute;inset:0;opacity:var(--bmp-noise,.04);mix-blend-mode:screen;pointer-events:none;background-image:radial-gradient(circle at 20% 20%,#fff 0 0.7px,transparent .8px),radial-gradient(circle at 80% 35%,#fff 0 0.6px,transparent .7px),radial-gradient(circle at 45% 75%,#fff 0 0.55px,transparent .65px);background-size:6px 7px,8px 6px,7px 9px}
-html.bos-suite-embed .bmp-monitor-top{position:absolute;left:10px;right:10px;top:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff;font-size:8px;font-weight:700;text-shadow:0 1px 3px #000}
-html.bos-suite-embed .bmp-monitor-stop{padding:5px 7px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(0,0,0,.28);font-size:9px}
-html.bos-suite-embed .bmp-readouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
-html.bos-suite-embed .bmp-readout{padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
-html.bos-suite-embed .bmp-readout span{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
-html.bos-suite-embed .bmp-readout strong{display:block;margin-top:3px;color:#2F5B66;font-size:12px}html.bos-suite-embed body.dark .bmp-readout strong{color:#7FA7B0}
-html.bos-suite-embed .bmp-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;margin-top:14px}
-html.bos-suite-embed .bmp-control{padding:10px 11px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
-html.bos-suite-embed .bmp-control-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:7px}
-html.bos-suite-embed .bmp-control-head span{color:var(--text);font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
-html.bos-suite-embed .bmp-control-head strong{color:#2F5B66;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}html.bos-suite-embed body.dark .bmp-control-head strong{color:#7FA7B0}
-html.bos-suite-embed .bmp-control input[type=range]{width:100%;margin:0;accent-color:#2F5B66}
-html.bos-suite-embed .bmp-note{margin:12px 0 0;color:var(--muted);font-size:9px;line-height:1.45}
-@media(max-width:620px){html.bos-suite-embed .bmp-views{grid-template-columns:1fr}html.bos-suite-embed .bmp-stage,html.bos-suite-embed .bmp-monitor{min-height:190px}}
-@media(max-width:430px){html.bos-suite-embed .bmp-head{grid-template-columns:34px minmax(0,1fr) 24px;gap:10px;padding:14px 15px}html.bos-suite-embed .bmp-reset{display:none}html.bos-suite-embed .bmp-body{padding:14px 15px 16px}html.bos-suite-embed .bmp-controls{grid-template-columns:1fr}html.bos-suite-embed .bmp-readouts{grid-template-columns:1fr 1fr}.bmp-readout:last-child{grid-column:1/-1}}
+html.bos-suite-embed #bosMiniPlateau.bmp-collapsed .bfd-body{display:none}
+html.bos-suite-embed .bfd-head{display:grid;grid-template-columns:34px minmax(0,1fr) auto 24px;align-items:center;gap:12px;width:100%;height:80px;min-height:80px;padding:14px 16px;border:0;background:transparent;text-align:left;cursor:pointer;color:inherit;box-sizing:border-box}
+html.bos-suite-embed #bosMiniPlateau:not(.bmp-collapsed) .bfd-head{border-bottom:1px solid var(--line)}
+html.bos-suite-embed .bfd-number{width:34px;height:34px;display:grid;place-items:center;border:1px solid #2F5B66;border-radius:10px;background:rgba(47,91,102,.14);color:#2F5B66;font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:11px;font-weight:700}
+html.bos-suite-embed body.dark .bfd-number{background:rgba(47,91,102,.22);color:#7FA7B0}
+html.bos-suite-embed .bfd-title{min-width:0}
+html.bos-suite-embed .bfd-title strong{display:block;overflow:hidden;color:#2F5B66;font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.15;font-weight:700;white-space:nowrap;text-overflow:ellipsis}
+html.bos-suite-embed body.dark .bfd-title strong{color:#7FA7B0}
+html.bos-suite-embed .bfd-title small{display:block;margin-top:4px;overflow:hidden;color:var(--muted);font-size:10px;line-height:1.3;white-space:nowrap;text-overflow:ellipsis}
+html.bos-suite-embed .bfd-reset{min-height:30px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel2);color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.06em;cursor:pointer}
+html.bos-suite-embed .bfd-chevron{display:grid;place-items:center;width:24px;height:24px;color:var(--muted);font-size:18px;line-height:1;transform:rotate(180deg)}
+html.bos-suite-embed #bosMiniPlateau.bmp-collapsed .bfd-chevron{transform:none}
+html.bos-suite-embed .bfd-body{padding:16px 18px 18px}
+html.bos-suite-embed .bfd-intro{margin:0 0 12px;color:var(--muted);font-size:10px;line-height:1.45}
+
+html.bos-suite-embed .bfd-scene{position:relative;width:100%;aspect-ratio:16/9;min-height:240px;border:1px solid var(--line);border-radius:17px;overflow:hidden;background:#d8d3c9;isolation:isolate}
+html.bos-suite-embed .bfd-room{position:absolute;inset:0;z-index:1;background:linear-gradient(#d8d3c9 0 73%,#b8afa1 73% 100%)}
+html.bos-suite-embed body.dark .bfd-room{background:linear-gradient(#484743 0 73%,#33322f 73% 100%)}
+html.bos-suite-embed .bfd-wall-line{position:absolute;left:0;right:0;top:73%;height:1px;background:rgba(47,91,102,.18)}
+html.bos-suite-embed .bfd-rug{position:absolute;left:27%;right:23%;bottom:4%;height:18%;border-radius:50%;background:rgba(47,91,102,.08);transform:perspective(260px) rotateX(62deg)}
+html.bos-suite-embed .bfd-cabinet{position:absolute;left:8%;bottom:25%;width:20%;height:52%;border:2px solid #2F5B66;border-radius:4px;background:rgba(255,255,255,.24);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+html.bos-suite-embed .bfd-cabinet:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:#2F5B66;opacity:.55}
+html.bos-suite-embed .bfd-cabinet:after{content:"";position:absolute;left:8%;right:8%;top:39%;height:1px;background:#2F5B66;opacity:.45;box-shadow:0 42px 0 #2F5B66}
+html.bos-suite-embed .bfd-cabinet-knob{position:absolute;top:48%;width:4px;height:4px;border-radius:50%;background:#2F5B66}.bfd-cabinet-knob.a{left:43%}.bfd-cabinet-knob.b{right:43%}
+html.bos-suite-embed .bfd-console{position:absolute;right:8%;bottom:25%;width:24%;height:18%;border-top:3px solid #2F5B66;border-left:2px solid #2F5B66;border-right:2px solid #2F5B66;opacity:.8}
+html.bos-suite-embed .bfd-frame{position:absolute;right:12%;top:15%;width:15%;height:18%;border:2px solid #2F5B66;border-radius:2px;opacity:.72}.bfd-frame:after{content:"";position:absolute;inset:12%;border:1px solid #2F5B66;opacity:.4}
+html.bos-suite-embed .bfd-plant{position:absolute;right:27%;bottom:25%;width:14%;height:42%}
+html.bos-suite-embed .bfd-pot{position:absolute;left:30%;bottom:0;width:42%;height:22%;border:2px solid #2F5B66;border-radius:3px 3px 8px 8px;background:rgba(47,91,102,.10)}
+html.bos-suite-embed .bfd-stem{position:absolute;left:50%;bottom:19%;width:2px;height:58%;background:#2F5B66;transform-origin:bottom}
+html.bos-suite-embed .bfd-stem.s1{transform:rotate(-17deg)}.bfd-stem.s2{transform:rotate(15deg)}.bfd-stem.s3{transform:rotate(0)}
+html.bos-suite-embed .bfd-leaf{position:absolute;width:25%;height:18%;border:2px solid #2F5B66;border-radius:80% 20% 80% 20%;background:rgba(47,91,102,.12)}
+html.bos-suite-embed .bfd-leaf.l1{left:15%;top:22%;transform:rotate(15deg)}.bfd-leaf.l2{right:12%;top:16%;transform:rotate(72deg)}.bfd-leaf.l3{left:37%;top:4%;transform:rotate(46deg)}.bfd-leaf.l4{right:6%;top:39%;transform:rotate(55deg)}
+html.bos-suite-embed .bfd-lamp{position:absolute;left:34%;bottom:25%;width:9%;height:45%}.bfd-lamp:before{content:"";position:absolute;left:48%;top:20%;bottom:0;width:2px;background:#2F5B66}.bfd-lamp:after{content:"";position:absolute;left:13%;top:0;width:74%;height:24%;border:2px solid #2F5B66;border-radius:50% 50% 10% 10%;background:rgba(47,91,102,.08)}
+html.bos-suite-embed .bfd-room-shade{position:absolute;inset:0;z-index:2;background:#090b0c;opacity:var(--bfd-darkness,.18);transition:opacity .12s linear;pointer-events:none}
+html.bos-suite-embed .bfd-subject-glow{position:absolute;z-index:3;left:50%;top:9%;width:34%;height:84%;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 50%,rgba(255,244,211,.30) 0,rgba(255,244,211,.10) 42%,transparent 72%);pointer-events:none}
+html.bos-suite-embed .bfd-person{position:absolute;z-index:4;left:50%;bottom:8%;width:110px;height:78%;transform:translateX(-50%);filter:drop-shadow(0 9px 12px rgba(0,0,0,.18))}
+html.bos-suite-embed .bfd-head-person{position:absolute;left:50%;top:2%;width:36%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:#d8b59e;border:2px solid rgba(47,91,102,.42)}
+html.bos-suite-embed .bfd-hair{position:absolute;left:50%;top:1%;width:38%;height:15%;border-radius:50% 50% 38% 38%;transform:translateX(-50%);background:#26292b}
+html.bos-suite-embed .bfd-neck{position:absolute;left:43%;top:32%;width:14%;height:9%;background:#d8b59e}
+html.bos-suite-embed .bfd-body-person{position:absolute;left:18%;right:18%;top:38%;bottom:8%;border-radius:38% 38% 12% 12%;background:#2F5B66;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
+html.bos-suite-embed .bfd-arm{position:absolute;top:42%;width:14%;height:42%;border-radius:999px;background:#2F5B66}.bfd-arm.a{left:11%;transform:rotate(8deg)}.bfd-arm.b{right:11%;transform:rotate(-8deg)}
+html.bos-suite-embed .bfd-scene-badge{position:absolute;z-index:6;right:12px;top:12px;padding:7px 9px;border:1px solid rgba(255,255,255,.58);border-radius:999px;background:rgba(255,255,255,.76);backdrop-filter:blur(8px);color:#2F5B66;font-size:9px;font-weight:800;letter-spacing:.04em;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+html.bos-suite-embed body.dark .bfd-scene-badge{background:rgba(20,22,24,.72);border-color:rgba(255,255,255,.14);color:#7FA7B0}
+
+html.bos-suite-embed .bfd-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:11px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+html.bos-suite-embed .bfd-status span{color:var(--muted);font-size:9px;line-height:1.35}.bfd-status strong{color:#2F5B66;font-size:10px;text-align:right}html.bos-suite-embed body.dark .bfd-status strong{color:#7FA7B0}
+html.bos-suite-embed .bfd-controls{display:grid;gap:12px;margin-top:14px}
+html.bos-suite-embed .bfd-control{padding:11px 12px 10px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+html.bos-suite-embed .bfd-control-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:9px}.bfd-control-head span{color:var(--text);font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.bfd-control-head strong{color:#2F5B66;font-size:11px;white-space:nowrap}html.bos-suite-embed body.dark .bfd-control-head strong{color:#7FA7B0}
+html.bos-suite-embed .bfd-range{width:100%;margin:0;accent-color:#2F5B66}
+html.bos-suite-embed .bfd-extremes{display:flex;justify-content:space-between;gap:12px;margin-top:5px;color:var(--muted);font-size:8px;font-weight:700}.bfd-extremes span:last-child{text-align:right}
+html.bos-suite-embed .bfd-note{margin:12px 0 0;color:var(--muted);font-size:9px;line-height:1.45}
+@media(max-width:520px){html.bos-suite-embed .bfd-scene{min-height:215px}.bfd-person{width:92px}.bfd-body{padding:14px 15px 16px}}
+@media(max-width:430px){html.bos-suite-embed .bfd-head{grid-template-columns:34px minmax(0,1fr) 24px;gap:10px;padding:14px 15px}.bfd-reset{display:none}.bfd-scene-badge{right:9px;top:9px}.bfd-status{align-items:flex-start;flex-direction:column;gap:4px}.bfd-status strong{text-align:left}}
 `;}
 
   function markup(){return `
-<section id="bosMiniPlateau" class="bmp-collapsed" aria-label="Mini plateau interactif">
-  <button type="button" class="bmp-head" id="bmpToggle" aria-expanded="false">
-    <span class="bmp-number">07</span>
-    <span class="bmp-title"><strong>MINI PLATEAU</strong><small>Bouge la source et les réglages : regarde ce qui change.</small></span>
-    <span class="bmp-reset" id="bmpReset" role="button" tabindex="0">RESET</span>
-    <span class="bmp-chevron" aria-hidden="true">⌄</span>
+<section id="bosMiniPlateau" class="bmp-collapsed" aria-label="Distances et fall-off">
+  <button type="button" class="bfd-head" id="bfdToggle" aria-expanded="false">
+    <span class="bfd-number">07</span>
+    <span class="bfd-title"><strong>DISTANCES & FOND</strong><small>Le sujet reste exposé. Regarde ce qui arrive au fond.</small></span>
+    <span class="bfd-reset" id="bfdReset" role="button" tabindex="0">RESET</span>
+    <span class="bfd-chevron" aria-hidden="true">⌄</span>
   </button>
-  <div class="bmp-body">
-    <p class="bmp-intro">Un petit plateau à manipuler. La distance source–sujet suit la loi de l’inverse du carré ; la distance caméra–sujet change le cadre, pas l’exposition.</p>
-    <div class="bmp-views">
-      <div class="bmp-stage" id="bmpStage">
-        <div class="bmp-stage-floor"></div>
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon id="bmpBeam" points="20,40 62,43 89,29 89,76 62,72"></polygon></svg>
-        <div class="bmp-source" id="bmpSource"><div class="head"></div><div class="stand"></div></div>
-        <div class="bmp-camera" id="bmpCamera"><div class="body"></div><div class="lens"></div><div class="legs"></div></div>
-        <div class="bmp-subject" id="bmpSubject"></div>
-        <div class="bmp-wall" id="bmpWall"></div>
-        <span class="bmp-label" id="bmpSourceLabel">SOURCE · 2 m</span>
-        <span class="bmp-label" id="bmpCameraLabel">CAMÉRA · 2 m</span>
-        <span class="bmp-label" id="bmpSubjectLabel">SUJET</span>
-        <span class="bmp-label" id="bmpWallLabel">FOND</span>
+  <div class="bfd-body">
+    <p class="bfd-intro">Le personnage reste toujours correctement exposé. Déplace simplement les deux distances et observe la luminosité du décor.</p>
+
+    <div class="bfd-scene" id="bfdScene">
+      <div class="bfd-room">
+        <div class="bfd-wall-line"></div><div class="bfd-rug"></div>
+        <div class="bfd-cabinet"><i class="bfd-cabinet-knob a"></i><i class="bfd-cabinet-knob b"></i></div>
+        <div class="bfd-lamp"></div>
+        <div class="bfd-plant"><i class="bfd-pot"></i><i class="bfd-stem s1"></i><i class="bfd-stem s2"></i><i class="bfd-stem s3"></i><i class="bfd-leaf l1"></i><i class="bfd-leaf l2"></i><i class="bfd-leaf l3"></i><i class="bfd-leaf l4"></i></div>
+        <div class="bfd-console"></div><div class="bfd-frame"></div>
       </div>
-      <div class="bmp-monitor" id="bmpMonitor">
-        <div class="bmp-monitor-bg"></div><div class="bmp-monitor-subject"></div><div class="bmp-noise"></div>
-        <div class="bmp-monitor-top"><span>IMAGE CAMÉRA</span><span class="bmp-monitor-stop" id="bmpMonitorStop">0,0 stop</span></div>
-      </div>
+      <div class="bfd-room-shade"></div>
+      <div class="bfd-subject-glow"></div>
+      <div class="bfd-person"><div class="bfd-head-person"></div><div class="bfd-hair"></div><div class="bfd-neck"></div><div class="bfd-body-person"></div><div class="bfd-arm a"></div><div class="bfd-arm b"></div></div>
+      <div class="bfd-scene-badge" id="bfdBadge">FOND −0,7 stop</div>
     </div>
-    <div class="bmp-readouts">
-      <div class="bmp-readout"><span>Exposition sujet</span><strong id="bmpSubjectStop">0,0 stop</strong></div>
-      <div class="bmp-readout"><span>Fond vs sujet</span><strong id="bmpFalloff">−2,0 stops</strong></div>
-      <div class="bmp-readout"><span>Lecture</span><strong id="bmpState">Référence</strong></div>
+
+    <div class="bfd-status"><span>Le personnage reste à la même exposition.</span><strong id="bfdStatusText">Fond légèrement plus sombre</strong></div>
+
+    <div class="bfd-controls">
+      <label class="bfd-control">
+        <div class="bfd-control-head"><span>Distance projecteur / personnage</span><strong id="bfdSourceOut">10,3 m</strong></div>
+        <input class="bfd-range" id="bfdSource" type="range" min="0" max="100" step="1" value="50">
+        <div class="bfd-extremes"><span>LOIN · 20 m</span><span>PROCHE · 0,5 m</span></div>
+      </label>
+      <label class="bfd-control">
+        <div class="bfd-control-head"><span>Distance personnage / fond</span><strong id="bfdBgOut">2,7 m</strong></div>
+        <input class="bfd-range" id="bfdBg" type="range" min="0" max="100" step="1" value="50">
+        <div class="bfd-extremes"><span>LOIN · 5 m</span><span>PROCHE · 0,3 m</span></div>
+      </label>
     </div>
-    <div class="bmp-controls">
-      <label class="bmp-control"><div class="bmp-control-head"><span>Distance source → sujet</span><strong id="bmpSourceDistanceOut">2,0 m</strong></div><input id="bmpSourceDistance" type="range" min="0.5" max="5" step="0.1" value="2"></label>
-      <label class="bmp-control"><div class="bmp-control-head"><span>Puissance source</span><strong id="bmpPowerOut">100 %</strong></div><input id="bmpPower" type="range" min="-2" max="2" step="0.5" value="0"></label>
-      <label class="bmp-control"><div class="bmp-control-head"><span>Distance caméra → sujet</span><strong id="bmpCameraDistanceOut">2,0 m</strong></div><input id="bmpCameraDistance" type="range" min="1" max="6" step="0.1" value="2"></label>
-      <label class="bmp-control"><div class="bmp-control-head"><span>Diaphragme</span><strong id="bmpApertureOut">f/2,8</strong></div><input id="bmpAperture" type="range" min="0" max="${APERTURES.length-1}" step="1" value="9"></label>
-      <label class="bmp-control"><div class="bmp-control-head"><span>ISO</span><strong id="bmpIsoOut">ISO 800</strong></div><input id="bmpIso" type="range" min="0" max="${ISOS.length-1}" step="1" value="9"></label>
-      <label class="bmp-control"><div class="bmp-control-head"><span>ND</span><strong id="bmpNdOut">0 stop</strong></div><input id="bmpNd" type="range" min="0" max="${ND_STOPS.length-1}" step="1" value="0"></label>
-    </div>
-    <p class="bmp-note">Référence : source à 2 m · puissance 100 % · f/2,8 · ISO 800 · ND 0. Ici, rapprocher la caméra ne rend pas l’image plus claire : cela modifie seulement le cadre.</p>
+
+    <p class="bfd-note">Plus la source est proche du personnage, plus la lumière chute vite derrière lui. Plus le fond est éloigné du personnage, plus il reçoit peu de lumière.</p>
   </div>
 </section>`;}
 
@@ -146,63 +132,44 @@ html.bos-suite-embed .bmp-note{margin:12px 0 0;color:var(--muted);font-size:9px;
     if(anchor?.parentNode)anchor.insertAdjacentElement('afterend',panel);else (doc.querySelector('.app,#mainApp')||doc.body).appendChild(panel);
 
     const q=id=>doc.getElementById(id);
-    const state={sourceDistance:2,powerStops:0,cameraDistance:2,aperture:2.8,iso:800,nd:0};
+    const state={sourcePos:50,bgPos:50};
 
-    function exposure(){
-      const light=state.powerStops-2*log2(state.sourceDistance/2);
-      const aperture=-2*log2(state.aperture/2.8);
-      const iso=log2(state.iso/800);
-      return light+aperture+iso-state.nd;
-    }
-    function falloff(){return -2*log2((state.sourceDistance+2)/state.sourceDistance);}
+    function distanceFromSlider(pos,max,min){return max-(max-min)*(pos/100);}
     function render(){
-      const total=exposure(),fall=falloff();
-      const sourceX=clamp(53-state.sourceDistance*8.2,8,49);
-      const cameraX=clamp(50-state.cameraDistance*6.3,7,45);
-      const subjectBrightness=clamp(Math.pow(2,total*.22),.45,1.9);
-      const wallBrightness=clamp(Math.pow(2,(total+fall)*.20),.35,1.65);
-      const previewSubject=clamp(Math.pow(2,total*.24),.42,2.05);
-      const previewBg=clamp(Math.pow(2,(total+fall)*.20),.32,1.7);
-      const scale=clamp(2.25/state.cameraDistance,.52,1.7);
-      const blur=clamp((2.8/state.aperture)*3,.4,5.2);
-      const noise=clamp(.025+Math.max(0,log2(state.iso/800))*.055,.02,.32);
+      const sourceDistance=distanceFromSlider(state.sourcePos,SOURCE_MAX,SOURCE_MIN);
+      const bgDistance=distanceFromSlider(state.bgPos,BG_MAX,BG_MIN);
 
-      q('bmpSource').style.left=sourceX+'%';q('bmpCamera').style.left=cameraX+'%';
-      q('bmpSourceLabel').style.left=sourceX+'%';q('bmpCameraLabel').style.left=cameraX+'%';
-      q('bmpStage').style.setProperty('--bmp-subject-bright',subjectBrightness);
-      q('bmpStage').style.setProperty('--bmp-wall-mix',Math.round(clamp(wallBrightness*22,8,50))+'%');
-      q('bmpMonitor').style.setProperty('--bmp-preview-subject',previewSubject);
-      q('bmpMonitor').style.setProperty('--bmp-preview-bg',previewBg);
-      q('bmpMonitor').style.setProperty('--bmp-subject-scale',scale);
-      q('bmpMonitor').style.setProperty('--bmp-bg-blur',blur+'px');
-      q('bmpMonitor').style.setProperty('--bmp-noise',noise);
+      // Le personnage est compensé pour rester à exposition constante.
+      // Le fond reçoit la lumière à la distance source→personnage + personnage→fond.
+      const ratio=Math.pow(sourceDistance/(sourceDistance+bgDistance),2);
+      const fallStops=2*log2(sourceDistance/(sourceDistance+bgDistance));
 
-      const poly=q('bmpBeam');if(poly)poly.setAttribute('points',`${sourceX},40 62,43 89,29 89,76 62,72`);
-      q('bmpSourceLabel').textContent='SOURCE · '+fmt(state.sourceDistance,1)+' m';
-      q('bmpCameraLabel').textContent='CAMÉRA · '+fmt(state.cameraDistance,1)+' m';
-      q('bmpSourceDistanceOut').textContent=fmt(state.sourceDistance,1)+' m';
-      q('bmpCameraDistanceOut').textContent=fmt(state.cameraDistance,1)+' m';
-      q('bmpPowerOut').textContent=Math.round(Math.pow(2,state.powerStops)*100)+' %';
-      q('bmpApertureOut').textContent='f/'+String(state.aperture).replace('.',',');
-      q('bmpIsoOut').textContent='ISO '+Math.round(state.iso).toLocaleString('fr-FR');
-      q('bmpNdOut').textContent=fmtNd(state.nd);
-      q('bmpMonitorStop').textContent=fmtStop(total);
-      q('bmpSubjectStop').textContent=fmtStop(total);
-      q('bmpFalloff').textContent=fmtStop(fall);
-      q('bmpState').textContent=Math.abs(total)<.12?'Référence':total>.12?'Plus clair':'Plus sombre';
+      // Gamma visuel doux : le décor reste lisible tout en rendant le fall-off évident.
+      const perceived=Math.pow(clamp(ratio,0,1),0.45);
+      const darkness=clamp(1-perceived,0,0.97);
+      q('bfdScene').style.setProperty('--bfd-darkness',darkness.toFixed(3));
+
+      q('bfdSourceOut').textContent=fmt(sourceDistance)+' m';
+      q('bfdBgOut').textContent=fmt(bgDistance)+' m';
+      const abs=Math.abs(fallStops);
+      q('bfdBadge').textContent='FOND '+(fallStops>-0.05?'0,0':'−'+abs.toLocaleString('fr-FR',{maximumFractionDigits:1}))+' stop'+(abs>=1.5?'s':'');
+
+      let text='Fond presque au niveau du sujet';
+      if(abs>=0.45&&abs<1.2)text='Fond légèrement plus sombre';
+      else if(abs>=1.2&&abs<2.4)text='Le sujet se détache davantage';
+      else if(abs>=2.4&&abs<4)text='Fond nettement plus sombre';
+      else if(abs>=4)text='Fond presque noir';
+      q('bfdStatusText').textContent=text;
       window.BOSExpoHostFit?.();
     }
 
-    q('bmpSourceDistance').addEventListener('input',e=>{state.sourceDistance=Number(e.target.value);render();});
-    q('bmpPower').addEventListener('input',e=>{state.powerStops=Number(e.target.value);render();});
-    q('bmpCameraDistance').addEventListener('input',e=>{state.cameraDistance=Number(e.target.value);render();});
-    q('bmpAperture').addEventListener('input',e=>{state.aperture=APERTURES[Number(e.target.value)]||2.8;render();});
-    q('bmpIso').addEventListener('input',e=>{state.iso=ISOS[Number(e.target.value)]||800;render();});
-    q('bmpNd').addEventListener('input',e=>{state.nd=ND_STOPS[Number(e.target.value)]||0;render();});
+    q('bfdSource').addEventListener('input',e=>{state.sourcePos=Number(e.target.value);render();});
+    q('bfdBg').addEventListener('input',e=>{state.bgPos=Number(e.target.value);render();});
 
-    function reset(ev){ev?.stopPropagation();state.sourceDistance=2;state.powerStops=0;state.cameraDistance=2;state.aperture=2.8;state.iso=800;state.nd=0;q('bmpSourceDistance').value='2';q('bmpPower').value='0';q('bmpCameraDistance').value='2';q('bmpAperture').value=String(APERTURES.indexOf(2.8));q('bmpIso').value=String(ISOS.indexOf(800));q('bmpNd').value='0';render();}
-    q('bmpReset').addEventListener('click',reset);q('bmpReset').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();reset(e);}});
-    q('bmpToggle').addEventListener('click',e=>{if(e.target.closest('#bmpReset'))return;const collapsed=panel.classList.toggle('bmp-collapsed');q('bmpToggle').setAttribute('aria-expanded',collapsed?'false':'true');setTimeout(()=>window.BOSExpoHostFit?.(),30);});
+    function reset(ev){ev?.stopPropagation();state.sourcePos=50;state.bgPos=50;q('bfdSource').value='50';q('bfdBg').value='50';render();}
+    q('bfdReset').addEventListener('click',reset);
+    q('bfdReset').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();reset(e);}});
+    q('bfdToggle').addEventListener('click',e=>{if(e.target.closest('#bfdReset'))return;const collapsed=panel.classList.toggle('bmp-collapsed');q('bfdToggle').setAttribute('aria-expanded',collapsed?'false':'true');setTimeout(()=>window.BOSExpoHostFit?.(),30);});
 
     render();setTimeout(()=>window.BOSExpoHostFit?.(),80);
   }
