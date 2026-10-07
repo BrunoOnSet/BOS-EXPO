@@ -96,7 +96,7 @@
     if(saved.shutter&&[...$('sharedLightShutter').options].some(o=>o.value===String(saved.shutter)))$('sharedLightShutter').value=String(saved.shutter);
     else if(!$('sharedLightShutter').value)$('sharedLightShutter').value='50';
 
-    if(isoSource&&$('sharedLightIso').value)dispatchSelect(isoSource,$('sharedLightIso').value);
+    if(isoSource&&$('sharedLightIso').value&&isoSource.value!==String($('sharedLightIso').value))dispatchSelect(isoSource,$('sharedLightIso').value);
 
     const meta=$('sharedCameraMeta');
     if(meta)meta.textContent=[selectText($('sharedCameraModel')),selectText($('sharedCameraGamma'))].filter(Boolean).join(' · ');
