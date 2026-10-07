@@ -63,6 +63,27 @@
     });
   }
 
+  function ensureStraightMiniPlateauBeam(doc){
+    const panel=doc.getElementById('bosMiniPlateau');
+    const beam=doc.getElementById('bmpBeam');
+    const source=doc.getElementById('bmpSource');
+    if(!panel||!beam||!source)return;
+
+    const apply=()=>{
+      const sourceX=parseFloat(source.style.left)||20;
+      const points=`${sourceX},40 89,29 89,76 ${sourceX},52`;
+      if(beam.getAttribute('points')!==points)beam.setAttribute('points',points);
+    };
+
+    apply();
+    if(!panel.__bosStraightBeamObserver){
+      const observer=new MutationObserver(()=>apply());
+      observer.observe(beam,{attributes:true,attributeFilter:['points']});
+      observer.observe(source,{attributes:true,attributeFilter:['style']});
+      panel.__bosStraightBeamObserver=observer;
+    }
+  }
+
   function patchExpo(){
     try{
       const doc=expoFrame.contentDocument;
@@ -111,6 +132,7 @@
 
       normalizeApertureControls(doc);
       normalizeVisibleApertures(doc);
+      ensureStraightMiniPlateauBeam(doc);
       return true;
     }catch(_){return false;}
   }
