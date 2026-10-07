@@ -2,503 +2,105 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" id="themeColor" content="#F3F1EC" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="EXPO · BOS" />
-  <title>BRUNO ONSET / EXPO</title>
-  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="BOS EXPO" />
+  <title>BOS — EXPO</title>
+  <link rel="manifest" href="manifest.webmanifest?v=4.0.0" />
+  <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=3.65" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/BOS-LIGHT/style.css?v=1.3.7" />
+  <link rel="stylesheet" href="/BOS-LIGHT/continuous.css?v=1.3.7" />
 </head>
 <body>
-  <main class="app" id="mainApp">
-    <header class="topbar">
-      <div class="top-inner">
-        <div class="top-title">
-          <a class="tool-eyebrow" href="https://www.brunoguillard.com/" target="_blank" rel="noopener noreferrer" aria-label="Site de Bruno Guillard">
-            <span class="eyebrow-logo" aria-hidden="true">BOS</span>
-            <span class="eyebrow-brand" aria-label="Bruno OnSet"><span class="bos-letter">B</span>RUNO <span class="bos-letter">O</span>N<span class="bos-letter">S</span>ET</span>
-          </a>
-          <h1>EXPO</h1>
+  <main class="shell">
+    <section class="install-app-row" id="installAppRow" hidden aria-label="Installer EXPO">
+      <button class="install-app-btn" id="installAppBtn" type="button">INSTALLER L’APPLICATION <span aria-hidden="true">→</span></button>
+    </section>
+
+    <header class="topbar cardlike">
+      <div class="top-inner bos-top-inner">
+        <div class="bos-brand-lockup" aria-label="Bruno OnSet EXPO">
+          <img class="bos-header-logo" src="/BOS-LIGHT/assets/logo-bos-header.jpg" alt="Logo Bruno OnSet">
+          <div class="bos-brand-text">
+            <span class="bos-header-name">Bruno OnSet<span class="bos-header-app">- EXPO</span></span>
+            <span class="bos-header-tagline">Avec vous, sur chaque tournage.</span>
+          </div>
         </div>
-        <button class="mode-btn" id="themeToggle" type="button" aria-label="Changer de thème">DARK</button>
+        <div class="top-actions bos-top-actions">
+          <button class="mode-btn" id="themeBtn" aria-label="Changer de thème" title="Thème">DARK</button>
+        </div>
       </div>
     </header>
 
-    <div class="utility-row">
-      <button class="utility-link" id="tipsBtn" type="button">TIPS</button>
+    <section class="project-contact project-contact-top" aria-label="Contact professionnel">
+      <button class="project-contact-btn" id="projectContactBtn" type="button">Parler de votre tournage <span aria-hidden="true">→</span></button>
+    </section>
+
+    <div class="suite-utility-row" aria-label="Outils rapides">
+      <button class="suite-utility-btn" id="suiteTipsBtn" type="button">TIPS</button>
+      <button class="suite-utility-btn" id="suiteResetBtn" type="button">RESET</button>
     </div>
 
-    <section class="panel method-panel collapsed" id="cameraSettingsPanel">
-      <div class="panel-head compact-head collapsible-head">
-        <button type="button" class="collapse-toggle" id="cameraSettingsToggle" aria-expanded="false" aria-controls="cameraSettingsContent">
-          <span class="camera-collapse-title"><span class="panel-kicker">RÉGLAGES CAMÉRA</span><strong id="cameraSettingsSummary">Sony FX30</strong></span>
-          <span class="collapse-chevron" aria-hidden="true">⌄</span>
-        </button>
-        <button class="info" id="infoBtn" aria-label="Informations">i</button>
+    <details class="shared-camera-card" id="sharedCameraDetails">
+      <summary class="shared-camera-heading">
+        <span class="shared-step">01</span>
+        <div class="shared-heading-copy">
+          <h2>RÉGLAGES CAMÉRA</h2>
+          <p id="sharedCameraMeta">Chargement des réglages…</p>
+        </div>
+        <span class="shared-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="shared-camera-grid">
+        <label class="shared-field shared-field-wide"><span>MARQUE</span><select id="sharedCameraBrand" aria-label="Marque caméra"><option>Chargement…</option></select></label>
+        <label class="shared-field shared-field-wide"><span>CAMÉRA</span><select id="sharedCameraModel" aria-label="Caméra"><option>Chargement…</option></select></label>
+        <label class="shared-field shared-field-wide"><span>COURBE GAMMA</span><select id="sharedCameraGamma" aria-label="Courbe gamma"><option>Chargement…</option></select></label>
+        <label class="shared-field"><span>ISO MAX ACCEPTÉ</span><select id="sharedLightIso" aria-label="ISO maximum accepté"><option>Chargement…</option></select></label>
+        <label class="shared-field"><span>OUVERTURE</span><select id="sharedLightAperture" aria-label="Ouverture"><option value="2.8">f/2,8</option></select></label>
+        <label class="shared-field"><span>VITESSE</span><select id="sharedLightShutter" aria-label="Vitesse"><option value="50">1/50</option></select></label>
       </div>
+    </details>
 
-      <div class="method-content" id="cameraSettingsContent" hidden>
-        <div class="camera-row">
-          <span class="method-label">Marque</span>
-          <div class="chips mode-chips brand-chips" id="cameraBrandMode"></div>
-          <span class="method-label camera-model-label">Caméra</span>
-          <div class="camera-select-wrap">
-            <select class="camera-select" id="cameraMode" aria-label="Choisir la caméra"></select>
-          </div>
-        </div>
-
-        <div class="method-compact-grid method-profile-grid">
-          <div class="method-compact-item">
-            <span class="method-label">Gamma</span>
-            <div class="chips mode-chips" id="gammaMode"></div>
-          </div>
-
-          <div class="method-compact-item hidden" aria-hidden="true">
-            <span class="method-label">Sensibilité</span>
-            <div class="chips mode-chips" id="sensitivityMode">
-              <button class="active" data-value="iso">ISO</button>
-              <button data-value="gain">Gain</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="gain-base-row hidden" id="gainBaseRow" aria-hidden="true">
-          <span class="method-label">Base gain</span>
-          <div class="chips mode-chips gain-base-chips" id="gainBaseMode"></div>
-          <span class="gain-base-help" id="gainBaseHelp">0 dB = base native sélectionnée</span>
-        </div>
-
-        <div class="base-iso-note" id="baseIsoNote">
-          <span class="base-dot"></span>
-          <span>ISO natifs / Lo-Hi : 800 / 2 500</span>
-        </div>
-
-        <div class="method-compact-grid method-exposure-grid single-method-row hidden" aria-hidden="true">
-          <div class="method-compact-item">
-            <span class="method-label">Shutter</span>
-            <div class="chips mode-chips" id="shutterMode">
-              <button class="active" data-value="speed">Vitesse</button>
-              <button data-value="angle">Angle</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="fps-row hidden" id="fpsRow" aria-hidden="true">
-          <div class="label-row compact-label-row">
-            <span class="method-label">Cadence</span>
-            <span class="unit">fps · nécessaire avec un shutter en angle</span>
-          </div>
-          <button type="button" class="value-select compact-select" data-picker-target="fps" id="fpsSelect">25 fps <span>⌄</span></button>
-        </div>
-      </div>
+    <section class="continuous-tools" aria-label="EXPO">
+      <iframe class="tool-frame" id="expoFrame" title="EXPO" src="/BOS-LIGHT/modules/expo/?embed=1&v=4.0.0" scrolling="no"></iframe>
     </section>
 
-    <div id="exposeSupported" class="expo-quick-stack">
-
-
-      <section class="panel quick-tool-panel read-tool-panel waveform-explorer-panel" id="readToolPanel" data-default-open="true">
-        <div class="quick-inline-head waveform-explorer-head">
-          <div><div class="panel-kicker">EXPLORER LA DYNAMIQUE DE L’IMAGE</div><div class="panel-subtitle">Déplace le curseur : EXPO situe ce niveau dans la courbe et, quand la DB le documente, indique séparément la latitude capteur constructeur.</div><div class="explorer-native-note">Courbe / rendu et dynamique capteur sont traités séparément. Les valeurs capteur manquantes ne sont jamais déduites.</div></div>
-          <div class="waveform-explorer-value"><strong id="quickReadValue">70</strong><span>%</span></div>
-        </div>
-
-        <div class="waveform-explorer-shell" aria-label="Curseur de lecture du waveform de 0 à 100 %">
-          <div class="waveform-explorer-scale">
-            <div class="quick-waveform-segments" id="quickWaveformSegments"></div>
-            <div class="waveform-stop-bands" id="quickWaveformStopBands"></div>
-            <div class="quick-waveform-markers" id="quickWaveformMarkers"></div>
-            <div class="waveform-stop-ticks" id="quickWaveformStops"></div>
-            <div class="waveform-explorer-cursor" id="quickWaveformCursor"><span></span></div>
-          </div>
-          <div class="quick-waveform-axis"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 %</span></div>
-          <div class="waveform-stop-help" id="quickWaveformStopHelp">—</div>
-          <label class="waveform-explorer-slider-label" for="quickReadSlider">NIVEAU LU SUR LE WAVEFORM</label>
-          <input id="quickReadSlider" class="waveform-explorer-slider" type="range" min="0" max="100" step="1" value="70">
-        </div>
-
-        <div class="waveform-explorer-summary">
-          <div class="waveform-explorer-zone"><span>ZONE</span><strong id="quickReadAnswer">—</strong><small id="quickReadText">—</small></div>
-          <div class="waveform-explorer-info"><span>INTÉRÊT</span><strong id="quickReadUseTitle">—</strong><small id="quickReadUseText">—</small></div>
-          <div class="waveform-explorer-info"><span>LATITUDE AUTOUR DU POINT</span><strong id="quickReadLatitude">—</strong><small id="quickReadLatitudeText">—</small></div>
-          <div class="waveform-explorer-info signal-quality-card"><span>SIGNAL / QUALITÉ ATTENDUE</span><strong id="quickReadQuality">—</strong><small id="quickReadQualityText">—</small>
-            <div class="signal-quality-visual" id="quickReadQualityVisual" aria-hidden="true"><div class="signal-quality-noise"></div><div class="signal-quality-compression"></div><i id="quickReadQualityCursor"></i></div>
-            <div class="signal-quality-labels"><span id="quickReadQualityLeft">Plus fragile</span><span id="quickReadQualityRight">Plus propre</span></div>
-          </div>
-          <div class="waveform-explorer-info terrain-examples-card">
-            <span>REPÈRES TERRAIN · EXEMPLES INDICATIFS</span>
-            <div class="terrain-example-strip" id="quickReadTerrainExamples" aria-label="Exemples typiques du plus sombre au plus clair">
-              <div data-terrain="shadow-low"><b>Ombre avec peu de détails</b><small>Très sombre</small></div>
-              <div data-terrain="shadow-detail"><b>Ombre avec détails</b><small>Sombre</small></div>
-              <div data-terrain="dark-face"><b>Visage sombre</b><small>Médium bas</small></div>
-              <div data-terrain="bright-face"><b>Visage lumineux</b><small>Clair</small></div>
-              <div data-terrain="window"><b>Fenêtre / ciel</b><small>Très clair</small></div>
-            </div>
-            <small class="terrain-examples-note" id="quickReadTerrainNote">Exemples de placement possibles, pas des valeurs d’exposition imposées.</small>
-          </div>
-        </div>
-      </section>
-
-
+    <div class="feedback-contact">
+      <a class="feedback-contact-link" href="mailto:brunoguillardcontact@gmail.com?subject=Suggestion%20%E2%80%94%20BOS%20EXPO&body=Bonjour%20Bruno%2C%0A%0AJ%E2%80%99ai%20une%20id%C3%A9e%20pour%20am%C3%A9liorer%20BOS%20EXPO%20%3A%0A%0A">Une idée pour améliorer l’application ? <span aria-hidden="true">→</span></a>
     </div>
-
-    <section class="panel expose-unsupported hidden" id="exposeUnsupported">Cette courbe n’est pas encore renseignée de façon suffisamment fiable pour ces outils. EXPO préfère ne rien extrapoler.</section>
-
-    <section class="panel simple-expo-panel" id="simpleExpoPanel" data-default-open="true">
-      <div class="compact-section-head simple-expo-head">
-        <div>
-          <div class="panel-kicker">COMPENSER</div>
-          <div class="panel-subtitle">Change un réglage ; EXPO conserve la même exposition avec les paramètres déverrouillés.</div>
-        </div>
-        <button class="small-action" id="simpleResetBtn" type="button">RESET</button>
-      </div>
-
-
-      <div class="compensate-limits-block">
-        <div class="simple-section-kicker">LIMITES DE COMPENSATION</div>
-        <div class="simple-section-note">EXPO ne proposera pas de valeur en dehors de ces limites.</div>
-
-
-        <div class="iso-limits camera-limits-grid compenser-limits-grid" id="cameraLimitsBlock">
-          <label class="iso-limit-field">
-            <span id="isoMinLabel">ISO MIN</span>
-            <select id="isoMinSelect" aria-label="ISO minimum"></select>
-          </label>
-          <label class="iso-limit-field">
-            <span id="isoMaxLabel">ISO MAX</span>
-            <select id="isoMaxSelect" aria-label="ISO maximum"></select>
-          </label>
-          <label class="iso-limit-field">
-            <span>DIAPH MIN</span>
-            <select id="apertureMinSelect" aria-label="Diaphragme minimum"></select>
-          </label>
-          <label class="iso-limit-field">
-            <span>DIAPH MAX</span>
-            <select id="apertureMaxSelect" aria-label="Diaphragme maximum"></select>
-          </label>
-        </div>
-        <div class="iso-limit-help compenser-limit-help" id="isoLimitHelp">ISO MIN reprend la base native de la caméra. Les limites ISO et diaph restent modifiables.</div>
-      </div>
-
-      <div class="simple-reference-block situation-one-block">
-        <div class="simple-reference-head situation-one-head">
-          <div class="situation-one-title">
-            <div class="simple-section-kicker">RÉFÉRENCE</div>
-            <div class="simple-section-note">Réglage de départ que tu considères correctement exposé.</div>
-          </div>
-        </div>
-        <div class="simple-reference-grid">
-          <button type="button" class="simple-reference-value" data-picker-target="refAperture" id="simpleRefAperture"><span>Diaph</span><strong>f/2,8</strong></button>
-          <button type="button" class="simple-reference-value" data-picker-target="refIso" id="simpleRefIso"><span>ISO</span><strong>ISO 800</strong></button>
-          <button type="button" class="simple-reference-value" data-picker-target="refShutter" id="simpleRefShutter"><span>Shutter</span><strong>1/50</strong></button>
-          <button type="button" class="simple-reference-value" data-picker-target="refNd" id="simpleRefNd"><span>ND</span><strong>0 stop · ND1 · 0,0</strong></button>
-        </div>
-      </div>
-
-      <div class="simple-reference-block simple-calc-block">
-        <div class="simple-reference-head">
-          <div>
-            <div class="simple-section-kicker">CALCUL</div>
-            <div class="simple-section-note">Réglage actif : modifie un paramètre, les autres compensent automatiquement.</div>
-          </div>
-          <button class="small-action" id="simpleCalcResetBtn" type="button">= RÉF.</button>
-        </div>
-        <div class="simple-calc-grid">
-          <div class="simple-calc-item">
-            <button type="button" class="simple-lock-btn" data-simple-lock="aperture" aria-label="Verrouiller le diaph" title="Verrouiller le diaph">
-              <svg class="lock-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 9.2-2.7"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-              <svg class="lock-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-            </button>
-            <button type="button" class="simple-reference-value" data-picker-target="newAperture" id="simpleApertureSelect"><span>Diaph</span><strong>f/2,8</strong></button>
-          </div>
-          <div class="simple-calc-item">
-            <button type="button" class="simple-lock-btn" data-simple-lock="iso" aria-label="Verrouiller l’ISO" title="Verrouiller l’ISO">
-              <svg class="lock-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 9.2-2.7"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-              <svg class="lock-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-            </button>
-            <button type="button" class="simple-reference-value" data-picker-target="newIso" id="simpleIsoSelect"><span>ISO</span><strong>ISO 800</strong></button>
-          </div>
-          <div class="simple-calc-item">
-            <button type="button" class="simple-lock-btn" data-simple-lock="shutter" aria-label="Verrouiller le shutter" title="Verrouiller le shutter">
-              <svg class="lock-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 9.2-2.7"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-              <svg class="lock-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-            </button>
-            <button type="button" class="simple-reference-value" data-picker-target="newShutter" id="simpleShutterSelect"><span>Shutter</span><strong>1/50</strong></button>
-          </div>
-          <div class="simple-calc-item">
-            <button type="button" class="simple-lock-btn" data-simple-lock="nd" aria-label="Verrouiller le ND" title="Verrouiller le ND">
-              <svg class="lock-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 9.2-2.7"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-              <svg class="lock-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg>
-            </button>
-            <button type="button" class="simple-reference-value" data-picker-target="newNd" id="simpleNdSelect"><span>ND</span><strong>0 stop · ND1 · 0,0</strong></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="simple-priority-note" id="simplePriorityNote">Assombrir : Diaph ↑ → ISO ↓ → ND ↑ → Shutter · Éclaircir : Diaph ↓ → ND ↓ → ISO ↑ → Shutter.</div>
-
-      <div class="simple-calc-summary" id="simpleCalcSummary" aria-live="polite">Change un réglage dans CALCUL : les autres s’adaptent automatiquement.</div>
-    </section>
-
-    <section class="panel exposure-workflow-panel">
-      <div class="compact-section-head">
-        <div>
-          <div class="panel-kicker">RÉFÉRENCE</div>
-          <div class="panel-subtitle">Ton exposition de départ</div>
-        </div>
-        <button class="small-action" id="resetBtn" type="button">RESET</button>
-      </div>
-
-      <div class="reference-grid expo-compact-grid">
-        <div class="ref-field">
-          <div class="label-row"><label>Ouverture</label><span class="unit">f/</span></div>
-          <input id="refAperture" type="hidden" value="2.8" />
-          <button type="button" class="value-select" data-picker-target="refAperture" id="refApertureSelect">f/2,8 <span>⌄</span></button>
-        </div>
-        <div class="ref-field">
-          <div class="label-row"><label id="refSensitivityLabel">ISO</label><span class="unit" id="refSensitivityUnit">sensibilité</span></div>
-          <input id="refIso" type="hidden" value="800" />
-          <button type="button" class="value-select" data-picker-target="refIso" id="refSensitivitySelect">ISO 800 <span>⌄</span></button>
-        </div>
-        <div class="ref-field">
-          <div class="label-row"><label>Shutter</label><span class="unit" id="refShutterUnit">1/x s</span></div>
-          <input id="refShutter" type="hidden" value="50" />
-          <button type="button" class="value-select" data-picker-target="refShutter" id="refShutterSelect">1/50 s <span>⌄</span></button>
-          <div class="shutter-equiv" id="refShutterEquiv">180° à 25 fps</div>
-        </div>
-        <div class="ref-field">
-          <div class="label-row"><label>ND</label><span class="unit">stops</span></div>
-          <input id="refNd" type="hidden" value="0" />
-          <button type="button" class="value-select" data-picker-target="refNd" id="refNdSelect">0 stop <span>⌄</span></button>
-        </div>
-      </div>
-
-      <div class="workflow-divider"></div>
-
-      <div class="compact-section-head new-setting-head">
-        <div>
-          <div class="panel-kicker">NOUVEAU RÉGLAGE</div>
-          <div class="panel-subtitle">Le paramètre MANUEL pilote la compensation AUTO.</div>
-        </div>
-        <button class="small-action" id="copyRefBtn" type="button">= RÉF.</button>
-      </div>
-
-      <div class="new-setting-grid expo-compact-grid">
-        <div class="compact-linked-field linked-card" id="apertureCard">
-          <div class="linked-card-head">
-            <div><span class="linked-label">OUVERTURE</span><span class="linked-unit">f/ ou T</span></div>
-            <span class="mode-badge manual" id="apertureBadge">MANUEL</span>
-          </div>
-          <input id="newAperture" type="hidden" value="4" />
-          <button type="button" class="value-select" data-picker-target="newAperture" id="newApertureSelect">f/4 <span>⌄</span></button>
-        </div>
-
-        <div class="compact-linked-field linked-card auto-card" id="sensitivityCard">
-          <div class="linked-card-head">
-            <div><span class="linked-label" id="newSensitivityLabel">ISO</span><span class="linked-unit" id="newSensitivityUnit">compensation</span></div>
-            <span class="mode-badge auto" id="sensitivityBadge">AUTO</span>
-          </div>
-          <input id="newIso" type="hidden" value="1600" />
-          <button type="button" class="value-select" data-picker-target="newIso" id="newSensitivitySelect">ISO 1600 <span>⌄</span></button>
-        </div>
-
-        <div class="compact-linked-field">
-          <div class="label-row"><label>Shutter</label><span class="unit" id="newShutterUnit">1/x s</span></div>
-          <input id="newShutter" type="hidden" value="50" />
-          <button type="button" class="value-select" data-picker-target="newShutter" id="newShutterSelect">1/50 s <span>⌄</span></button>
-          <div class="shutter-equiv" id="newShutterEquiv">180° à 25 fps</div>
-        </div>
-
-        <div class="compact-linked-field">
-          <div class="label-row"><label>ND</label><span class="unit">stops</span></div>
-          <input id="newNd" type="hidden" value="0" />
-          <button type="button" class="value-select" data-picker-target="newNd" id="newNdSelect">0 stop <span>⌄</span></button>
-        </div>
-      </div>
-
-      <div class="equiv-message" id="equivMessage">f/4 → ISO 1600 pour conserver l’exposition.</div>
-    </section>
-
-    <section class="panel compact-compensation-panel">
-      <div class="compensation-topline">
-        <div>
-          <div class="panel-kicker">COMPENSATION</div>
-          <div class="result-state compact-state" id="resultState">EXPOSITION ÉQUIVALENTE</div>
-        </div>
-        <div class="result-value compact-result-value" id="resultValue">ISO 1600</div>
-      </div>
-      <div class="result-detail compact-result-detail" id="resultDetail">f/2,8 → f/4 : −1 stop · ISO 800 → 1600 : +1 stop</div>
-      <div class="compensation-strip">
-        <span>Ouverture <b id="quickAperture">−1,0 stop</b></span>
-        <span><i id="quickSensitivityLabel">ISO</i> <b id="quickIso">+1,0 stop</b></span>
-        <span>Shutter <b id="quickShutter">0,0 stop</b></span>
-        <span>ND <b id="quickNd">0,0 stop</b></span>
-      </div>
-    </section>
-
-    <section class="panel camera-ref-panel" id="cameraRefPanel">
-      <div class="compact-section-head">
-        <div>
-          <div class="panel-kicker">RÉFÉRENCES CAMÉRA</div>
-          <div class="panel-subtitle">Les repères essentiels du profil sélectionné.</div>
-        </div>
-      </div>
-      <div class="camera-ref-grid">
-        <div><span>PROFIL</span><strong id="refProfileName">—</strong></div>
-        <div><span>BASE ISO / EI</span><strong id="refBaseValues">—</strong></div>
-        <div><span>GRIS 18 %</span><strong id="refGreyValue">—</strong></div>
-        <div><span>BLANC 90 %</span><strong id="refWhiteValue">—</strong></div>
-      </div>
-      <div class="camera-ref-note" id="cameraRefNote">—</div>
-    </section>
-
-    <footer>
-      <div class="technical-footer">Compensation liée diaph ↔ sensibilité · stops</div>
-      <div class="signature">
-        <a class="footer-brand-link" href="https://www.brunoguillard.com/" target="_blank" rel="noopener noreferrer">
-          <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
-          <span>Made for the set · Bruno Guillard</span>
-        </a>
-        <span class="app-version">v3.65</span>
-      </div>
-    </footer>
+    <footer class="footer">BOS — Bruno OnSet · EXPO · V4.0</footer>
   </main>
 
-  <section class="tips-page" id="tipsPage" hidden>
-    <div class="tips-topbar">
-      <button class="back-btn" id="tipsBackBtn" type="button">← EXPO</button>
-      <div class="tips-title-wrap">
-        <div class="tips-kicker">BRUNO ONSET</div>
-        <h2>TIPS</h2>
-      </div>
-    </div>
-
-    <div class="tips-intro">Les repères utiles pour comprendre les équivalences d’exposition sans confondre lumière, réglage caméra et rendu.</div>
-
-    <article class="tip-card">
-      <div class="tip-number">01</div>
-      <div>
-        <h3>Le stop</h3>
-        <p>Un stop correspond à un facteur 2 de lumière ou de niveau d’exposition.</p>
-        <p><strong>+1 stop</strong> = deux fois plus ; <strong>−1 stop</strong> = deux fois moins.</p>
-      </div>
-    </article>
-
-    <article class="tip-card">
-      <div class="tip-number">02</div>
-      <div>
-        <h3>f-stop et T-stop</h3>
-        <p>Le f-stop décrit l’ouverture de l’objectif. Le T-stop tient compte de la lumière réellement transmise par l’optique.</p>
-        
-        <div class="tip-note">Pour l’exposition sur un objectif cinéma, le T-stop est le repère le plus directement lié à la transmission réelle.</div>
-      </div>
-    </article>
-
-    <article class="tip-card">
-      <div class="tip-number">03</div>
-      <div>
-        <h3>ISO, EI et Gain</h3>
-        <p>En mode ISO, doubler la valeur correspond à <strong>+1 stop</strong> dans une équivalence d’exposition.</p>
-        <p>En mode Gain, l’app utilise le repère <strong>+6 dB = +1 stop</strong>. Les boutons fins déplacent le gain de 1 dB, soit environ 1/6 de stop. Deux pas de 1 dB correspondent donc à environ 1/3 de stop.</p>
-        <div class="tip-note">Quand la base BOS renseigne les ISO natifs, EXPO exprime le gain relativement à la base native active : <strong>0 dB = cette base</strong>. Sur une caméra dual/multi-base, tu peux changer de base sans changer l’exposition équivalente.</div>
-      </div>
-    </article>
-
-    <article class="tip-card">
-      <div class="tip-number">04</div>
-      <div>
-        <h3>Shutter : vitesse et angle</h3>
-        <p>Passer de 1/50 s à 1/100 s retire <strong>1 stop</strong>. Doubler le temps d’exposition ajoute 1 stop.</p>
-        <p>Avec un shutter en angle, le temps d’exposition dépend de la cadence. À 25 fps, 180° correspond à 1/50 s. La cadence n’est donc demandée par l’app que dans ce mode.</p>
-      </div>
-    </article>
-
-    <article class="tip-card">
-      <div class="tip-number">05</div>
-      <div>
-        <h3>Filtre ND</h3>
-        <p>Dans l’app, le ND se règle directement en <strong>stops</strong>. Repère utile : ND 0.3 = 1 stop, 0.6 = 2 stops, 0.9 = 3 stops, etc.</p>
-        <p>Ajouter du ND réduit l’exposition ; retirer du ND l’augmente.</p>
-</div>
-    </article>
-
-    <article class="tip-card">
-      <div class="tip-number">06</div>
-      <div>
-        <h3>ISO natifs / Lo-Hi · point bleu</h3>
-        <p>Les valeurs de sensibilité de référence de la caméra et du gamma choisis viennent maintenant de la <strong>BOS Camera DB</strong> et sont affichées en <strong>bleu</strong> dans le sélecteur ISO.</p>
-        
-      </div>
-    </article>
-
-    <article class="tip-card">
-      <div class="tip-number">07</div>
-      <div>
-        <h3>Ce que calcule l’app</h3>
-        <p>L’app part d’une exposition de référence. Quand tu modifies le diaph, elle calcule la sensibilité nécessaire pour conserver l’exposition. Si tu modifies l’ISO ou le gain, elle calcule le diaph correspondant.</p>
-        <p>Le shutter et le ND peuvent aussi être modifiés : ils sont automatiquement intégrés à la compensation. L’app ne remplace pas une cellule, un waveform ou un false color.</p>
-      </div>
-    </article>
-
-
-    <article class="tip-card nd-quick-tip">
-      <div class="tip-number">ND</div>
-      <div>
-        <h3>ND QUICK</h3>
-        <div class="nd-grid">
-          <div><strong>0.3</strong><b>ND2</b><span>1 stop</span></div>
-          <div><strong>0.6</strong><b>ND4</b><span>2 stops</span></div>
-          <div><strong>0.9</strong><b>ND8</b><span>3 stops</span></div>
-          <div><strong>1.2</strong><b>ND16</b><span>4 stops</span></div>
-          <div><strong>1.5</strong><b>ND32</b><span>5 stops</span></div>
-          <div><strong>1.8</strong><b>ND64</b><span>6 stops</span></div>
-          <div><strong>2.1</strong><b>ND128</b><span>7 stops</span></div>
-          <div><strong>2.4</strong><b>ND256</b><span>8 stops</span></div>
-          <div><strong>2.7</strong><b>ND512</b><span>9 stops</span></div>
-          <div><strong>3.0</strong><b>ND1024</b><span>10 stops</span></div>
-          <div><strong>3.3</strong><b>ND2048</b><span>11 stops</span></div>
-          <div><strong>3.6</strong><b>ND4096</b><span>12 stops</span></div>
-      </div>
-    </article>
-
-    <footer class="tips-footer">
-      <a class="footer-brand-link" href="https://www.brunoguillard.com/" target="_blank" rel="noopener noreferrer">
-        <img class="footer-logo" src="logo-bruno-guillard.png" alt="" />
-        <span>Made for the set · Bruno Guillard</span>
-      </a>
-    </footer>
-  </section>
-
-
-  <dialog id="valuePickerDialog" class="picker-dialog">
-    <div class="picker-inner">
-      <div class="picker-head">
-        <div>
-          <div class="dialog-kicker">RÉGLAGE</div>
-          <h2 id="pickerTitle">Choisir une valeur</h2>
-          <div class="picker-native-legend hidden" id="pickerNativeLegend">
-            <span>ISO natif :</span><i class="picker-native-dot" aria-hidden="true"></i>
-          </div>
-        </div>
-        <button id="pickerClose" class="close" aria-label="Fermer">×</button>
-      </div>
-      <div class="picker-grid" id="pickerGrid"></div>
-    </div>
+  <dialog id="installDialog" class="sheet install-sheet">
+    <form method="dialog" class="sheet-inner install-sheet-inner">
+      <div class="sheet-head"><div><strong>Installer EXPO</strong><small id="installHelpText">Ajoutez l’application à votre écran d’accueil.</small></div><button value="close" class="iconbtn" aria-label="Fermer">×</button></div>
+      <div class="install-help" id="installHelpBody"></div>
+      <div class="sheet-actions"><button value="close" class="primary">Compris</button></div>
+    </form>
   </dialog>
 
-  <dialog id="infoDialog">
-    <div class="dialog-inner">
-      <button id="closeDialog" class="close" aria-label="Fermer">×</button>
-      <div class="dialog-kicker">BRUNO ONSET / EXPO</div>
-      <h2>Comment lire le résultat</h2>
-      <p><strong>+1 stop</strong> signifie que le nouveau réglage donne un niveau d’exposition équivalent deux fois plus élevé que le réglage de départ.</p>
-      <p><strong>−1 stop</strong> signifie deux fois moins.</p>
-      <p>Le calcul combine ouverture, sensibilité (ISO ou gain), temps de pose et ND. Les propositions de compensation montrent la valeur théorique à utiliser si tu ne modifies qu’un seul paramètre.</p>
-    </div>
+  <dialog id="projectDialog" class="sheet project-sheet">
+    <form method="dialog" class="sheet-inner project-sheet-inner">
+      <div class="project-sheet-head"><div><span class="project-kicker">BRUNO ONSET</span></div><button class="project-close" value="close" aria-label="Fermer">×</button></div>
+      <div class="project-profile"><strong>Bruno Guillard</strong><span>Directeur de la photographie · Consultant</span></div>
+      <div class="project-services" aria-label="Prestations"><span>Direction de la photographie</span><span>Consulting / préparation du projet</span></div>
+      <p class="project-note">Échangeons autour de votre projet, de sa mise en scène, de ses intentions d’image et de son dispositif de tournage.</p>
+      <div class="project-actions">
+        <a class="project-email-btn" href="mailto:brunoguillardcontact@gmail.com?subject=Projet%20de%20tournage%20%E2%80%94%20Bruno%20OnSet&body=Bonjour%20Bruno%2C%0A%0AJe%20vous%20contacte%20depuis%20Bruno%20OnSet.%0A%0A">Écrire à Bruno <span aria-hidden="true">→</span></a>
+        <div class="project-secondary-links"><a class="project-secondary-link" href="https://wa.me/33679979111?text=Bonjour%20Bruno%2C%0A%0AJe%20vous%20contacte%20depuis%20Bruno%20OnSet.%0A%0A" target="_blank" rel="noopener noreferrer">WhatsApp</a><span aria-hidden="true">·</span><a class="project-secondary-link" href="https://brunoguillard.com" target="_blank" rel="noopener noreferrer">BrunoGuillard.com</a></div>
+      </div>
+    </form>
   </dialog>
 
-  <script src="app.js?v=3.65"></script>
+  <script src="expo-host.js?v=4.0.0"></script>
+  <script src="/BOS-LIGHT/suite-patch.js?v=1.3.7"></script>
+  <script src="/BOS-LIGHT/suite-compensate.js?v=1.3.7"></script>
+  <script src="/BOS-LIGHT/suite-compensate-compact.js?v=1.3.7"></script>
+  <script src="expo-collapse.js?v=4.0.0"></script>
 </body>
 </html>
