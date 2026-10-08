@@ -18,9 +18,9 @@
       style.textContent=`
 html.bos-suite-embed .bft-projector{width:112px!important;height:96px!important;overflow:hidden!important;background:transparent!important}
 html.bos-suite-embed .bft-person{width:100px!important;height:121px!important;background:transparent!important;overflow:visible!important;border:0!important;box-shadow:none!important}
-html.bos-suite-embed .bft-reference-img{display:block;width:100%;height:auto;pointer-events:none;user-select:none;-webkit-user-drag:none;mix-blend-mode:multiply}
-html.bos-suite-embed .bft-projector .bft-reference-img{width:112px;transform:translateY(-1px);clip-path:polygon(0% 75%,9% 65%,21% 57%,29% 47%,36% 42%,39% 29%,49% 19%,57% 13%,68% 18%,79% 29%,89% 38%,92% 50%,80% 56%,66% 61%,58% 75%,67% 100%,59% 100%,51% 78%,40% 70%,9% 88%,0% 88%)}
-html.bos-suite-embed .bft-person .bft-reference-img{width:100px;clip-path:polygon(30% 17%,37% 7%,47% 3%,59% 4%,69% 12%,73% 19%,84% 21%,94% 31%,96% 47%,89% 58%,81% 59%,78% 75%,83% 94%,72% 100%,61% 79%,51% 67%,41% 80%,31% 100%,20% 96%,22% 78%,17% 59%,8% 56%,3% 42%,10% 29%,21% 22%)}
+html.bos-suite-embed .bft-reference-img{display:block;width:100%;height:auto;pointer-events:none;user-select:none;-webkit-user-drag:none;mix-blend-mode:multiply;filter:grayscale(1) contrast(1.06) brightness(.98)}
+html.bos-suite-embed .bft-projector .bft-reference-img{width:112px;transform:translateY(-1px);clip-path:polygon(6% 73%,13% 60%,23% 52%,32% 42%,39% 30%,49% 18%,58% 12%,68% 16%,79% 28%,89% 38%,92% 49%,83% 55%,69% 60%,60% 73%,69% 100%,60% 100%,51% 78%,40% 71%,11% 90%,0% 88%)}
+html.bos-suite-embed .bft-person .bft-reference-img{width:100px;clip-path:polygon(49% 2%,58% 4%,64% 10%,66% 17%,63% 24%,59% 28%,55% 30%,57% 35%,67% 39%,74% 48%,77% 58%,73% 61%,68% 58%,65% 46%,61% 36%,56% 33%,54% 61%,58% 78%,64% 98%,57% 100%,51% 79%,49% 65%,47% 79%,41% 100%,34% 98%,40% 78%,44% 61%,42% 33%,37% 36%,33% 46%,30% 58%,25% 61%,21% 58%,24% 48%,31% 39%,41% 35%,43% 30%,39% 28%,35% 24%,32% 17%,34% 10%,40% 4%)}
 html.bos-suite-embed .bft-projector>.bft-item-label,html.bos-suite-embed .bft-person>.bft-item-label{top:calc(100% + 7px)!important}
 @media(max-width:520px){
   html.bos-suite-embed .bft-projector{width:96px!important;height:82px!important}
