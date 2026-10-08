@@ -16,11 +16,10 @@
       const style=doc.createElement('style');
       style.id='bftReferenceAssetStyle';
       style.textContent=`
-html.bos-suite-embed .bft-projector{width:112px!important;height:96px!important;overflow:visible!important;background:transparent!important}
+html.bos-suite-embed .bft-projector{width:96px!important;height:76px!important;overflow:visible!important;background:transparent!important}
 html.bos-suite-embed .bft-person{width:86px!important;height:86px!important;background:transparent!important;overflow:visible!important;border:0!important;box-shadow:none!important}
-html.bos-suite-embed .bft-projector-simple{display:block;width:112px;height:84px;pointer-events:none;user-select:none;overflow:visible}
+html.bos-suite-embed .bft-projector-simple{display:block;width:96px;height:76px;pointer-events:none;user-select:none;overflow:visible}
 html.bos-suite-embed .bft-projector-simple .proj-fill{fill:#d8d8d4}
-html.bos-suite-embed .bft-projector-simple .proj-dark{fill:#363636}
 html.bos-suite-embed .bft-projector-simple .proj-outline{fill:none;stroke:#171717;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
 html.bos-suite-embed .bft-projector-simple .proj-outline-soft{fill:none;stroke:#2c2c2c;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.72}
 html.bos-suite-embed .bft-projector-simple .proj-sketch{fill:none;stroke:#555;stroke-width:1.25;stroke-linecap:round;opacity:.6}
@@ -31,8 +30,8 @@ html.bos-suite-embed .bft-person-ball .ball-outline-soft{fill:none;stroke:#2c2c2
 html.bos-suite-embed .bft-person-ball .ball-sketch{fill:none;stroke:#555;stroke-width:1.35;stroke-linecap:round;opacity:.62}
 html.bos-suite-embed .bft-projector>.bft-item-label,html.bos-suite-embed .bft-person>.bft-item-label{top:calc(100% + 7px)!important}
 @media(max-width:520px){
-  html.bos-suite-embed .bft-projector{width:96px!important;height:82px!important}
-  html.bos-suite-embed .bft-projector-simple{width:96px;height:72px}
+  html.bos-suite-embed .bft-projector{width:82px!important;height:65px!important}
+  html.bos-suite-embed .bft-projector-simple{width:82px;height:65px}
   html.bos-suite-embed .bft-person{width:74px!important;height:74px!important}
   html.bos-suite-embed .bft-person-ball{width:74px;height:74px}
 }
@@ -47,18 +46,13 @@ html.bos-suite-embed .bft-projector>.bft-item-label,html.bos-suite-embed .bft-pe
 
       const holder=doc.createElement('div');
       holder.innerHTML=`
-<svg class="bft-projector-simple" viewBox="0 0 120 90" aria-hidden="true">
-  <path class="proj-fill" d="M17 30 C32 24 55 23 74 28 L82 34 L82 58 L74 64 C54 69 32 68 17 62 Z"/>
-  <path class="proj-outline" d="M17 30 C32 24 55 23 74 28 L82 34 L82 58 L74 64 C54 69 32 68 17 62 Z"/>
-  <path class="proj-outline-soft" d="M20 32 C35 27 55 26 71 30 L78 35 L78 56 L71 61 C53 65 34 65 20 60 Z"/>
-  <path class="proj-fill" d="M81 34 L101 39 C106 40 108 45 108 48 C108 52 106 57 101 58 L81 59 Z"/>
-  <path class="proj-outline" d="M81 34 L101 39 C106 40 108 45 108 48 C108 52 106 57 101 58 L81 59 Z"/>
-  <path class="proj-dark" d="M101 41 C105 42 106 45 106 48 C106 52 104 55 101 56 Z"/>
-  <path class="proj-outline-soft" d="M15 38 C10 39 8 43 8 48 C8 53 11 57 16 58"/>
-  <path class="proj-sketch" d="M29 35 C42 31 57 31 69 34"/>
-  <path class="proj-sketch" d="M27 44 C42 41 58 41 72 43"/>
-  <path class="proj-sketch" d="M27 53 C42 51 58 51 72 52"/>
-  <path class="proj-sketch" d="M31 60 C43 59 55 59 65 58"/>
+<svg class="bft-projector-simple" viewBox="0 0 100 80" aria-hidden="true">
+  <path class="proj-fill" d="M77 21 L77 59 C62 67 43 69 29 63 C18 58 12 50 12 40 C12 30 18 22 29 17 C43 11 62 13 77 21 Z"/>
+  <path class="proj-outline" d="M77 21 L77 59 C62 67 43 69 29 63 C18 58 12 50 12 40 C12 30 18 22 29 17 C43 11 62 13 77 21 Z"/>
+  <path class="proj-outline-soft" d="M77 24 L82 24 L82 56 L77 56"/>
+  <path class="proj-sketch" d="M28 29 C39 23 53 21 65 24"/>
+  <path class="proj-sketch" d="M23 40 C36 35 52 34 66 37"/>
+  <path class="proj-sketch" d="M28 52 C39 49 52 49 64 51"/>
 </svg>`;
       el.insertBefore(holder.firstElementChild,el.firstChild);
     }
