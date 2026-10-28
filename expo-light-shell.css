@@ -56,7 +56,8 @@ html.bos-expo-light-frame #expoDynamicsDetails > summary::after{background-image
 html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-compenser-thumb.svg?v=2")}
 html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.svg")}
 html.bos-expo-light-frame.bos-expo-section-technical #expoDynamicsDetails,html.bos-expo-light-frame.bos-expo-section-technical #expoCompensateDetails,html.bos-expo-light-frame.bos-expo-section-technical #exposeUnsupported{display:none!important}
-html.bos-expo-light-frame.bos-expo-section-applications #expoTriangleDetails{display:none!important}
+html.bos-expo-light-frame.bos-expo-section-applications #expoTriangleDetails,
+html.bos-expo-light-frame.bos-expo-section-applications #expoNdDetails{display:none!important}
 html.bos-expo-light-frame.bos-expo-section-technical #mainApp > .panel,html.bos-expo-light-frame.bos-expo-section-technical #mainApp > #exposeSupported,html.bos-expo-light-frame.bos-expo-section-technical #mainApp > .expo-quick-stack,html.bos-expo-light-frame.bos-expo-section-technical #mainApp > #expoCompensateDetails{display:none!important}
 html.bos-expo-light-frame .expo-tech-visual{padding:16px 18px 18px!important;box-sizing:border-box!important}
 html.bos-expo-light-frame .expo-tech-visual img{display:block;width:100%;height:auto;border-radius:12px}
@@ -312,4 +313,27 @@ html.bos-expo-shell body.bos-expo-section-technical details#sharedCameraDetails{
   html.bos-expo-shell body,
   html.bos-expo-shell .shell,
   html.bos-expo-shell .continuous-tools{overflow-x:clip}
+}
+
+/* 02 — FILTRE ND : reprend exactement la géométrie des autres fiches. */
+html.bos-expo-light-frame #expoNdDetails > summary::after{
+  background-image:url("/BOS-EXPO/assets/fiche-filtres-nd.svg?v=1")!important;
+  background-position:83% 32%!important;
+  background-color:#faf8f1!important;
+}
+html.bos-expo-light-frame #expoNdDetails .expo-tech-visual{
+  padding:16px 18px 18px!important;
+}
+html.bos-expo-light-frame #expoNdDetails .expo-tech-visual img{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  aspect-ratio:1448 / 1086;
+  object-fit:contain;
+  border-radius:12px!important;
+  background:#faf8f1!important;
+}
+@media(max-width:560px){
+  html.bos-expo-light-frame #expoNdDetails .expo-tech-visual{padding:14px 12px 15px!important}
 }
