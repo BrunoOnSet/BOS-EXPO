@@ -100,6 +100,9 @@
     techBtn.setAttribute('aria-pressed',String(!apps));
     document.body.classList.toggle('bos-expo-section-technical',!apps);
     document.body.classList.toggle('bos-expo-section-applications',apps);
+    document.documentElement.classList.add('bos-light-split-embed');
+    document.documentElement.classList.toggle('bos-light-section-applications',apps);
+    document.documentElement.classList.toggle('bos-light-section-technical',!apps);
     const d=doc();
     if(d){
       d.documentElement.classList.toggle('bos-expo-section-applications',apps);
