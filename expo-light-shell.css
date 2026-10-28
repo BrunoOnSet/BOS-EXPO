@@ -54,7 +54,7 @@ html.bos-expo-light-frame .expo-light-card:not([open]) > .expo-source-panel{disp
 html.bos-expo-light-frame .expo-light-card > summary::after{content:"";position:absolute!important;right:0!important;top:0!important;bottom:0!important;width:clamp(180px,23vw,240px)!important;background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;pointer-events:none!important;opacity:.96!important;-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%)}
 html.bos-expo-light-frame #expoDynamicsDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-dynamique-thumb.svg?v=2")}
 html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-compenser-thumb.svg?v=2")}
-html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.svg")}
+html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.jpg")}
 html.bos-expo-light-frame.bos-expo-section-technical #expoDynamicsDetails,html.bos-expo-light-frame.bos-expo-section-technical #expoCompensateDetails,html.bos-expo-light-frame.bos-expo-section-technical #exposeUnsupported{display:none!important}
 html.bos-expo-light-frame.bos-expo-section-applications #expoTriangleDetails,
 html.bos-expo-light-frame.bos-expo-section-applications #expoNdDetails{display:none!important}
@@ -171,7 +171,7 @@ html.bos-expo-light-frame .expo-light-card > summary::after{
 }
 html.bos-expo-light-frame #expoDynamicsDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-dynamique-thumb.svg?v=2")!important}
 html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-compenser-thumb.svg?v=2")!important}
-html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.svg?v=2")!important}
+html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.jpg?v=2")!important}
 /* Les commandes de l'outil restent dans le volet ouvert, jamais dans l'en-tête fermé. */
 html.bos-expo-light-frame .expo-light-card .expo-source-panel{margin:0!important;overflow:visible!important}
 html.bos-expo-light-frame .expo-light-card .expo-source-panel > .panel-collapse-content{
@@ -317,7 +317,7 @@ html.bos-expo-shell body.bos-expo-section-technical details#sharedCameraDetails{
 
 /* 02 — FILTRE ND : reprend exactement la géométrie des autres fiches. */
 html.bos-expo-light-frame #expoNdDetails > summary::after{
-  background-image:url("/BOS-EXPO/assets/fiche-filtres-nd.svg?v=1")!important;
+  background-image:url("/BOS-EXPO/assets/fiche-filtres-nd.jpg?v=1")!important;
   background-position:83% 32%!important;
   background-color:#faf8f1!important;
 }
