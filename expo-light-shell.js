@@ -6,7 +6,7 @@
   if(!frame||!appsBtn||!techBtn)return;
 
   const KEY='bos-expo-light-shell-v1';
-  const state={mode:'applications',camera:false,dynamics:false,compensate:false,triangle:false,nd:false};
+  const state={mode:'applications',camera:false,dynamics:false,compensate:false,triangle:false,effects:false,nd:false};
   try{
     const saved=JSON.parse(localStorage.getItem(KEY)||'null');
     if(saved&&typeof saved==='object'){
@@ -109,13 +109,51 @@
     bindDetails(details,'triangle');
     return details;
   }
+  function effectsTechnicalCard(d){
+    let details=d.getElementById('expoEffectsDetails');
+    if(!details){
+      details=d.createElement('details');
+      details.id='expoEffectsDetails';
+      details.className='controls-card collapsible-card expo-light-card';
+      details.appendChild(summary(d,'02','EFFETS DES RÉGLAGES','Shutter, diaphragme et gain / ISO'));
+      const content=d.createElement('div');
+      content.className='expo-tech-visual expo-tech-awaiting-image';
+      const pending=d.createElement('p');
+      pending.className='expo-tech-image-pending';
+      pending.textContent='Illustration à ajouter sur GitHub : effets-des-reglages.jpg';
+      const img=d.createElement('img');
+      img.alt='Effets des réglages : flou de mouvement selon le shutter, profondeur de champ selon le diaphragme et bruit selon le gain / ISO.';
+      img.loading='eager';
+      img.decoding='async';
+      // Ne pas afficher une icône d'image cassée tant que le JPG n'est pas déposé.
+      img.style.display='none';
+      img.addEventListener('load',()=>{
+        if(img.naturalWidth>0){
+          img.style.display='block';
+          pending.hidden=true;
+          content.classList.remove('expo-tech-awaiting-image');
+          scheduleFit();
+        }
+      });
+      img.addEventListener('error',()=>{pending.hidden=false;scheduleFit();});
+      content.append(pending,img);
+      details.appendChild(content);
+      const previous=triangle(d);
+      if(previous?.parentNode)previous.parentNode.insertBefore(details,previous.nextSibling);
+      else (d.getElementById('mainApp')||d.body).appendChild(details);
+      // Nom fixe : l'utilisateur peut déposer ce JPG lui-même dans assets/.
+      img.src=new URL('assets/effets-des-reglages.jpg',location.href).href;
+    }
+    bindDetails(details,'effects');
+    return details;
+  }
   function ndTechnicalCard(d){
     let details=d.getElementById('expoNdDetails');
     if(!details){
       details=d.createElement('details');
       details.id='expoNdDetails';
       details.className='controls-card collapsible-card expo-light-card';
-      details.appendChild(summary(d,'02','FILTRE ND','Densité, transmission et équivalence en stops'));
+      details.appendChild(summary(d,'03','FILTRE ND','Densité, transmission et équivalence en stops'));
       const content=d.createElement('div');
       content.className='expo-tech-visual';
       const img=d.createElement('img');
@@ -126,7 +164,7 @@
       img.addEventListener('load',scheduleFit);
       content.appendChild(img);
       details.appendChild(content);
-      const previous=triangle(d);
+      const previous=effectsTechnicalCard(d);
       if(previous?.parentNode)previous.parentNode.insertBefore(details,previous.nextSibling);
       else (d.getElementById('mainApp')||d.body).appendChild(details);
     }
@@ -180,6 +218,7 @@
     const ok1=wrapApp(d,'readToolPanel','expoDynamicsDetails','02','DYNAMIQUE DE L’IMAGE','Courbe et roll off','dynamics');
     const ok2=wrapApp(d,'simpleExpoPanel','expoCompensateDetails','03','COMPENSER','Conserve ton exposition.','compensate');
     triangle(d);
+    effectsTechnicalCard(d);
     ndTechnicalCard(d);
     applyMode(state.mode);
     return ok1&&ok2;
