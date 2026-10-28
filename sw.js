@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-1-8-fiche-nd";
+const CACHE="bos-expo-v4-1-9-scinetone-bright-face";;
 const ASSETS=[
   "./",
   "./index.html",
