@@ -6,7 +6,7 @@
   if(!frame||!appsBtn||!techBtn)return;
 
   const KEY='bos-expo-light-shell-v1';
-  const state={mode:'applications',camera:false,dynamics:false,compensate:false,triangle:false};
+  const state={mode:'applications',camera:false,dynamics:false,compensate:false,triangle:false,nd:false};
   try{
     const saved=JSON.parse(localStorage.getItem(KEY)||'null');
     if(saved&&typeof saved==='object'){
@@ -109,6 +109,30 @@
     bindDetails(details,'triangle');
     return details;
   }
+  function ndTechnicalCard(d){
+    let details=d.getElementById('expoNdDetails');
+    if(!details){
+      details=d.createElement('details');
+      details.id='expoNdDetails';
+      details.className='controls-card collapsible-card expo-light-card';
+      details.appendChild(summary(d,'02','FILTRE ND','Densité, transmission et équivalence en stops'));
+      const content=d.createElement('div');
+      content.className='expo-tech-visual';
+      const img=d.createElement('img');
+      img.alt='Fiche illustrée des filtres ND : densité optique de ND 0,3 à 3,9, noms commerciaux ND2 à ND8192, lumière transmise et réduction en stops.';
+      img.src=new URL('assets/fiche-filtres-nd.svg?v=1',location.href).href;
+      img.loading='lazy';
+      img.decoding='async';
+      img.addEventListener('load',scheduleFit);
+      content.appendChild(img);
+      details.appendChild(content);
+      const previous=triangle(d);
+      if(previous?.parentNode)previous.parentNode.insertBefore(details,previous.nextSibling);
+      else (d.getElementById('mainApp')||d.body).appendChild(details);
+    }
+    bindDetails(details,'nd');
+    return details;
+  }
   function applyMode(mode){
     state.mode=mode==='technical'?'technical':'applications';
     save();
@@ -156,6 +180,7 @@
     const ok1=wrapApp(d,'readToolPanel','expoDynamicsDetails','02','DYNAMIQUE DE L’IMAGE','Courbe et roll off','dynamics');
     const ok2=wrapApp(d,'simpleExpoPanel','expoCompensateDetails','03','COMPENSER','Conserve ton exposition.','compensate');
     triangle(d);
+    ndTechnicalCard(d);
     applyMode(state.mode);
     return ok1&&ok2;
   }
