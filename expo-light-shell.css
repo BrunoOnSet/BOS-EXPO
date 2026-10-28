@@ -5,6 +5,23 @@ html[data-theme="dark"] .mode-switch.light-section-switch,body.dark .mode-switch
 .mode-switch.light-section-switch .mode-choice{position:relative;flex:1 1 0;min-height:38px!important;border:0!important;border-radius:11px!important;background:transparent!important;color:var(--bos-muted)!important;padding:8px 11px!important;font-size:9.5px!important;font-weight:600!important;letter-spacing:.055em!important;text-transform:uppercase!important;box-shadow:none!important}
 .mode-switch.light-section-switch .mode-choice.active{background:var(--bos-panel)!important;color:var(--bos-accent)!important;box-shadow:0 2px 8px rgba(22,31,35,.08)!important}
 body.bos-expo-section-technical #sharedCameraDetails{display:none!important}
+/* Photo et chevron de la carte 01 : même règle LIGHT que les autres Applications. */
+html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary.collapsible-heading::before{
+  content:"";position:absolute!important;z-index:1!important;top:0!important;right:0!important;bottom:0!important;
+  width:clamp(180px,23vw,240px)!important;background-image:url("/BOS-LIGHT/assets/thumb-camera.webp?v=20261012-1")!important;
+  background-position:center!important;background-repeat:no-repeat!important;background-size:cover!important;opacity:.96!important;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
+  mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
+}
+html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary .shared-chevron{
+  right:14px!important;color:var(--bos-accent)!important;text-shadow:-.6px 0 #fff,.6px 0 #fff,0 -.6px #fff,0 .6px #fff!important
+}
+@media(max-width:560px){
+ html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary.collapsible-heading::before{width:clamp(104px,30vw,124px)!important}
+}
+@media(max-width:420px){
+ html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary.collapsible-heading::before{width:clamp(94px,29vw,112px)!important}
+}
 .bos-brand-text{gap:2px!important;align-items:flex-start!important}
 .bos-header-name{display:block!important;color:var(--bos-accent)!important;font-size:10.5px!important;line-height:1!important;font-weight:500!important;letter-spacing:.01em!important}
 .bos-header-app{display:block!important;margin-left:0!important;color:var(--bos-ink)!important;font-size:25px!important;line-height:.95!important;font-weight:600!important;letter-spacing:-.045em!important}
