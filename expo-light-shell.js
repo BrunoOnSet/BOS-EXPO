@@ -119,6 +119,14 @@
     techBtn.setAttribute('aria-pressed',String(!apps));
     document.body.classList.toggle('bos-expo-section-technical',!apps);
     document.body.classList.toggle('bos-expo-section-applications',apps);
+    // Réglages caméra reste une application uniquement, jamais une fiche.
+    // Le contenu reste en DOM pour la synchronisation caméra.
+    const cameraCard=document.getElementById('sharedCameraDetails');
+    if(cameraCard){
+      cameraCard.hidden=!apps;
+      cameraCard.inert=!apps;
+      cameraCard.setAttribute('aria-hidden',String(!apps));
+    }
     document.documentElement.classList.add('bos-expo-shell');
     document.documentElement.classList.remove('bos-light-split-embed','bos-light-section-applications','bos-light-section-technical');
     const d=doc();
