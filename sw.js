@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-2-0-technical-jpg";
+const CACHE="bos-expo-v4-2-1-effects-technical-card";
 const ASSETS=[
   "./",
   "./index.html",
@@ -26,7 +26,7 @@ self.addEventListener("fetch",e=>{
   if(e.request.method!=="GET")return;
   const url=new URL(e.request.url);
   const jpgFiche=url.origin===self.location.origin &&
-    /^\/BOS-EXPO\/assets\/(?:triangle-exposition|fiche-filtres-nd)\.jpg$/.test(url.pathname);
+    /^\/BOS-EXPO\/assets\/(?:triangle-exposition|fiche-filtres-nd|effets-des-reglages)\.jpg$/.test(url.pathname);
   if(jpgFiche){
     // Les JPG sont remplacables par l'utilisateur sans éditer l'application.
     // Toujours vérifier le fichier réseau, en gardant une copie hors-ligne.
