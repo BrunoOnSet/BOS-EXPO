@@ -387,19 +387,19 @@ html.bos-expo-light-frame #expoEffectsDetails .expo-tech-image-pending[hidden] {
    Elles restent indépendantes des JPG remplaçables affichés à l'ouverture.
    Dessins simples : triangle / flou-PDC-bruit / densités de filtres ND. */
 html.bos-expo-light-frame #expoTriangleDetails > summary::after {
-  background-image:url("/BOS-EXPO/assets/expo-tech-triangle-thumb.svg?v=1")!important;
+  background-image:url("/BOS-EXPO/assets/expo-tech-triangle-thumb.jpg?v=1")!important;
   background-color:#faf8f1!important;
   background-position:center!important;
   background-size:cover!important;
 }
 html.bos-expo-light-frame #expoEffectsDetails > summary::after {
-  background-image:url("/BOS-EXPO/assets/expo-tech-effects-thumb.svg?v=1")!important;
+  background-image:url("/BOS-EXPO/assets/expo-tech-effects-thumb.jpg?v=1")!important;
   background-color:#faf8f1!important;
   background-position:center!important;
   background-size:cover!important;
 }
 html.bos-expo-light-frame #expoNdDetails > summary::after {
-  background-image:url("/BOS-EXPO/assets/expo-tech-nd-thumb.svg?v=1")!important;
+  background-image:url("/BOS-EXPO/assets/expo-tech-nd-thumb.jpg?v=1")!important;
   background-color:#faf8f1!important;
   background-position:center!important;
   background-size:cover!important;
