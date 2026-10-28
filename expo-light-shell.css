@@ -190,7 +190,9 @@ html.bos-expo-light-frame .expo-light-card .expo-source-panel .panel-collapse-co
    width:clamp(104px,30vw,124px)!important;border-radius:0 16px 16px 0!important
  }
  html.bos-expo-shell #sharedCameraDetails > summary .heading-copy h2,
- html.bos-expo-light-frame .expo-light-card > summary .heading-copy h2{font-size:12px!important}
+ html.bos-expo-light-frame .expo-light-card > summary .heading-copy h2{
+   font-size:12px!important;-webkit-line-clamp:3!important;line-clamp:3!important
+ }
  html.bos-expo-shell #sharedCameraDetails > summary .heading-copy p,
  html.bos-expo-light-frame .expo-light-card > summary .heading-copy p{font-size:9px!important}
  html.bos-expo-shell #sharedCameraDetails > summary .chevron,
@@ -203,4 +205,19 @@ html.bos-expo-light-frame .expo-light-card .expo-source-panel .panel-collapse-co
  }
  html.bos-expo-shell #sharedCameraDetails > summary::before,
  html.bos-expo-light-frame .expo-light-card > summary::after{width:clamp(94px,29vw,112px)!important}
+}
+
+/* Vignettes originales : épaisseur, taille et contraste uniformes. */
+html.bos-expo-shell #sharedCameraDetails > summary::before{
+  background-image:url("/BOS-EXPO/assets/expo-camera-thumb.svg?v=2")!important
+}
+html.bos-expo-light-frame #expoDynamicsDetails > summary::after,
+html.bos-expo-light-frame #expoCompensateDetails > summary::after{
+  opacity:.92!important;background-color:#faf9f4!important
+}
+/* Dans EXPO, l'ancienne présentation repliée ne pilote plus la taille des cartes. */
+html.bos-expo-light-frame #expoDynamicsDetails,
+html.bos-expo-light-frame #expoCompensateDetails,
+html.bos-expo-light-frame #expoTriangleDetails{
+  break-inside:avoid;width:100%!important;min-width:0!important
 }
