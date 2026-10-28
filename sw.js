@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-1-3-solo-compensation";
+const CACHE="bos-expo-v4-1-4-light-width-direct-install";
 const ASSETS=[
   "./",
   "./index.html",
