@@ -153,8 +153,8 @@
       camera.open=!!state.camera;
       camera.addEventListener('toggle',()=>{state.camera=camera.open;save();scheduleFit();});
     }
-    const ok1=wrapApp(d,'readToolPanel','expoDynamicsDetails','02','EXPLORER LA DYNAMIQUE DE L’IMAGE','Déplace le curseur : EXPO situe ce niveau dans la courbe et, quand la DB le documente, indique séparément la latitude capteur constructeur.','dynamics');
-    const ok2=wrapApp(d,'simpleExpoPanel','expoCompensateDetails','03','COMPENSER','Change un réglage ; EXPO conserve la même exposition avec les paramètres déverrouillés.','compensate');
+    const ok1=wrapApp(d,'readToolPanel','expoDynamicsDetails','02','DYNAMIQUE DE L’IMAGE','Courbe et roll off','dynamics');
+    const ok2=wrapApp(d,'simpleExpoPanel','expoCompensateDetails','03','COMPENSER','Conserve ton exposition.','compensate');
     triangle(d);
     applyMode(state.mode);
     return ok1&&ok2;
