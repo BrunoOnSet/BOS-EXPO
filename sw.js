@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-1-4-light-width-direct-install";
+const CACHE="bos-expo-v4-1-5-compensation-reference-cards";
 const ASSETS=[
   "./",
   "./index.html",
