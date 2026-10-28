@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const VERSION='4.0.0';
+  const VERSION='4.1.0';
   const THEME_KEY='bos-expo-split-theme-v1';
   const SETTINGS_KEY='bos-expo-split-settings-v1';
   const INSTALLED_KEY='bos-expo-split-installed-v1';
@@ -163,21 +163,71 @@ html.bos-suite-embed #exposeUnsupported{margin-top:12px!important}
   $('suiteResetBtn')?.addEventListener('click',()=>{doc()?.getElementById('simpleResetBtn')?.click();setTimeout(fit,80);});
   $('projectContactBtn')?.addEventListener('click',()=>$('projectDialog')?.showModal());
 
-  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;if($('installAppRow')&&!standalone())$('installAppRow').hidden=false;});
-  window.addEventListener('appinstalled',()=>{localStorage.setItem(INSTALLED_KEY,'1');if($('installAppRow'))$('installAppRow').hidden=true;deferredInstallPrompt=null;});
-  function updateInstall(){
-    if(!$('installAppRow'))return;
-    if(standalone()){localStorage.setItem(INSTALLED_KEY,'1');$('installAppRow').hidden=true;return;}
-    $('installAppRow').hidden=localStorage.getItem(INSTALLED_KEY)==='1';
-  }
-  $('installAppBtn')?.addEventListener('click',async()=>{
-    if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice;}catch(_){ }deferredInstallPrompt=null;return;}
-    if($('installHelpText'))$('installHelpText').textContent=isIOS()?'Installation sur iPhone / iPad':'Installation depuis votre navigateur';
-    if($('installHelpBody'))$('installHelpBody').innerHTML=isIOS()?'<p><strong>Safari :</strong> touchez <strong>Partager</strong>, puis <strong>Ajouter à l’écran d’accueil</strong>.</p>':'<p>Ouvrez le menu du navigateur puis choisissez <strong>Installer l’application</strong> ou <strong>Ajouter à l’écran d’accueil</strong>.</p>';
+  // Installation PWA native, au clic direct comme dans LIGHT / REMIND.
+  // beforeinstallprompt n'est proposé que par les navigateurs compatibles.
+  function showInstallFallback(){
+    const ios=isIOS();
+    const android=/android/i.test(navigator.userAgent);
+    if($('installHelpText')){
+      $('installHelpText').textContent=ios?'Installation sur iPhone / iPad':android?'Installation sur Android':'Installation depuis votre navigateur';
+    }
+    if($('installHelpBody')){
+      if(ios){
+        $('installHelpBody').innerHTML=
+          '<p><strong>Sur iPhone / iPad :</strong> ouvrez cette page dans <strong>Safari</strong>, touchez <strong>Partager</strong>, puis <strong>Ajouter à l’écran d’accueil</strong> et confirmez.</p>';
+      }else if(android){
+        $('installHelpBody').innerHTML=
+          '<p>Dans <strong>Chrome</strong>, ouvrez le menu <strong>⋮</strong> puis choisissez <strong>Installer l’application</strong> ou <strong>Ajouter à l’écran d’accueil</strong>.</p>'+
+          '<p>Sur <strong>Samsung Internet</strong> : menu <strong>☰</strong> → <strong>Ajouter la page à</strong> → <strong>Écran d’accueil</strong>.</p>';
+      }else{
+        $('installHelpBody').innerHTML=
+          '<p>Ce navigateur ne propose pas de fenêtre d’installation directe. Ouvrez son menu puis choisissez <strong>Installer l’application</strong> ou <strong>Ajouter à l’écran d’accueil</strong> si cette option est disponible.</p>';
+      }
+    }
     $('installDialog')?.showModal();
+  }
+  function updateInstall(){
+    const row=$('installAppRow');
+    if(!row)return;
+    // Ne pas masquer le bouton sur une ancienne indication sauvegardée :
+    // une désinstallation peut avoir eu lieu depuis.
+    row.hidden=standalone();
+  }
+  window.addEventListener('beforeinstallprompt',event=>{
+    event.preventDefault();
+    deferredInstallPrompt=event;
+    updateInstall();
+  });
+  window.addEventListener('appinstalled',()=>{
+    try{localStorage.setItem(INSTALLED_KEY,'1');}catch(_){}
+    deferredInstallPrompt=null;
+    if($('installAppRow'))$('installAppRow').hidden=true;
+  });
+  $('installAppBtn')?.addEventListener('click',async()=>{
+    if(standalone()){updateInstall();return;}
+    // Appel synchronisé à l'action utilisateur : impératif pour Chrome / Android.
+    const event=deferredInstallPrompt;
+    if(event){
+      deferredInstallPrompt=null;
+      try{
+        const result=event.prompt();
+        if(result&&typeof result.then==='function')await result;
+        const choice=await event.userChoice;
+        if(choice?.outcome==='accepted'){
+          try{localStorage.setItem(INSTALLED_KEY,'1');}catch(_){}
+          if($('installAppRow'))$('installAppRow').hidden=true;
+        }else{
+          updateInstall();
+        }
+        return;
+      }catch(error){
+        console.warn('[EXPO] Fenêtre native d’installation indisponible',error);
+      }
+    }
+    showInstallFallback();
   });
 
   applyTheme(localStorage.getItem(THEME_KEY)||'light');
   updateInstall();
-  if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v='+VERSION).catch(()=>{}));
+  if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v='+VERSION,{updateViaCache:'none'}).catch(()=>{}));
 })();
