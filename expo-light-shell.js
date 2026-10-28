@@ -51,6 +51,24 @@
       save();scheduleFit();
     });
   }
+  function normalizeLegacy(panel){
+    if(panel.classList.contains('collapsed'))panel.classList.remove('collapsed');
+    const body=panel.querySelector('.panel-collapse-content');
+    if(body?.hidden)body.hidden=false;
+    const legacy=panel.querySelector('.panel-collapse-btn');
+    if(legacy){
+      legacy.setAttribute('aria-expanded','true');
+      legacy.style.setProperty('display','none','important');
+    }
+    if(panel.dataset.bosExpoLegacyWatch!=='1'){
+      panel.dataset.bosExpoLegacyWatch='1';
+      const observer=new MutationObserver(()=>{
+        if(panel.classList.contains('collapsed')||body?.hidden)normalizeLegacy(panel);
+      });
+      observer.observe(panel,{attributes:true,attributeFilter:['class']});
+      if(body)observer.observe(body,{attributes:true,attributeFilter:['hidden']});
+    }
+  }
   function wrapApp(d,id,wrapperId,number,title,subtitle,key){
     const panel=d.getElementById(id);
     if(!panel)return false;
@@ -64,6 +82,7 @@
       details.appendChild(panel);
     }
     panel.classList.add('expo-source-panel');
+    normalizeLegacy(panel);
     bindDetails(details,key);
     return true;
   }
