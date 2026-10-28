@@ -6,21 +6,21 @@ html[data-theme="dark"] .mode-switch.light-section-switch,body.dark .mode-switch
 .mode-switch.light-section-switch .mode-choice.active{background:var(--bos-panel)!important;color:var(--bos-accent)!important;box-shadow:0 2px 8px rgba(22,31,35,.08)!important}
 body.bos-expo-section-technical #sharedCameraDetails{display:none!important}
 /* Photo et chevron de la carte 01 : même règle LIGHT que les autres Applications. */
-html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary.collapsible-heading::before{
+html.bos-expo-shell #sharedCameraDetails > summary.collapsible-heading::before{
   content:"";position:absolute!important;z-index:1!important;top:0!important;right:0!important;bottom:0!important;
-  width:clamp(180px,23vw,240px)!important;background-image:url("/BOS-LIGHT/assets/thumb-camera.webp?v=20261012-1")!important;
+  width:clamp(180px,23vw,240px)!important;background-image:url("/BOS-EXPO/assets/expo-camera-thumb.svg?v=2")!important;
   background-position:center!important;background-repeat:no-repeat!important;background-size:cover!important;opacity:.96!important;
   -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
   mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
 }
-html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary .shared-chevron{
+html.bos-expo-shell #sharedCameraDetails > summary .shared-chevron{
   right:14px!important;color:var(--bos-accent)!important;text-shadow:-.6px 0 #fff,.6px 0 #fff,0 -.6px #fff,0 .6px #fff!important
 }
 @media(max-width:560px){
- html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary.collapsible-heading::before{width:clamp(104px,30vw,124px)!important}
+ html.bos-expo-shell #sharedCameraDetails > summary.collapsible-heading::before{width:clamp(104px,30vw,124px)!important}
 }
 @media(max-width:420px){
- html.bos-light-split-embed.bos-light-section-applications #sharedCameraDetails > summary.collapsible-heading::before{width:clamp(94px,29vw,112px)!important}
+ html.bos-expo-shell #sharedCameraDetails > summary.collapsible-heading::before{width:clamp(94px,29vw,112px)!important}
 }
 .bos-brand-text{gap:2px!important;align-items:flex-start!important}
 .bos-header-name{display:block!important;color:var(--bos-accent)!important;font-size:10.5px!important;line-height:1!important;font-weight:500!important;letter-spacing:.01em!important}
@@ -52,8 +52,8 @@ html.bos-expo-light-frame #expoCompensateDetails .expo-source-panel > .compact-s
 html.bos-expo-light-frame .expo-light-card .expo-source-panel > .compact-section-head{justify-content:flex-end!important;padding-bottom:0!important}
 html.bos-expo-light-frame .expo-light-card:not([open]) > .expo-source-panel{display:none!important}
 html.bos-expo-light-frame .expo-light-card > summary::after{content:"";position:absolute!important;right:0!important;top:0!important;bottom:0!important;width:clamp(180px,23vw,240px)!important;background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;pointer-events:none!important;opacity:.96!important;-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%)}
-html.bos-expo-light-frame #expoDynamicsDetails > summary::after{background-image:url("/BOS-LIGHT/assets/thumb-tech-shadow.webp")}
-html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-image:url("/BOS-LIGHT/assets/thumb-tech-falloff.webp")}
+html.bos-expo-light-frame #expoDynamicsDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-dynamique-thumb.svg?v=2")}
+html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-compenser-thumb.svg?v=2")}
 html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.svg")}
 html.bos-expo-light-frame.bos-expo-section-technical #expoDynamicsDetails,html.bos-expo-light-frame.bos-expo-section-technical #expoCompensateDetails,html.bos-expo-light-frame.bos-expo-section-technical #exposeUnsupported{display:none!important}
 html.bos-expo-light-frame.bos-expo-section-applications #expoTriangleDetails{display:none!important}
@@ -71,3 +71,136 @@ html.bos-expo-light-frame .expo-tech-visual img{display:block;width:100%;height:
  html.bos-expo-light-frame .expo-tech-visual{padding:14px 15px 16px!important}
 }
 @media(max-width:420px){html.bos-expo-light-frame .expo-light-card > summary.card-heading.collapsible-heading{padding-left:10px!important;padding-right:calc(clamp(94px,29vw,112px) + 32px)!important}html.bos-expo-light-frame .expo-light-card > summary::after{width:clamp(94px,29vw,112px)!important}}
+
+/* === EXPO V4 — géométrie autoritaire, identique pour toutes les cartes ===
+   Aucune hauteur de titre/sous-titre ne doit étirer une carte fermée. */
+html.bos-expo-shell .shell { width:min(760px,100%)!important; max-width:760px!important }
+html.bos-expo-shell #sharedCameraDetails,
+html.bos-expo-light-frame .expo-light-card{
+  display:block!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  border-radius:var(--bos-radius,18px)!important;
+  overflow:hidden!important;box-sizing:border-box!important
+}
+html.bos-expo-shell #sharedCameraDetails:not([open]),
+html.bos-expo-light-frame .expo-light-card:not([open]){
+  height:82px!important;min-height:82px!important;max-height:82px!important;
+}
+html.bos-expo-shell #sharedCameraDetails > summary.shared-camera-heading,
+html.bos-expo-light-frame .expo-light-card > summary.card-heading.collapsible-heading{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:flex-start!important;position:relative!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  height:82px!important;min-height:82px!important;max-height:82px!important;
+  margin:0!important;gap:11px!important;column-gap:11px!important;grid-template-columns:none!important;
+  padding:0 calc(clamp(180px,23vw,240px) + 39px) 0 16px!important;
+  box-sizing:border-box!important;overflow:hidden!important;border:0!important;
+  background:transparent!important;cursor:pointer!important
+}
+html.bos-expo-shell #sharedCameraDetails[open] > summary.shared-camera-heading,
+html.bos-expo-light-frame .expo-light-card[open] > summary.card-heading.collapsible-heading{
+  border-bottom:1px solid var(--bos-line,#d8dcdb)!important
+}
+html.bos-expo-shell #sharedCameraDetails > summary .step,
+html.bos-expo-light-frame .expo-light-card > summary .step{
+  grid-row:auto!important;grid-column:auto!important;
+  position:relative!important;top:auto!important;left:auto!important;right:auto!important;
+  margin:0!important;align-self:center!important;
+  flex:0 0 31px!important;width:31px!important;min-width:31px!important;height:31px!important;
+  display:grid!important;place-items:center!important;z-index:3!important;
+}
+html.bos-expo-shell #sharedCameraDetails > summary .heading-copy,
+html.bos-expo-light-frame .expo-light-card > summary .heading-copy{
+  grid-column:auto!important;grid-row:auto!important;
+  display:block!important;flex:1 1 auto!important;min-width:0!important;
+  overflow:hidden!important;position:relative!important;z-index:3!important;
+  margin:0!important;padding:0!important;align-self:center!important
+}
+html.bos-expo-shell #sharedCameraDetails > summary .heading-copy h2,
+html.bos-expo-light-frame .expo-light-card > summary .heading-copy h2{
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;line-clamp:2!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+  max-width:100%!important;min-width:0!important;
+  font:600 14px/1.17 "Instrument Sans",sans-serif!important;
+  letter-spacing:-.018em!important;margin:0!important;padding:0!important;
+  color:var(--bos-ink,#263b42)!important
+}
+html.bos-expo-shell #sharedCameraDetails > summary .heading-copy p,
+html.bos-expo-light-frame .expo-light-card > summary .heading-copy p{
+  display:block!important;white-space:nowrap!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;max-width:100%!important;
+  margin:4px 0 0!important;padding:0!important;
+  font:400 10px/1.35 "Instrument Sans",sans-serif!important;
+  color:var(--bos-muted,#69787b)!important
+}
+html.bos-expo-shell #sharedCameraDetails > summary .summary-value,
+html.bos-expo-light-frame .expo-light-card > summary .summary-value{
+  display:none!important
+}
+html.bos-expo-shell #sharedCameraDetails > summary .chevron,
+html.bos-expo-light-frame .expo-light-card > summary .chevron{
+  display:grid!important;place-items:center!important;position:absolute!important;
+  top:50%!important;bottom:auto!important;left:auto!important;right:14px!important;
+  width:24px!important;height:24px!important;margin:0!important;padding:0!important;
+  z-index:10!important;grid-row:auto!important;grid-column:auto!important;
+  transform:translateY(-50%) rotate(0deg)!important;transform-origin:center!important;
+  font:400 18px/1 "Instrument Sans",sans-serif!important;
+  color:var(--bos-accent,#2f5b66)!important
+}
+html.bos-expo-shell #sharedCameraDetails[open] > summary .chevron,
+html.bos-expo-light-frame .expo-light-card[open] > summary .chevron{
+  transform:translateY(-50%) rotate(180deg)!important
+}
+html.bos-expo-shell #sharedCameraDetails > summary::before{
+  display:block!important;left:auto!important;right:0!important;
+  width:clamp(180px,23vw,240px)!important
+}
+html.bos-expo-light-frame .expo-light-card > summary::before{
+  content:none!important;display:none!important
+}
+html.bos-expo-light-frame .expo-light-card > summary::after{
+  content:""!important;display:block!important;
+  position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;
+  width:clamp(180px,23vw,240px)!important;height:auto!important;z-index:1!important;
+  background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;
+  pointer-events:none!important;border-radius:0 18px 18px 0!important;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%)!important;
+  mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%)!important
+}
+html.bos-expo-light-frame #expoDynamicsDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-dynamique-thumb.svg?v=2")!important}
+html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-image:url("/BOS-EXPO/assets/expo-compenser-thumb.svg?v=2")!important}
+html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.svg?v=2")!important}
+/* Les commandes de l'outil restent dans le volet ouvert, jamais dans l'en-tête fermé. */
+html.bos-expo-light-frame .expo-light-card .expo-source-panel{margin:0!important;overflow:visible!important}
+html.bos-expo-light-frame .expo-light-card .expo-source-panel > .panel-collapse-content{
+  display:block!important;min-width:0!important;max-width:100%!important
+}
+html.bos-expo-light-frame .expo-light-card .expo-source-panel .panel-collapse-content[hidden]{
+  display:block!important
+}
+@media(max-width:560px){
+ html.bos-expo-shell #sharedCameraDetails > summary.shared-camera-heading,
+ html.bos-expo-light-frame .expo-light-card > summary.card-heading.collapsible-heading{
+   gap:8px!important;
+   padding:0 calc(clamp(104px,30vw,124px) + 30px) 0 12px!important
+ }
+ html.bos-expo-shell #sharedCameraDetails > summary::before,
+ html.bos-expo-light-frame .expo-light-card > summary::after{
+   width:clamp(104px,30vw,124px)!important;border-radius:0 16px 16px 0!important
+ }
+ html.bos-expo-shell #sharedCameraDetails > summary .heading-copy h2,
+ html.bos-expo-light-frame .expo-light-card > summary .heading-copy h2{font-size:12px!important}
+ html.bos-expo-shell #sharedCameraDetails > summary .heading-copy p,
+ html.bos-expo-light-frame .expo-light-card > summary .heading-copy p{font-size:9px!important}
+ html.bos-expo-shell #sharedCameraDetails > summary .chevron,
+ html.bos-expo-light-frame .expo-light-card > summary .chevron{right:12px!important}
+}
+@media(max-width:420px){
+ html.bos-expo-shell #sharedCameraDetails > summary.shared-camera-heading,
+ html.bos-expo-light-frame .expo-light-card > summary.card-heading.collapsible-heading{
+  padding-left:10px!important;padding-right:calc(clamp(94px,29vw,112px) + 30px)!important
+ }
+ html.bos-expo-shell #sharedCameraDetails > summary::before,
+ html.bos-expo-light-frame .expo-light-card > summary::after{width:clamp(94px,29vw,112px)!important}
+}
