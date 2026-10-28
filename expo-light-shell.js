@@ -96,7 +96,7 @@
       const content=d.createElement('div');content.className='expo-tech-visual';
       const img=d.createElement('img');
       img.alt='Triangle d’exposition : vitesse, ouverture (diaph), gain / ISO, et leurs effets sur le mouvement, la profondeur de champ, la luminosité et le bruit.';
-      img.src=new URL('assets/triangle-exposition.svg?v=1',location.href).href;
+      img.src=new URL('assets/triangle-exposition.jpg?v=1',location.href).href;
       img.loading='lazy';
       img.addEventListener('load',scheduleFit);
       content.appendChild(img);
@@ -120,7 +120,7 @@
       content.className='expo-tech-visual';
       const img=d.createElement('img');
       img.alt='Fiche illustrée des filtres ND : densité optique de ND 0,3 à 3,9, noms commerciaux ND2 à ND8192, lumière transmise et réduction en stops.';
-      img.src=new URL('assets/fiche-filtres-nd.svg?v=1',location.href).href;
+      img.src=new URL('assets/fiche-filtres-nd.jpg?v=1',location.href).href;
       img.loading='lazy';
       img.decoding='async';
       img.addEventListener('load',scheduleFit);
