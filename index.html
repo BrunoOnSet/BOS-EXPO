@@ -13,9 +13,12 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/BOS-LIGHT/style.css?v=1.3.7" />
   <link rel="stylesheet" href="/BOS-LIGHT/continuous.css?v=1.3.7" />
+  <link rel="stylesheet" href="/BOS-LIGHT/light-design.css?v=20261012-clean14" />
+  <link rel="stylesheet" href="/BOS-LIGHT/light-bubbles.css?v=20261012-clean14" />
+  <link rel="stylesheet" href="expo-light-shell.css?v=1" />
   <style>
     .project-sheet-inner{padding:16px}
     .project-actions{margin-top:10px}
@@ -33,8 +36,8 @@
         <div class="bos-brand-lockup" aria-label="Bruno OnSet EXPO">
           <img class="bos-header-logo" src="/BOS-LIGHT/assets/logo-bos-header.jpg" alt="Logo Bruno OnSet">
           <div class="bos-brand-text">
-            <span class="bos-header-name">Bruno OnSet<span class="bos-header-app">- EXPO</span></span>
-            <span class="bos-header-tagline">Avec vous, sur chaque tournage.</span>
+            <span class="bos-header-name">Bruno OnSet</span>
+            <span class="bos-header-app">EXPO</span>
           </div>
         </div>
         <div class="top-actions bos-top-actions">
@@ -43,9 +46,11 @@
       </div>
     </header>
 
-    <section class="project-contact project-contact-top" aria-label="Contact professionnel">
-      <button class="project-contact-btn" id="projectContactBtn" type="button">Parler de votre tournage <span aria-hidden="true">→</span></button>
-    </section>
+
+    <div class="mode-switch light-section-switch" role="group" aria-label="Type de contenu EXPO">
+      <button class="mode-choice active" id="applicationsModeBtn" type="button" aria-pressed="true">APPLICATIONS</button>
+      <button class="mode-choice" id="technicalModeBtn" type="button" aria-pressed="false">FICHES TECHNIQUES</button>
+    </div>
 
     <details class="shared-camera-card" id="sharedCameraDetails">
       <summary class="shared-camera-heading">
@@ -68,6 +73,10 @@
 
     <section class="continuous-tools" aria-label="EXPO">
       <iframe class="tool-frame" id="expoFrame" title="EXPO" src="/BOS-LIGHT/modules/expo/?embed=1&v=4.0.1" scrolling="no" onload="var r=this.contentDocument&&this.contentDocument.querySelector('[data-bos-return]');if(r)r.remove();"></iframe>
+    </section>
+
+    <section class="project-contact project-contact-top" aria-label="Contact professionnel">
+      <button class="project-contact-btn" id="projectContactBtn" type="button">Parler de votre tournage <span aria-hidden="true">→</span></button>
     </section>
 
     <div class="feedback-contact">
@@ -100,8 +109,6 @@
   <script src="/BOS-LIGHT/suite-compensate-compact.js?v=1.3.7"></script>
   <script src="expo-gain-fix.js?v=4.0.5"></script>
   <script src="expo-aperture-normalize.js?v=4.0.1"></script>
-  <script src="expo-mini-plateau.js?v=4.0.7"></script>
-  <script src="expo-falloff-reference-assets.js?v=4.0.13"></script>
-  <script src="expo-collapse.js?v=4.0.0"></script>
+  <script src="expo-light-shell.js?v=1"></script>
 </body>
 </html>
