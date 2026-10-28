@@ -206,7 +206,7 @@
     d.documentElement.classList.remove('bos-light-split-embed','bos-light-section-applications','bos-light-section-technical');
     addSheet(d,'bosExpoLightDesign','/BOS-LIGHT/light-design.css?v=20261012-clean14');
     addSheet(d,'bosExpoLightBubbles','/BOS-LIGHT/light-bubbles.css?v=20261012-clean14');
-    addSheet(d,'bosExpoLightShell',new URL('expo-light-shell.css?v=1',location.href).href);
+    addSheet(d,'bosExpoLightShell',new URL('expo-light-shell.css?v=13',location.href).href);
     // Aucun module de Fall Off n'est créé par EXPO.
     d.getElementById('bosMiniPlateau')?.remove();
     const camera=document.getElementById('sharedCameraDetails');
