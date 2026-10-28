@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-1-7-direct-waveform-gain";
+const CACHE="bos-expo-v4-1-8-fiche-nd";
 const ASSETS=[
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS=[
   "./expo-light-shell.js",
   "./expo-light-shell.css",
   "./assets/triangle-exposition.svg",
+  "./assets/fiche-filtres-nd.svg",
   "./assets/expo-camera-thumb.svg",
   "./assets/expo-dynamique-thumb.svg",
   "./assets/expo-compenser-thumb.svg",
