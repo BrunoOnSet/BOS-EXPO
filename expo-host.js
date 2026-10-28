@@ -10,8 +10,6 @@
   let deferredInstallPrompt=null;
   let syncTimer=null;
 
-  const APERTURES=[1.0,1.1,1.2,1.4,1.6,1.8,2.0,2.2,2.5,2.8,3.2,3.5,4.0,4.5,5.0,5.6,6.3,7.1,8.0,9.0,10.0,11.0,13.0,14.0,16.0,18.0,20.0,22.0];
-  const SHUTTERS=[25,40,50,100,200,400,800];
 
   function standalone(){return window.matchMedia?.('(display-mode: standalone)').matches===true||window.navigator.standalone===true;}
   function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
@@ -84,20 +82,6 @@
     fillFromSelect($('sharedCameraModel'),model);
     fillFromButtons($('sharedCameraGamma'),gamma);
 
-    const isoSource=d.getElementById('isoMaxSelect');
-    if(isoSource?.options?.length)fillFromSelect($('sharedLightIso'),isoSource);
-    fillStatic($('sharedLightAperture'),APERTURES,v=>'f/'+String(v).replace('.',','));
-    fillStatic($('sharedLightShutter'),SHUTTERS,v=>'1/'+v);
-
-    const saved=savedSettings();
-    if(saved.iso&&[...$('sharedLightIso').options].some(o=>o.value===String(saved.iso)))$('sharedLightIso').value=String(saved.iso);
-    if(saved.aperture&&[...$('sharedLightAperture').options].some(o=>o.value===String(saved.aperture)))$('sharedLightAperture').value=String(saved.aperture);
-    else if(!$('sharedLightAperture').value)$('sharedLightAperture').value='2.8';
-    if(saved.shutter&&[...$('sharedLightShutter').options].some(o=>o.value===String(saved.shutter)))$('sharedLightShutter').value=String(saved.shutter);
-    else if(!$('sharedLightShutter').value)$('sharedLightShutter').value='50';
-
-    if(isoSource&&$('sharedLightIso').value&&isoSource.value!==String($('sharedLightIso').value))dispatchSelect(isoSource,$('sharedLightIso').value);
-
     const meta=$('sharedCameraMeta');
     if(meta)meta.textContent=[selectText($('sharedCameraModel')),selectText($('sharedCameraGamma'))].filter(Boolean).join(' · ');
     return true;
@@ -154,9 +138,6 @@ html.bos-suite-embed #exposeUnsupported{margin-top:12px!important}
   $('sharedCameraBrand')?.addEventListener('change',e=>{const d=doc();clickValue(d?.getElementById('cameraBrandMode'),e.target.value);scheduleSync(80);});
   $('sharedCameraModel')?.addEventListener('change',e=>{dispatchSelect(doc()?.getElementById('cameraMode'),e.target.value);scheduleSync(80);});
   $('sharedCameraGamma')?.addEventListener('change',e=>{const d=doc();clickValue(d?.getElementById('gammaMode'),e.target.value);scheduleSync(80);});
-  $('sharedLightIso')?.addEventListener('change',e=>{storeSetting('iso',e.target.value);dispatchSelect(doc()?.getElementById('isoMaxSelect'),e.target.value);});
-  $('sharedLightAperture')?.addEventListener('change',e=>storeSetting('aperture',e.target.value));
-  $('sharedLightShutter')?.addEventListener('change',e=>storeSetting('shutter',e.target.value));
 
   $('themeBtn')?.addEventListener('click',()=>applyTheme((document.documentElement.dataset.theme||'light')==='dark'?'light':'dark'));
   $('suiteTipsBtn')?.addEventListener('click',()=>doc()?.getElementById('tipsBtn')?.click());
