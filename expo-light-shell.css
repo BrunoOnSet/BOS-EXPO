@@ -57,6 +57,7 @@ html.bos-expo-light-frame #expoCompensateDetails > summary::after{background-ima
 html.bos-expo-light-frame #expoTriangleDetails > summary::after{background-image:url("/BOS-EXPO/assets/triangle-exposition.jpg")}
 html.bos-expo-light-frame.bos-expo-section-technical #expoDynamicsDetails,html.bos-expo-light-frame.bos-expo-section-technical #expoCompensateDetails,html.bos-expo-light-frame.bos-expo-section-technical #exposeUnsupported{display:none!important}
 html.bos-expo-light-frame.bos-expo-section-applications #expoTriangleDetails,
+html.bos-expo-light-frame.bos-expo-section-applications #expoEffectsDetails,
 html.bos-expo-light-frame.bos-expo-section-applications #expoNdDetails{display:none!important}
 html.bos-expo-light-frame.bos-expo-section-technical #mainApp > .panel,html.bos-expo-light-frame.bos-expo-section-technical #mainApp > #exposeSupported,html.bos-expo-light-frame.bos-expo-section-technical #mainApp > .expo-quick-stack,html.bos-expo-light-frame.bos-expo-section-technical #mainApp > #expoCompensateDetails{display:none!important}
 html.bos-expo-light-frame .expo-tech-visual{padding:16px 18px 18px!important;box-sizing:border-box!important}
@@ -219,7 +220,9 @@ html.bos-expo-light-frame #expoCompensateDetails > summary::after{
 /* Dans EXPO, l'ancienne présentation repliée ne pilote plus la taille des cartes. */
 html.bos-expo-light-frame #expoDynamicsDetails,
 html.bos-expo-light-frame #expoCompensateDetails,
-html.bos-expo-light-frame #expoTriangleDetails{
+html.bos-expo-light-frame #expoTriangleDetails,
+html.bos-expo-light-frame #expoEffectsDetails,
+html.bos-expo-light-frame #expoNdDetails{
   break-inside:avoid;width:100%!important;min-width:0!important
 }
 
@@ -315,7 +318,7 @@ html.bos-expo-shell body.bos-expo-section-technical details#sharedCameraDetails{
   html.bos-expo-shell .continuous-tools{overflow-x:clip}
 }
 
-/* 02 — FILTRE ND : reprend exactement la géométrie des autres fiches. */
+/* 03 — FILTRE ND : reprend exactement la géométrie des autres fiches. */
 html.bos-expo-light-frame #expoNdDetails > summary::after{
   background-image:url("/BOS-EXPO/assets/fiche-filtres-nd.jpg?v=1")!important;
   background-position:83% 32%!important;
@@ -336,4 +339,46 @@ html.bos-expo-light-frame #expoNdDetails .expo-tech-visual img{
 }
 @media(max-width:560px){
   html.bos-expo-light-frame #expoNdDetails .expo-tech-visual{padding:14px 12px 15px!important}
+}
+
+/* 02 — EFFETS DES RÉGLAGES : la fiche attend un JPG ajouté par l'utilisateur.
+   Pas d'image cassée affichée tant que assets/effets-des-reglages.jpg est absent. */
+html.bos-expo-light-frame #expoEffectsDetails > summary::after {
+  background-image:
+    url("/BOS-EXPO/assets/effets-des-reglages.jpg"),
+    linear-gradient(115deg,#faf8f1,#ece9df) !important;
+  background-position:center,center !important;
+  background-size:cover,cover !important;
+  background-color:#faf8f1 !important;
+}
+html.bos-expo-light-frame #expoEffectsDetails .expo-tech-visual {
+  padding:16px 18px 18px!important;
+  box-sizing:border-box!important;
+}
+html.bos-expo-light-frame #expoEffectsDetails .expo-tech-visual img {
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  object-fit:contain!important;
+  border-radius:12px!important;
+  background:#faf8f1!important;
+}
+html.bos-expo-light-frame #expoEffectsDetails .expo-tech-image-pending {
+  display:block;
+  text-align:center;
+  font-size:12px;
+  line-height:1.6;
+  color:var(--bos-muted,#69787b);
+  background:#faf8f1;
+  border:1px dashed var(--bos-line,#d8dcdb);
+  border-radius:12px;
+  padding:34px 16px;
+  margin:0;
+  overflow-wrap:anywhere;
+}
+html.bos-expo-light-frame #expoEffectsDetails .expo-tech-image-pending[hidden] {
+  display:none!important;
+}
+@media(max-width:560px){
+  html.bos-expo-light-frame #expoEffectsDetails .expo-tech-visual{padding:14px 12px 15px!important}
 }
