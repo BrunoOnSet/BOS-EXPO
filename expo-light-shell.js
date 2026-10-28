@@ -119,22 +119,21 @@
     techBtn.setAttribute('aria-pressed',String(!apps));
     document.body.classList.toggle('bos-expo-section-technical',!apps);
     document.body.classList.toggle('bos-expo-section-applications',apps);
-    document.documentElement.classList.add('bos-light-split-embed');
-    document.documentElement.classList.toggle('bos-light-section-applications',apps);
-    document.documentElement.classList.toggle('bos-light-section-technical',!apps);
+    document.documentElement.classList.add('bos-expo-shell');
+    document.documentElement.classList.remove('bos-light-split-embed','bos-light-section-applications','bos-light-section-technical');
     const d=doc();
     if(d){
       d.documentElement.classList.toggle('bos-expo-section-applications',apps);
       d.documentElement.classList.toggle('bos-expo-section-technical',!apps);
-      d.documentElement.classList.toggle('bos-light-section-applications',apps);
-      d.documentElement.classList.toggle('bos-light-section-technical',!apps);
+      d.documentElement.classList.remove('bos-light-split-embed','bos-light-section-applications','bos-light-section-technical');
     }
     scheduleFit();
   }
   function prepare(){
     const d=doc();
     if(!d?.head||!d.body)return false;
-    d.documentElement.classList.add('bos-expo-light-frame','bos-light-split-embed');
+    d.documentElement.classList.add('bos-expo-light-frame');
+    d.documentElement.classList.remove('bos-light-split-embed','bos-light-section-applications','bos-light-section-technical');
     addSheet(d,'bosExpoLightDesign','/BOS-LIGHT/light-design.css?v=20261012-clean14');
     addSheet(d,'bosExpoLightBubbles','/BOS-LIGHT/light-bubbles.css?v=20261012-clean14');
     addSheet(d,'bosExpoLightShell',new URL('expo-light-shell.css?v=1',location.href).href);
