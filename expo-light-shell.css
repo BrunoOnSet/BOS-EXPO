@@ -26,8 +26,12 @@ html.bos-expo-light-frame .expo-light-card > summary .summary-value{position:rel
 html.bos-expo-light-frame .expo-light-card > summary .chevron{position:absolute!important;right:14px!important;top:50%!important;transform:translateY(-50%)!important;display:grid!important;place-items:center!important;width:24px!important;height:24px!important;z-index:5!important;color:var(--bos-accent,#2f5b66)!important;text-shadow:-.6px 0 #fff,.6px 0 #fff,0 -.6px #fff,0 .6px #fff!important;font-size:18px!important;font-weight:400!important}
 html.bos-expo-light-frame .expo-light-card[open] > summary .chevron{transform:translateY(-50%) rotate(180deg)!important}
 html.bos-expo-light-frame .expo-light-card .expo-source-panel{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;box-sizing:border-box!important}
-html.bos-expo-light-frame .expo-light-card .expo-source-panel > .quick-inline-head,
-html.bos-expo-light-frame .expo-light-card .expo-source-panel > .compact-section-head > div:first-child{display:none!important}
+/* Conserver les mesures et notes dynamiques du waveform dans la fiche ouverte. */
+html.bos-expo-light-frame #expoDynamicsDetails .expo-source-panel > .quick-inline-head{display:flex!important}
+html.bos-expo-light-frame #expoDynamicsDetails .expo-source-panel .quick-inline-head .panel-kicker,
+html.bos-expo-light-frame #expoDynamicsDetails .expo-source-panel .quick-inline-head .panel-subtitle{display:none!important}
+html.bos-expo-light-frame #expoDynamicsDetails .expo-source-panel .explorer-native-note{display:block!important}
+html.bos-expo-light-frame #expoCompensateDetails .expo-source-panel > .compact-section-head > div:first-child{display:none!important}
 html.bos-expo-light-frame .expo-light-card .expo-source-panel > .compact-section-head{justify-content:flex-end!important;padding-bottom:0!important}
 html.bos-expo-light-frame .expo-light-card:not([open]) > .expo-source-panel{display:none!important}
 html.bos-expo-light-frame .expo-light-card > summary::after{content:"";position:absolute!important;right:0!important;top:0!important;bottom:0!important;width:clamp(180px,23vw,240px)!important;background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;pointer-events:none!important;opacity:.96!important;-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%)}
