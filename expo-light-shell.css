@@ -262,3 +262,54 @@ html.bos-expo-light-frame .expo-light-card > summary .heading-copy p{
     line-height:1.2!important;
   }
 }
+
+/* EXPO V4.1 — alignement structurel du conteneur sur LIGHT.
+   LIGHT charge light-mobile-width-fix.css après light-design.css. */
+html.bos-expo-shell,
+html.bos-expo-shell body{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin:0;
+  overflow-x:hidden;
+}
+html.bos-expo-shell{scrollbar-gutter:stable}
+html.bos-expo-shell .shell{
+  width:100%!important;
+  max-width:760px!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+html.bos-expo-shell .continuous-tools,
+html.bos-expo-shell .tool-frame,
+html.bos-expo-shell .mode-switch.light-section-switch,
+html.bos-expo-shell .topbar,
+html.bos-expo-shell .project-contact,
+html.bos-expo-shell .feedback-contact,
+html.bos-expo-shell .footer{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+/* Dans Fiches techniques, ne jamais afficher la carte Réglages caméra.
+   Spécificité supérieure à l'ancien "display:block!important". */
+html.bos-expo-shell body.bos-expo-section-technical #sharedCameraDetails,
+html.bos-expo-shell body.bos-expo-section-technical #sharedCameraDetails:not([open]),
+html.bos-expo-shell body.bos-expo-section-technical details#sharedCameraDetails{
+  display:none!important;
+}
+@media(max-width:520px){
+  html.bos-expo-shell .shell{
+    padding-left:max(9px,env(safe-area-inset-left))!important;
+    padding-right:max(9px,env(safe-area-inset-right))!important;
+  }
+}
+@supports (overflow:clip){
+  html.bos-expo-shell,
+  html.bos-expo-shell body,
+  html.bos-expo-shell .shell,
+  html.bos-expo-shell .continuous-tools{overflow-x:clip}
+}
