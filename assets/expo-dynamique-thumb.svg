@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 240" role="img" aria-label="Courbe logarithmique et waveform de la dynamique">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset="1" stop-color="#f1ece1"/></linearGradient><linearGradient id="tones"><stop stop-color="#252b2d"/><stop offset=".2" stop-color="#5d6262"/><stop offset=".5" stop-color="#a7aaa5"/><stop offset=".8" stop-color="#e0e0d8"/><stop offset="1" stop-color="#fffef5"/></linearGradient><pattern id="paper" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M2 11l1 0M17 3l.5.5" stroke="#aa9c86" opacity=".27"/></pattern></defs>
+<rect width="640" height="240" fill="url(#bg)"/><rect width="640" height="240" fill="url(#paper)"/>
+<rect x="28" y="34" width="588" height="34" rx="3" fill="url(#tones)" stroke="#898780" stroke-width="1"/>
+<rect x="28" y="89" width="270" height="124" fill="#f6f4ec" stroke="#c0c2bd"/>
+<g stroke="#c7c8bd" stroke-width=".8"><path d="M78 89v124M128 89v124M178 89v124M228 89v124M28 120h270M28 151h270M28 182h270"/></g>
+<path d="M29 202C95 200 120 193 141 173C171 146 177 116 297 96" stroke="#b99746" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M29 201C87 202 119 197 141 174C174 134 201 105 297 92" stroke="#343e3e" stroke-width="1.5" fill="none" stroke-dasharray="5 7"/>
+<rect x="324" y="89" width="292" height="124" fill="#333a3b" stroke="#1d2526" stroke-width="2"/>
+<g stroke="#697072" stroke-width=".65"><path d="M324 120h292M324 151h292M324 182h292M374 89v124M424 89v124M474 89v124M524 89v124M574 89v124"/></g>
+<path d="M324 193L332 181 343 198 357 169 372 189 383 150 395 177 408 141 418 176 430 130 443 172 453 119 465 162 478 139 492 184 507 127 521 149 534 114 547 173 561 121 573 161 592 138 616 131" fill="none" stroke="#e8d594" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M324 193L332 181 343 198 357 169 372 189 383 150 395 177 408 141 418 176 430 130 443 172 453 119 465 162 478 139 492 184 507 127 521 149 534 114 547 173 561 121 573 161 592 138 616 131V210H324Z" fill="#e8d594" opacity=".17"/>
+<g stroke="#f3eee2" stroke-width="1" opacity=".55"><path d="M329 175l3 15M346 167l2 24M383 123l3 54M429 120l2 47M477 116l2 64M523 122l4 50M562 123l2 49M607 103l2 71"/></g>
+</svg>
