@@ -52,14 +52,15 @@
       <button class="mode-choice" id="technicalModeBtn" type="button" aria-pressed="false">FICHES TECHNIQUES</button>
     </div>
 
-    <details class="shared-camera-card" id="sharedCameraDetails">
-      <summary class="shared-camera-heading">
-        <span class="shared-step">01</span>
-        <div class="shared-heading-copy">
+    <details class="shared-camera-card controls-card camera-card first-card collapsible-card expo-outer-camera" id="sharedCameraDetails">
+      <summary class="shared-camera-heading card-heading collapsible-heading">
+        <span class="shared-step step">01</span>
+        <div class="shared-heading-copy heading-copy">
           <h2>RÉGLAGES CAMÉRA</h2>
           <p id="sharedCameraMeta">Chargement des réglages…</p>
         </div>
-        <span class="shared-chevron" aria-hidden="true">⌄</span>
+        <div class="summary-value" aria-hidden="true"></div>
+        <span class="shared-chevron chevron" aria-hidden="true">⌄</span>
       </summary>
       <div class="shared-camera-grid">
         <label class="shared-field shared-field-wide"><span>MARQUE</span><select id="sharedCameraBrand" aria-label="Marque caméra"><option>Chargement…</option></select></label>
