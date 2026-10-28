@@ -1,9 +1,11 @@
-const CACHE="bos-expo-v4-0-0";
+const CACHE="bos-expo-v4-1-0-light-shell";
 const ASSETS=[
   "./",
   "./index.html",
   "./expo-host.js",
-  "./expo-collapse.js",
+  "./expo-light-shell.js",
+  "./expo-light-shell.css",
+  "./assets/triangle-exposition.svg",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png"
