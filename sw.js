@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-2-2-tech-thumbnails";
+const CACHE="bos-expo-v4-2-3-tech-illustrated-jpg";
 const ASSETS=[
   "./",
   "./index.html",
@@ -7,9 +7,9 @@ const ASSETS=[
   "./expo-light-shell.css",
   "./assets/triangle-exposition.jpg",
   "./assets/fiche-filtres-nd.jpg",
-  "./assets/expo-tech-triangle-thumb.svg",
-  "./assets/expo-tech-effects-thumb.svg",
-  "./assets/expo-tech-nd-thumb.svg",
+  "./assets/expo-tech-triangle-thumb.jpg",
+  "./assets/expo-tech-effects-thumb.jpg",
+  "./assets/expo-tech-nd-thumb.jpg",
   "./assets/expo-camera-thumb.svg",
   "./assets/expo-dynamique-thumb.svg",
   "./assets/expo-compenser-thumb.svg",
