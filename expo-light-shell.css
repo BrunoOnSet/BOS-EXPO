@@ -221,3 +221,44 @@ html.bos-expo-light-frame #expoCompensateDetails,
 html.bos-expo-light-frame #expoTriangleDetails{
   break-inside:avoid;width:100%!important;min-width:0!important
 }
+
+/* ALIGNEMENT HAUTEUR LIGHT — correction du 82px arbitraire.
+   LIGHT: la tête Applications prend sa hauteur sur .card-heading
+   (padding 15px 16px 14px, un titre et un sous-titre).
+   Référence repliée ~64px extérieur, ~62px intérieur, sans agrandissement. */
+html.bos-expo-shell #sharedCameraDetails:not([open]),
+html.bos-expo-light-frame .expo-light-card:not([open]){
+  height:64px!important;
+  min-height:64px!important;
+  max-height:64px!important;
+}
+html.bos-expo-shell #sharedCameraDetails > summary.shared-camera-heading,
+html.bos-expo-light-frame .expo-light-card > summary.card-heading.collapsible-heading{
+  height:62px!important;
+  min-height:62px!important;
+  max-height:62px!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+}
+html.bos-expo-shell #sharedCameraDetails > summary .heading-copy,
+html.bos-expo-light-frame .expo-light-card > summary .heading-copy{
+  line-height:1!important;
+}
+html.bos-expo-shell #sharedCameraDetails > summary .heading-copy p,
+html.bos-expo-light-frame .expo-light-card > summary .heading-copy p{
+  margin-top:2px!important;
+}
+@media(max-width:560px){
+  html.bos-expo-shell #sharedCameraDetails > summary .heading-copy h2,
+  html.bos-expo-light-frame .expo-light-card > summary .heading-copy h2{
+    font-size:12px!important;
+    line-height:1.1!important;
+    -webkit-line-clamp:2!important;
+    line-clamp:2!important;
+  }
+  html.bos-expo-shell #sharedCameraDetails > summary .heading-copy p,
+  html.bos-expo-light-frame .expo-light-card > summary .heading-copy p{
+    font-size:9px!important;
+    line-height:1.2!important;
+  }
+}
