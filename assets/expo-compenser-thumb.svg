@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 240" role="img" aria-label="Ouverture, ISO et vitesse reliés par des flèches de compensation">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#faf9f5"/><stop offset="1" stop-color="#f2ede2"/></linearGradient><pattern id="p" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M8 7l.7-.3M17 18l1-.6" stroke="#9e9b90" opacity=".2"/></pattern></defs>
+<rect width="640" height="240" fill="url(#bg)"/><rect width="640" height="240" fill="url(#p)"/>
+<g fill="none" stroke="#343a3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(111 122)">
+<circle r="67" fill="#e8e5dc" stroke="#4d5453" stroke-width="3"/>
+<g fill="#444949" stroke="#242a2a"><path d="M0 0L-10-64Q21-65 41-50Z"/><path d="M0 0L41-50Q64-22 65 8Z"/><path d="M0 0L65 8Q51 47 28 61Z"/><path d="M0 0L28 61Q-11 69-38 53Z"/><path d="M0 0L-38 53Q-66 29-65-9Z"/><path d="M0 0L-65-9Q-56-50-10-64Z"/></g><circle r="22" fill="#f9f7ee" stroke="#d0c9b6" stroke-width="2"/>
+</g>
+<g fill="none" stroke="#ab8e4c" stroke-width="4" stroke-linecap="round"><path d="M196 121h68"/><path d="M251 110l13 11-13 11"/><path d="M264 140h-68"/><path d="M208 129l-12 11 12 11"/></g>
+<rect x="296" y="52" width="144" height="142" rx="8" fill="#f7f5ed" stroke="#b7b9b5" stroke-width="2"/>
+<g font-family="Arial,sans-serif" text-anchor="middle" fill="#414c4f"><text x="368" y="83" font-size="21" letter-spacing="2">ISO</text><text x="368" y="117" font-size="25">400</text><text x="368" y="147" font-size="29" font-weight="bold">800</text><text x="368" y="175" font-size="23">1600</text></g>
+<rect x="317" y="124" width="102" height="31" rx="4" fill="#f6df9e" opacity=".7"/>
+<text x="368" y="147" font-family="Arial,sans-serif" text-anchor="middle" font-weight="bold" font-size="29" fill="#263338">800</text>
+<g fill="none" stroke="#ab8e4c" stroke-width="4" stroke-linecap="round"><path d="M457 121h48"/><path d="M494 110l13 11-13 11"/><path d="M505 140h-48"/><path d="M469 129l-12 11 12 11"/></g>
+<g stroke="#454b4c" fill="none"><circle cx="571" cy="121" r="54" stroke-width="2"/><path d="M571 121V75M571 121l-29 26" stroke-width="3"/><path d="M571 84v-10M617 121h9M571 168v10M526 121h-9" stroke-width="2"/></g>
+<g font-family="Arial,sans-serif" fill="#525a5b" font-size="12" letter-spacing=".4"><text x="74" y="220">DIAPH</text><text x="355" y="220">GAIN</text><text x="542" y="220">VITESSE</text></g>
+</svg>
