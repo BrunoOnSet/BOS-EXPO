@@ -1,4 +1,4 @@
-const CACHE="bos-expo-v4-1-2-light-card-heights";
+const CACHE="bos-expo-v4-1-3-solo-compensation";
 const ASSETS=[
   "./",
   "./index.html",
