@@ -39,7 +39,7 @@ self.addEventListener("fetch",e=>{
           }
           return response;
         })
-        .catch(()=>caches.match(e.request).then(cached=>cached||Response.error()))
+        .catch(()=>caches.match(e.request,{ignoreSearch:true}).then(cached=>cached||Response.error()))
     );
     return;
   }
