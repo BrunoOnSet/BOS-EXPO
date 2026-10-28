@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 920" role="img" aria-labelledby="tit desc">
+<title id="tit">Triangle d’exposition</title><desc id="desc">Gain ISO en haut, ouverture du diaphragme en bas à gauche et vitesse en bas à droite. Flèches de vitesse vers ouverture et ouverture vers gain. Effets sur luminosité, profondeur de champ, mouvement et bruit.</desc>
+<defs>
+<pattern id="paper" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M3 8h.7M26 32h.6M18 14l.5-.2" stroke="#c6b9a2" stroke-width=".45" opacity=".25"/></pattern>
+<pattern id="hach" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(32)"><path d="M0 0v18" stroke="#dfb860" opacity=".22" stroke-width=".9"/></pattern>
+<linearGradient id="wash" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fff7df"/><stop offset="1" stop-color="#fff1c9"/></linearGradient>
+<marker id="arr" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto"><path d="M1 1L10 5L1 9" fill="none" stroke="#b88d3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect width="1200" height="920" fill="#faf9f4"/><rect width="1200" height="920" fill="url(#paper)"/>
+<g fill="#262321" font-family="'Segoe Print','Bradley Hand','Comic Sans MS',cursive" text-anchor="middle">
+<text x="600" y="88" font-size="53" letter-spacing="1.5">GAIN / ISO</text>
+<path d="M430 110h340" stroke="#9ebac6" stroke-width="2"/>
+<text x="600" y="151" font-size="24">Luminosité + attention bruit</text>
+</g>
+<g transform="translate(828 119)" stroke="#a87561" fill="none" stroke-width="3"><path d="M0 35L23 1L46 35Z"/><path d="M23 12v11M23 28v3" stroke-width="3.5" stroke-linecap="round"/></g>
+<path d="M600 206L908 730H292Z" fill="url(#wash)" stroke="#a95558" stroke-width="14" stroke-linejoin="round"/>
+<path d="M600 206L908 730H292Z" fill="url(#hach)" stroke="#292727" stroke-width="1.5" opacity=".56"/>
+<path d="M303 724L601 220L896 724" fill="none" stroke="#d08073" stroke-width="3.5" opacity=".5"/>
+<path d="M332 707L598 254L867 708Z" fill="none" stroke="#dfb96b" stroke-width="2" opacity=".3"/>
+<g fill="#262321" font-family="'Segoe Print','Bradley Hand','Comic Sans MS',cursive" text-anchor="middle">
+<text x="600" y="530" font-size="53" letter-spacing="1.3">EXPOSITION</text>
+<path d="M594 436v-28M537 452l-19-18M656 452l19-18M596 567v27M531 555l-22 11M666 555l24 12" stroke="#56534e" stroke-width="2" fill="none"/>
+</g>
+<path d="M920 785Q620 858 305 786" stroke="#b88d3d" stroke-width="5" fill="none" marker-end="url(#arr)" stroke-linecap="round"/>
+<path d="M252 697Q280 392 548 208" stroke="#b88d3d" stroke-width="5" fill="none" marker-end="url(#arr)" stroke-linecap="round"/>
+<g font-family="'Segoe Print','Bradley Hand','Comic Sans MS',cursive" fill="#262321">
+<text x="62" y="794" font-size="35">OUVERTURE (DIAPH)</text>
+<path d="M55 814h397" stroke="#9ebac6" stroke-width="2"/>
+<text x="67" y="858" font-size="22">Profondeur de champ</text><text x="67" y="889" font-size="22">+ luminosité</text>
+<text x="952" y="794" font-size="38">VITESSE</text><path d="M950 814h222" stroke="#9ebac6" stroke-width="2"/>
+<text x="952" y="858" font-size="22">Flou de mouvement</text><text x="952" y="889" font-size="22">+ luminosité</text>
+</g></svg>
