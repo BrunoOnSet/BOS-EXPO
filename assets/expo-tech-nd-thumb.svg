@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-label="Trois filtres ND de densités croissantes">
+<defs>
+<linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf6"/><stop offset="1" stop-color="#f0ede6"/></linearGradient>
+<pattern id="paper" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M5 8l1-.3M21 21l.7-.2" stroke="#a7a39a" stroke-width=".6" opacity=".23"/></pattern>
+</defs><rect width="600" height="200" fill="url(#p)"/><rect width="600" height="200" fill="url(#paper)"/>
+<g stroke="#4a4c48" stroke-linecap="round" stroke-linejoin="round">
+<!-- Three stacked density lenses -->
+<g transform="translate(0 0)">
+<circle cx="292" cy="100" r="48" fill="#c8c8c2" opacity=".45" stroke="#353a39" stroke-width="3.5"/>
+<circle cx="292" cy="100" r="40" fill="#f6f6ed" fill-opacity=".65" stroke="#73746c" stroke-width="1.7"/>
+<path d="M270 77Q286 65 303 72" stroke="#fffef3" stroke-width="5" opacity=".7" fill="none"/>
+</g>
+<g transform="translate(93 0)">
+<circle cx="292" cy="100" r="48" fill="#565b59" opacity=".9" stroke="#363938" stroke-width="4"/>
+<circle cx="292" cy="100" r="40" fill="#7d817f" stroke="#353b3b" stroke-width="1.7"/>
+<path d="M270 77Q286 65 303 72" stroke="#e3e6df" stroke-width="4.5" opacity=".52" fill="none"/>
+</g>
+<g transform="translate(186 0)">
+<circle cx="292" cy="100" r="48" fill="#2d3232" stroke="#343939" stroke-width="4"/>
+<circle cx="292" cy="100" r="40" fill="#232a2b" stroke="#60635d" stroke-width="1.7"/>
+<path d="M270 77Q286 65 303 72" stroke="#9eaca5" stroke-width="4.5" opacity=".35" fill="none"/>
+</g>
+</g>
+<path d="M257 174h256" stroke="#c2ae72" stroke-width="1.8"/>
+<g stroke="#7a989d" stroke-width="1.5" opacity=".85"><path d="M292 169v10M385 169v10M478 169v10"/></g>
+</svg>
