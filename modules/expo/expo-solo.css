@@ -1,0 +1,227 @@
+/* BOS EXPO — Compenser : sélection exclusive du seul paramètre automatique.
+   Les anciens contrôles restent montés pour la compatibilité du moteur,
+   mais ne font plus partie de l'interface. */
+#simpleExpoPanel .compensate-limits-block,
+#simpleExpoPanel .simple-calc-block,
+#simpleExpoPanel .simple-priority-note,
+#simpleExpoPanel #simpleResetBtn{
+  display:none!important;
+}
+#simpleExpoPanel .situation-one-block{
+  margin:0!important;
+  padding:12px!important;
+  border:1px solid var(--line)!important;
+  border-radius:14px!important;
+  background:var(--field-bg)!important;
+}
+#simpleExpoPanel .simple-reference-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  min-width:0!important;
+}
+#simpleExpoPanel .simple-reference-value{
+  min-width:0!important;
+  border-radius:11px!important;
+  cursor:pointer;
+  transition:border-color .17s ease,background .17s ease,color .17s ease;
+}
+#simpleExpoPanel .simple-reference-value strong{
+  display:block;
+  font-size:11px!important;
+  font-weight:600!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+#simpleExpoPanel .simple-reference-value.solo-automatic{
+  border-color:color-mix(in srgb,var(--accent) 44%,var(--line))!important;
+  background:color-mix(in srgb,var(--accent) 7%,var(--panel))!important;
+  cursor:default!important;
+  opacity:1!important;
+}
+#simpleExpoPanel .simple-reference-value.solo-automatic strong{
+  color:var(--accent)!important;
+  font-weight:700!important;
+}
+#simpleExpoPanel .simple-reference-value.solo-automatic span{
+  color:var(--accent)!important;
+}
+#simpleExpoPanel .expo-solo-controls{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin:12px 0 0;
+}
+#simpleExpoPanel .expo-solo-choice{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-width:0;
+  min-height:40px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--panel);
+  color:var(--text);
+  font:600 11px/1.1 "Instrument Sans",Inter,Arial,sans-serif;
+  padding:8px 4px;
+  cursor:pointer;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease;
+}
+#simpleExpoPanel .expo-solo-choice.is-active{
+  color:var(--accent)!important;
+  background:var(--accent-soft)!important;
+  border-color:var(--accent)!important;
+  box-shadow:inset 0 0 0 .5px var(--accent)!important;
+}
+#simpleExpoPanel .expo-solo-choice:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+#simpleExpoPanel .expo-solo-status{
+  margin:10px 4px 1px!important;
+  min-height:0!important;
+  font-size:10px!important;
+  font-weight:400!important;
+  line-height:1.4!important;
+  text-align:left!important;
+  color:var(--muted)!important;
+}
+#simpleExpoPanel .expo-solo-status.is-ok{color:var(--accent)!important}
+#simpleExpoPanel .expo-solo-status.is-warning{color:#ac6f50!important}
+@media(max-width:540px){
+  #simpleExpoPanel .simple-reference-grid{gap:5px!important}
+  #simpleExpoPanel .simple-reference-value{padding:7px 5px!important}
+  #simpleExpoPanel .simple-reference-value span{font-size:8px!important}
+  #simpleExpoPanel .simple-reference-value strong{font-size:10px!important}
+  #simpleExpoPanel .expo-solo-controls{gap:5px}
+  #simpleExpoPanel .expo-solo-choice{font-size:10px;min-height:38px}
+}
+
+/* Valeur mémorisée avant l'ajustement, uniquement sous le paramètre bleu. */
+#simpleExpoPanel .simple-reference-value .expo-solo-original{
+  display:block;
+  width:100%;
+  min-width:0;
+  margin-top:5px;
+  color:var(--muted)!important;
+  font-family:"Instrument Sans",Inter,Arial,sans-serif;
+  font-size:9px!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+  text-align:left;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  opacity:.88;
+}
+#simpleExpoPanel .simple-reference-value .expo-solo-original[hidden]{display:none!important}
+#simpleExpoPanel .simple-reference-value.solo-automatic:disabled{
+  opacity:1!important;
+  -webkit-text-fill-color:initial;
+}
+@media(max-width:540px){
+  #simpleExpoPanel .simple-reference-value .expo-solo-original{
+    font-size:8px!important;
+    margin-top:4px;
+  }
+}
+
+/* Compenser — petit choix ISO / Gain, intégré à la ligne Référence. */
+#simpleExpoPanel .expo-solo-unit-switch{
+  display:inline-flex;
+  align-items:center;
+  flex:0 0 auto;
+  gap:2px;
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--panel);
+}
+#simpleExpoPanel .expo-solo-unit-choice{
+  border:0!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:var(--muted)!important;
+  min-height:27px;
+  min-width:43px;
+  padding:5px 8px!important;
+  font:600 10px/1.1 "Instrument Sans",Inter,Arial,sans-serif!important;
+  cursor:pointer;
+}
+#simpleExpoPanel .expo-solo-unit-choice.is-active{
+  background:var(--accent-soft)!important;
+  color:var(--accent)!important;
+}
+#simpleExpoPanel .expo-solo-unit-choice:disabled{
+  opacity:.36!important;
+  cursor:not-allowed!important;
+}
+#simpleExpoPanel .expo-solo-unit-choice:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+/* Dynamique — les cinq repères sont de vrais boutons, même présentation. */
+#readToolPanel .terrain-example-strip > button{
+  display:block;
+  min-width:0;
+  padding:8px 7px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--panel);
+  color:var(--text);
+  text-align:left;
+  font:inherit;
+  opacity:.65;
+  cursor:pointer;
+  transition:opacity .15s ease,border-color .15s ease,background .15s ease;
+}
+#readToolPanel .terrain-example-strip > button b{
+  display:block;font-size:8px;line-height:1.18;font-weight:900;
+}
+#readToolPanel .terrain-example-strip > button small{
+  display:block;margin-top:3px;font-size:6.8px;line-height:1.2;color:var(--muted);
+}
+#readToolPanel .terrain-example-strip > button.active{
+  opacity:1;
+  border-color:var(--accent);
+  background:var(--accent-soft);
+  box-shadow:0 0 0 1px var(--accent-soft);
+}
+#readToolPanel .terrain-example-strip > button:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+/* La barre graduée est le curseur : interaction native souris / tactile. */
+#readToolPanel #quickWaveformScale{
+  cursor:crosshair;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  outline-offset:5px;
+}
+#readToolPanel #quickWaveformScale:focus-visible{
+  outline:2px solid var(--accent);
+}
+#readToolPanel #quickWaveformScale > *{
+  pointer-events:none;
+}
+#readToolPanel #quickReadSlider{
+  display:none!important;
+}
+@media(max-width:540px){
+  #readToolPanel .terrain-example-strip > button{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:7px 9px;
+  }
+  #readToolPanel .terrain-example-strip > button small{margin-top:0;text-align:right}
+  #simpleExpoPanel .expo-solo-unit-choice{
+    min-height:26px;
+    min-width:38px;
+    padding:5px 6px!important;
+    font-size:9px!important;
+  }
+}

@@ -1,0 +1,82 @@
+/* BOS LIGHT — largeur mobile strictement contenue dans le viewport */
+html,
+body{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin:0;
+  overflow-x:hidden;
+}
+
+/*
+  Garde exactement la même largeur utile quand une bulle longue est ouverte.
+  Sans ce gutter stable, l'apparition de la scrollbar verticale retire quelques
+  pixels au viewport et donne l'impression que les cartes changent de largeur.
+*/
+html{
+  scrollbar-gutter:stable;
+}
+
+body,
+.shell,
+.continuous-tools,
+.light-only-tools,
+.tool-frame,
+.mode-switch.light-section-switch,
+.topbar,
+.top-inner,
+.project-contact,
+.feedback-contact,
+.footer{
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+
+.shell{
+  width:100%!important;
+  max-width:760px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+
+.continuous-tools,
+.light-only-tools,
+.tool-frame,
+.mode-switch.light-section-switch,
+.topbar,
+.project-contact,
+.feedback-contact,
+.footer{
+  width:100%!important;
+  max-width:100%!important;
+}
+
+.tool-frame{
+  display:block!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  border:0!important;
+}
+
+img,
+svg,
+canvas,
+video{
+  max-width:100%;
+}
+
+@media(max-width:520px){
+  .shell{
+    padding-left:max(9px,env(safe-area-inset-left))!important;
+    padding-right:max(9px,env(safe-area-inset-right))!important;
+  }
+}
+
+@supports (overflow:clip){
+  html,
+  body,
+  .shell,
+  .continuous-tools{
+    overflow-x:clip;
+  }
+}

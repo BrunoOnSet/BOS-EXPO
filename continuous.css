@@ -1,0 +1,203 @@
+/* V1.2.8 — LIGHT : géométrie commune + sélecteur Applications / Fiches techniques */
+:root{
+  --bos-bubble-gap:12px;
+  --bos-bubble-radius:22px;
+  --bos-bubble-collapsed-h:82px;
+  --bos-bubble-head-h:80px;
+  --bos-bubble-number:34px;
+}
+
+.continuous-tools{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  margin-top:0;
+  gap:0;
+}
+.tool-frame{
+  display:block;
+  width:100%;
+  min-height:1px;
+  border:0;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  background:transparent;
+}
+
+.suite-utility-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:8px 2px 12px;
+}
+.suite-utility-btn{
+  min-height:38px;
+  padding:0 16px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel);
+  color:var(--text);
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+.suite-utility-btn:active{transform:translateY(1px)}
+
+/* Même composant que FRAME : VUE RÉELLE / PREVIEW. */
+.mode-switch.light-section-switch{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:0 0 10px;
+}
+.mode-switch.light-section-switch .mode-choice{
+  min-height:38px;
+  border:1px solid var(--line);
+  background:var(--chip-bg,#E7E7E3);
+  color:var(--muted);
+  border-radius:999px;
+  padding:8px 12px;
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+.mode-switch.light-section-switch .mode-choice.active{
+  background:var(--chip-active-bg,#92B8C0);
+  border-color:var(--chip-active-bg,#92B8C0);
+  color:var(--chip-active-text,#182126);
+}
+
+/* 01 utilise exactement la même coque que les autres bulles. */
+.shared-camera-card{
+  width:100%;
+  margin:0 0 var(--bos-bubble-gap);
+  background:var(--panel);
+  border:1px solid var(--card-border,#D7D9D6);
+  border-radius:var(--bos-bubble-radius);
+  box-shadow:none;
+  overflow:hidden;
+}
+.shared-camera-card:not([open]){
+  height:var(--bos-bubble-collapsed-h);
+}
+.shared-camera-heading{
+  list-style:none;
+  display:grid;
+  grid-template-columns:var(--bos-bubble-number) minmax(0,1fr) 24px;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  height:var(--bos-bubble-head-h);
+  min-height:var(--bos-bubble-head-h);
+  margin:0;
+  padding:14px 16px;
+  border:0;
+  cursor:pointer;
+}
+.shared-camera-heading::-webkit-details-marker{display:none}
+.shared-step{
+  width:var(--bos-bubble-number);
+  min-width:var(--bos-bubble-number);
+  height:var(--bos-bubble-number);
+  display:grid;
+  place-items:center;
+  border:1px solid #2F5B66;
+  border-radius:10px;
+  background:rgba(47,91,102,.14);
+  color:#2F5B66;
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:11px;
+  line-height:1;
+  font-weight:700;
+}
+.shared-heading-copy{min-width:0}
+.shared-heading-copy h2{
+  margin:0;
+  overflow:hidden;
+  color:#2F5B66;
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.15;
+  font-weight:700;
+  letter-spacing:0;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+html[data-theme="dark"] .shared-heading-copy h2{color:#7FA7B0}
+.shared-heading-copy p{
+  margin:4px 0 0;
+  overflow:hidden;
+  color:var(--muted);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Roboto","Segoe UI",sans-serif;
+  font-size:10px;
+  line-height:1.3;
+  font-weight:400;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.shared-chevron{
+  display:grid;
+  place-items:center;
+  width:24px;
+  height:24px;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1;
+  transition:transform .18s ease;
+}
+.shared-camera-card[open] .shared-chevron{transform:rotate(180deg)}
+.shared-camera-card[open] .shared-camera-heading{border-bottom:1px solid var(--line)}
+
+.shared-camera-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  padding:16px 18px 18px;
+}
+.shared-field{display:block;min-width:0}
+.shared-field>span{
+  display:block;
+  margin:0 0 6px 2px;
+  color:var(--muted);
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.08em;
+}
+.shared-field select{
+  width:100%;
+  min-height:44px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:var(--field-bg,var(--panel2));
+  color:var(--text);
+  padding:0 34px 0 12px;
+  font:inherit;
+  font-size:13px;
+  font-weight:700;
+  outline:none;
+}
+.shared-field select:focus{
+  border-color:#2F5B66;
+  box-shadow:0 0 0 3px rgba(47,91,102,.14);
+}
+
+@media(max-width:620px){
+  .shared-camera-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .shared-field-wide{grid-column:auto}
+}
+@media(max-width:390px){
+  .shared-camera-heading{gap:10px;padding:14px 15px}
+  .shared-camera-grid{padding:14px 15px 16px;grid-template-columns:1fr 1fr;gap:9px}
+  .shared-field select{font-size:12px}
+}
+
+/* Harmonisation verticale du shell : même espace au-dessus et au-dessous du sélecteur. */
+body .mode-switch.light-section-switch{
+  margin-top:12px!important;
+}

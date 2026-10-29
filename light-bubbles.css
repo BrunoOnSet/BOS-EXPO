@@ -1,0 +1,358 @@
+/* BOS LIGHT — Accent couleur subtil des bulles
+   DESIGN ONLY. Conserve strictement la géométrie de la DA Modern Premium. */
+
+:root{
+  --bos-bubble-warm:#8B857F;
+  --bos-bubble-warm-soft:color-mix(in srgb,var(--bos-bubble-warm) 11%,var(--bos-panel));
+  --bos-bubble-warm-line:color-mix(in srgb,var(--bos-bubble-warm) 20%,transparent);
+}
+
+html[data-theme="dark"],body.dark{
+  --bos-bubble-warm:#A49C96;
+  --bos-bubble-warm-soft:color-mix(in srgb,var(--bos-bubble-warm) 10%,var(--bos-panel));
+  --bos-bubble-warm-line:color-mix(in srgb,var(--bos-bubble-warm) 22%,transparent);
+}
+
+/*
+  On ne change ni la silhouette des cartes, ni leurs espacements,
+  ni leur typographie. La couleur chaude n'intervient que dans le
+  petit repère numérique, comme contrepoint discret au bleu BOS.
+*/
+.shared-step,
+.step,
+.bft-number{
+  background:var(--bos-bubble-warm-soft)!important;
+  color:var(--bos-accent)!important;
+  border:1px solid var(--bos-bubble-warm-line)!important;
+  box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--bos-bubble-warm) 18%,transparent)!important;
+}
+
+/* Très léger rappel chaud lorsque la fiche est ouverte, sans aplat. */
+.shared-camera-card[open],
+.controls-card[open],
+#bosThreePointPanel:not(.bmp-collapsed),
+#bosShadowHardnessPanel:not(.bmp-collapsed),
+#bosMiniPlateau:not(.bmp-collapsed){
+  border-color:color-mix(in srgb,var(--bos-bubble-warm) 14%,var(--bos-line))!important;
+}
+
+/*
+  FICHES TECHNIQUES — chevron strictement calqué sur les bulles Applications.
+  Le glyphe reste toujours le même (⌄) et pivote à 180° en 0,2 s.
+*/
+#bosThreePointPanel .bft-head,
+#bosShadowHardnessPanel .bft-head,
+#bosMiniPlateau .bft-head{
+  position:relative!important;
+}
+
+#bosThreePointPanel .bft-chevron,
+#bosShadowHardnessPanel .bft-chevron,
+#bosMiniPlateau .bft-chevron{
+  position:absolute!important;
+  right:18px!important;
+  top:50%!important;
+  width:24px!important;
+  height:24px!important;
+  display:grid!important;
+  place-items:center!important;
+  color:var(--bos-accent)!important;
+  font-size:0!important;
+  line-height:1!important;
+  transform:translateY(-50%)!important;
+  pointer-events:none!important;
+}
+
+#bosThreePointPanel .bft-chevron::before,
+#bosShadowHardnessPanel .bft-chevron::before,
+#bosMiniPlateau .bft-chevron::before{
+  content:"⌄";
+  display:block;
+  color:inherit;
+  font-size:18px;
+  line-height:1;
+  transform:rotate(0deg);
+  transform-origin:50% 50%;
+  transition:transform .2s ease;
+}
+
+#bosThreePointPanel:not(.bmp-collapsed) .bft-chevron::before,
+#bosShadowHardnessPanel:not(.bmp-collapsed) .bft-chevron::before,
+#bosMiniPlateau:not(.bmp-collapsed) .bft-chevron::before{
+  transform:rotate(180deg);
+}
+
+/*
+  APPLICATIONS — même principe sur ordinateur et téléphone :
+  la photo est un aplat latéral absolu, collé au bord droit de la tête.
+  Elle ne participe jamais au calcul de hauteur de la bulle.
+*/
+html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading{
+  display:grid!important;
+  grid-template-columns:32px minmax(150px,1fr) minmax(110px,180px)!important;
+  align-items:center!important;
+  column-gap:12px!important;
+  position:relative!important;
+  padding-right:calc(clamp(180px,23vw,240px) + 48px)!important;
+  overflow:hidden!important;
+}
+
+html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .step{
+  grid-column:1!important;
+  grid-row:1!important;
+  position:relative!important;
+  z-index:3!important;
+}
+
+html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .heading-copy{
+  grid-column:2!important;
+  grid-row:1!important;
+  min-width:0!important;
+  position:relative!important;
+  z-index:3!important;
+}
+
+html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .summary-value{
+  grid-column:3!important;
+  grid-row:1!important;
+  margin-left:0!important;
+  padding-right:0!important;
+  max-width:none!important;
+  min-width:0!important;
+  white-space:normal!important;
+  line-height:1.25!important;
+  position:relative!important;
+  z-index:3!important;
+}
+
+html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading::before{
+  content:"";
+  position:absolute!important;
+  z-index:1!important;
+  top:0!important;
+  right:0!important;
+  bottom:0!important;
+  left:auto!important;
+  width:clamp(180px,23vw,240px)!important;
+  height:auto!important;
+  min-height:100%!important;
+  margin:0!important;
+  border-radius:0 18px 18px 0!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:cover!important;
+  pointer-events:none!important;
+  opacity:.96!important;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
+  mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
+}
+
+html.bos-light-split-embed.bos-light-section-applications #cameraDetails > summary.collapsible-heading::before{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-camera.webp?v=20261012-1")!important;
+}
+html.bos-light-split-embed.bos-light-section-applications #lightDetails > summary.collapsible-heading::before{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-key.webp?v=20261012-1")!important;
+}
+html.bos-light-split-embed.bos-light-section-applications #fillDetails > summary.collapsible-heading::before{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-fill.webp?v=20261012-1")!important;
+}
+html.bos-light-split-embed.bos-light-section-applications #gelDetails > summary.collapsible-heading::before{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-gels.webp?v=20261012-1")!important;
+}
+
+html[data-theme="dark"].bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading::before,
+html.bos-light-split-embed.bos-light-section-applications body.dark details.collapsible-card > summary.collapsible-heading::before{
+  filter:brightness(.72) saturate(.86)!important;
+  opacity:.88!important;
+}
+
+/*
+  Chevron Applications — retour au chevron nu.
+  Un liseré blanc très léger suffit à le détacher de la photo sans ajouter de forme.
+*/
+html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .chevron{
+  right:14px!important;
+  width:24px!important;
+  height:24px!important;
+  display:grid!important;
+  place-items:center!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:var(--bos-accent)!important;
+  box-shadow:none!important;
+  text-shadow:
+    -.6px 0 rgba(255,255,255,.95),
+    .6px 0 rgba(255,255,255,.95),
+    0 -.6px rgba(255,255,255,.95),
+    0 .6px rgba(255,255,255,.95),
+    0 0 2px rgba(255,255,255,.72)!important;
+  z-index:5!important;
+}
+
+/*
+  FICHES TECHNIQUES — même signature visuelle que les Applications.
+  Les trois images sont collées au bord droit de la tête et n'influencent jamais sa hauteur.
+*/
+html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head,
+html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head,
+html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head{
+  position:relative!important;
+  overflow:hidden!important;
+  padding-right:calc(clamp(180px,23vw,240px) + 46px)!important;
+}
+
+html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-number,
+html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-number,
+html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-number,
+html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-title,
+html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-title,
+html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-title{
+  position:relative!important;
+  z-index:3!important;
+}
+
+html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head::after,
+html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head::after,
+html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head::after{
+  content:"";
+  position:absolute!important;
+  z-index:1!important;
+  top:0!important;
+  right:0!important;
+  bottom:0!important;
+  width:clamp(180px,23vw,240px)!important;
+  pointer-events:none!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:cover!important;
+  opacity:.96!important;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
+  mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 15%,#000 34%,#000 100%);
+}
+
+html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head::after{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-tech-3points.webp?v=20261012-1")!important;
+}
+html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head::after{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-tech-shadow.webp?v=20261012-1")!important;
+}
+html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head::after{
+  background-image:url("https://light.brunoguillard.com/assets/thumb-tech-falloff.webp?v=20261012-1")!important;
+  background-color:#f7f5f0!important;
+}
+
+html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-chevron,
+html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-chevron,
+html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-chevron{
+  right:14px!important;
+  z-index:5!important;
+  text-shadow:
+    -.6px 0 rgba(255,255,255,.95),
+    .6px 0 rgba(255,255,255,.95),
+    0 -.6px rgba(255,255,255,.95),
+    0 .6px rgba(255,255,255,.95),
+    0 0 2px rgba(255,255,255,.72)!important;
+}
+
+html[data-theme="dark"].bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head::after,
+html[data-theme="dark"].bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head::after,
+html[data-theme="dark"].bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head::after,
+html.bos-light-split-embed.bos-light-section-technical body.dark #bosThreePointPanel .bft-head::after,
+html.bos-light-split-embed.bos-light-section-technical body.dark #bosShadowHardnessPanel .bft-head::after,
+html.bos-light-split-embed.bos-light-section-technical body.dark #bosMiniPlateau .bft-head::after{
+  filter:brightness(.72) saturate(.86)!important;
+  opacity:.88!important;
+}
+
+/*
+  MOBILE — même composition, plus compacte.
+  Le résumé disparaît pour laisser la place au titre et à l'image latérale.
+*/
+@media(max-width:560px){
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading{
+    display:flex!important;
+    grid-template-columns:none!important;
+    align-items:center!important;
+    column-gap:10px!important;
+    padding-left:12px!important;
+    padding-right:calc(clamp(104px,30vw,124px) + 34px)!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .step{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    flex:0 0 32px!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .heading-copy{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    flex:1 1 auto!important;
+    min-width:0!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .summary-value{
+    display:none!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading::before{
+    width:clamp(104px,30vw,124px)!important;
+    border-radius:0 18px 18px 0!important;
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 18%,#000 38%,#000 100%);
+    mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 18%,#000 38%,#000 100%);
+  }
+
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading > .chevron{
+    right:12px!important;
+    width:22px!important;
+    height:22px!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head,
+  html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head,
+  html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head{
+    padding-right:calc(clamp(104px,30vw,124px) + 34px)!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head::after,
+  html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head::after,
+  html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head::after{
+    width:clamp(104px,30vw,124px)!important;
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 18%,#000 38%,#000 100%);
+    mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 18%,#000 38%,#000 100%);
+  }
+
+  html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-chevron,
+  html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-chevron,
+  html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-chevron{
+    right:12px!important;
+    width:22px!important;
+    height:22px!important;
+  }
+}
+
+@media(max-width:420px){
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading{
+    column-gap:8px!important;
+    padding-left:10px!important;
+    padding-right:calc(clamp(94px,29vw,112px) + 32px)!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-applications details.collapsible-card > summary.collapsible-heading::before{
+    width:clamp(94px,29vw,112px)!important;
+    border-radius:0 17px 17px 0!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head,
+  html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head,
+  html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head{
+    padding-right:calc(clamp(94px,29vw,112px) + 32px)!important;
+  }
+
+  html.bos-light-split-embed.bos-light-section-technical #bosThreePointPanel .bft-head::after,
+  html.bos-light-split-embed.bos-light-section-technical #bosShadowHardnessPanel .bft-head::after,
+  html.bos-light-split-embed.bos-light-section-technical #bosMiniPlateau .bft-head::after{
+    width:clamp(94px,29vw,112px)!important;
+  }
+}

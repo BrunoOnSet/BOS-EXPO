@@ -1,10 +1,24 @@
-const CACHE="bos-expo-v4-2-3-tech-illustrated-jpg";
+const CACHE="bos-expo-v5-0-0-cloudflare-standalone";
 const ASSETS=[
   "./",
   "./index.html",
   "./expo-host.js",
   "./expo-light-shell.js",
   "./expo-light-shell.css",
+  "./light-source-style.css",
+  "./continuous.css",
+  "./light-design.css",
+  "./light-bubbles.css",
+  "./light-mobile-width-fix.css",
+  "./modules/expo/index.html",
+  "./modules/expo/style.css",
+  "./modules/expo/expo-solo.css",
+  "./modules/expo/app.js",
+  "./modules/expo/adapters/integrated.js",
+  "./shared/state.js",
+  "./shared/navigation.js",
+  "./shared/analytics.js",
+  "./shared/module-host.js",
   "./assets/triangle-exposition.jpg",
   "./assets/fiche-filtres-nd.jpg",
   "./assets/expo-tech-triangle-thumb.jpg",
@@ -29,7 +43,7 @@ self.addEventListener("fetch",e=>{
   if(e.request.method!=="GET")return;
   const url=new URL(e.request.url);
   const jpgFiche=url.origin===self.location.origin &&
-    /^\/BOS-EXPO\/assets\/(?:triangle-exposition|fiche-filtres-nd|effets-des-reglages)\.jpg$/.test(url.pathname);
+    /\/(?:BOS-EXPO\/)?assets\/(?:triangle-exposition|fiche-filtres-nd|effets-des-reglages)\.jpg$/.test(url.pathname);
   if(jpgFiche){
     // Les JPG sont remplacables par l'utilisateur sans éditer l'application.
     // Toujours vérifier le fichier réseau, en gardant une copie hors-ligne.
